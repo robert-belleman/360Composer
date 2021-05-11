@@ -1,0 +1,129 @@
+# player
+
+To build and run the PCIT-VR player, you should follow the following
+instructions.
+
+When downloading the PCIT-VR player from the git branch, make sure you get the
+most recent version. In my case, the most recent version was located in the
+10758305/new-architectrue-compatibility branch.
+
+Normally, the player runs on localhost:3000. However, the scene editor frontend
+also runs on localhost:3000. In order to solve this problem, you should add the
+following piece of code to the nuxt.config.js file, located in the root
+directory of the player:
+```javascript
+  server: {
+    port: 3001
+  },
+```
+You can also use another port than 3001 if you prefer.
+
+After that, use these commands in the directory in which the player is located:
+
+```bash
+cp .env.sample .env
+npm install
+```
+
+You may encounter problems when installing the dependencies. The errors will
+probably look like this:
+npm WARN X requires a peer of Y but none is installed. You must install
+peer dependencies yourself. In this case, X is a package which you already have
+installed, and Y is the dependency.
+
+When you encounter this problem, you should use the command
+```bash
+npm install --save-dev Y
+```
+where Y is still the dependency. You should do this for all instances of this
+warning, until there are no more errors. Also, some errors can easily be fixed
+by using the command
+```bash
+npm audit fix
+```
+When you use the npm install command, it will tell you to use this command if
+necessary.
+
+Once all peer dependencies are installed and you get no more warnings or only
+warnings about optional dependencies, you can build and launch the server using
+
+```bash
+npm run build
+npm run start
+```
+
+# scene-editor
+
+## frontend
+In order to make the frontend run, like with the player, you should run
+```bash
+npm install
+```
+and get rid of all the warnings in the same way.
+Then, use
+```bash
+npm run start
+```
+
+It can also be useful to replace line 148 (this may change in the future so you
+can use ctrl+f to find a line that starts the same) of
+frontend/src/components/TimelineEditorComponents/TimelineUserList.tsx
+with the following:
+```javascript
+      <Typography variant="body1" component="p">{`localhost:3001/player/${timelineID}/${popoverState.id}`}</Typography>
+```
+If you used another port for the player, then replace the 3001 in this line
+with the port you used.
+
+## backend
+
+### Requirements
+This project requires Docker 17.09.0 or newer, and docker-compose 1.17.0 or newer.
+
+### Linux
+On most Linux distributions, you should *not* use your distribution's
+repositories and should follow the instructions ([Docker][docker-install],
+[docker-compose][docker-compose-install]).
+
+Note that you will need root rights for everything Docker. It is
+[not recommended][docker-attack-surface] to add yourself to the `docker` group.
+
+### macOS
+On macOS, it's easiest to install Docker using Homebrew Cask:
+`brew cask install docker`. This will also install docker-compose.
+
+### Windows
+You can get Docker for Windows from the [Docker store][docker-windows].
+
+### Configuration
+The only configuration needed for the backend is a database password. To add this, simply create a ```.env``` file in the backend folder. Include the following variable in this environment file
+
+```shell
+DATABASE_PASSWORD=<your database password>
+```
+
+Add a strong, random password here for access to your database.
+
+## Running
+To run the backend, make sure you added the ```DATABASE_PASSWORD``` to you ```.env``` file. Now you can run ```docker-compose up --build``` to build and start the docker setup from scratch, or run ```docker-compose up``` if you already built it beforehand.
+
+
+# Overig
+An error can occur while running the application locally which prevents the
+player from retrieving the timeline. This can be solved by replacing the line
+```javascript
+CORS(app)
+```
+with
+```javascript
+CORS(app, supports_credentials=True)
+```
+in scene-editor/backend/app/app.py and adding the line
+```javascript
+this.$axios.defaults.withCredentials = true;
+```
+Just before the line with
+```javascript
+this.logIn()
+```
+in pcit-vr-player/pages/_uuid/_user/index.vue

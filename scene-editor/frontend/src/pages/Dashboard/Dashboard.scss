@@ -1,0 +1,21 @@
+.dashboard-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .dashboard-paper {
+        margin: 16px;
+        max-width: 862px;
+        width: 100%;
+    }
+
+    .toolbar {
+        justify-content: space-between;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+.content {
+    flex-grow: 1;   
+}

@@ -1,0 +1,33 @@
+{
+  "name": "PCIT-VR",
+  "version": "1.0.0",
+  "description": "VR player for PCIT-VR projects",
+  "author": "University of Amsterdam",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt --port 3001",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "@nuxtjs/axios": "^5.13.1",
+    "@nuxtjs/dotenv": "^1.4.0",
+    "@nuxtjs/proxy": "^1.3.3",
+    "bootstrap": "^4.1.3",
+    "bootstrap-vue": "^2.0.0",
+    "nuxt": "^2.15.4",
+    "vue-fragment": "^1.5.1"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-config": "^2.0.0",
+    "@nuxtjs/eslint-module": "^1.0.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^6.1.0",
+    "eslint-plugin-nuxt": ">=0.4.2",
+    "jquery": "^3.6.0",
+    "typescript": "^3.9.9",
+    "webpack": "^4.46.0"
+  }
+}

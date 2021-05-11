@@ -1,0 +1,10 @@
+version: '3'
+services:
+
+  pcit-vr-player:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - 3001:3001
