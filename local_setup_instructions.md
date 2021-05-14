@@ -1,8 +1,7 @@
-# player
+This document contains instructions on how to set up the PCIT-VR framework to
+run locally.
 
-To build and run the PCIT-VR player, you should follow the following
-instructions.
-
+# Player
 When downloading the PCIT-VR player from the git branch, make sure you get the
 most recent version. In my case, the most recent version was located in the
 10758305/new-architectrue-compatibility branch.
@@ -52,9 +51,9 @@ npm run build
 npm run start
 ```
 
-# scene-editor
+# Scene-editor
 
-## frontend
+## Frontend
 In order to make the frontend run, like with the player, you should run
 ```bash
 npm install
@@ -75,7 +74,7 @@ with the following:
 If you used another port for the player, then replace the 3001 in this line
 with the port you used.
 
-## backend
+## Backend
 
 ### Requirements
 This project requires Docker 17.09.0 or newer, and docker-compose 1.17.0 or newer.
@@ -88,7 +87,7 @@ repositories and should follow the instructions ([Docker][docker-install],
 Note that you will need root rights for everything Docker. It is
 [not recommended][docker-attack-surface] to add yourself to the `docker` group.
 
-### macOS
+### MacOS
 On macOS, it's easiest to install Docker using Homebrew Cask:
 `brew cask install docker`. This will also install docker-compose.
 
@@ -108,7 +107,9 @@ Add a strong, random password here for access to your database.
 To run the backend, make sure you added the ```DATABASE_PASSWORD``` to you ```.env``` file. Now you can run ```docker-compose up --build``` to build and start the docker setup from scratch, or run ```docker-compose up``` if you already built it beforehand.
 
 
-# Overig
+# Possible problems
+
+## Cannot run player
 An error can occur while running the application locally which prevents the
 player from retrieving the timeline. This can be solved by replacing the line
 ```javascript
@@ -127,3 +128,32 @@ Just before the line with
 this.logIn()
 ```
 in pcit-vr-player/pages/_uuid/_user/index.vue
+
+## Cannot access player through IP address
+Another problem that may occur is that the player cannot be accessed locally
+through the IP address. The solution to this is to add the following lines of
+code to the file pcit-vr-player/nuxt.config.js:
+```javascript
+browserBaseUrl: process.env.API_URL_BROWSER !== undefined ? process.env.API_URL_BROWSER : 'http://x.x.x.x:5000'
+```
+instead of
+```javascript
+browserBaseUrl: process.env.API_URL_BROWSER !== undefined ? process.env.API_URL_BROWSER : 'http://localhost:5000'
+```
+Where the x's should be replaced by the numbers in the IP address of the network
+that the machine running the server for the player is connected to and the 5000
+represents the port for the backend api. If you changed this port, then the
+port in this line should also be changed accordingly.
+
+```javascript
+  server: {
+    host: '0',
+    port: 3001
+  }
+```
+instead of
+```javascript
+  server: {
+    port: 3001
+  },
+```

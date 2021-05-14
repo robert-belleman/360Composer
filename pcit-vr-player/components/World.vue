@@ -1,7 +1,7 @@
 <template>
   <!-- World -->
   <a-entity rotation="0 0 0" arrow-key-rotation>
-    <a-camera user-height="0" wasd-controls-enabled="false">
+    <a-camera id="camera" user-height="0" wasd-controls-enabled="false">
       <a-entity
         id="cursor"
         cursor-enter
