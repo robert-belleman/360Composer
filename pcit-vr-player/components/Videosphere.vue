@@ -1,6 +1,6 @@
 <template>
   <a-entity>
-    <a-videosphere id="videosphere" rotation="0 -90 0" ref="videosphere" :src="src" @loaded="loaded" />
+    <a-videosphere rotation="0 -90 0" ref="videosphere" :src="src" @loaded="loaded" />
   </a-entity>
 </template>
 
