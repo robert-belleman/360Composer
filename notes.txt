@@ -1,0 +1,7 @@
+rotation vector:
+rechts: y = negatief
+links: y = positief
+boven: x = positief
+onder: x = negatief
+
+https://stackoverflow.com/questions/24882306/return-value-inside-a-setinterval

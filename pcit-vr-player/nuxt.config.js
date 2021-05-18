@@ -1,6 +1,9 @@
 import {getEnv} from "bootstrap-vue/esm/utils/env";
 require('dotenv').config()
 
+import path from 'path'
+import fs from 'fs'
+
 export default {
   mode: 'spa',
   /*
@@ -75,12 +78,16 @@ export default {
   },
   server: {
     // host: '0', // Deze line zorgt ervoor dat de server luistert op het IP adres.
-    port: 3001
+    port: 3001,
+    // https: {
+    //   key: fs.readFileSync(path.resolve(__dirname, 'server.key')),
+    //   cert: fs.readFileSync(path.resolve(__dirname, 'server.crt'))
+    // }
   },
   axios: {
     proxy: true,
     browserBaseUrl: process.env.API_URL_BROWSER !== undefined ? process.env.API_URL_BROWSER : 'http://localhost:5000' // Gebruik deze voor lokaal op zelfde device
-    // browserBaseUrl: process.env.API_URL_BROWSER !== undefined ? process.env.API_URL_BROWSER : 'http://10.0.0.148:5000' // Gebruik deze om via ander apparaat te runnen
+    // browserBaseUrl: process.env.API_URL_BROWSER !== undefined ? process.env.API_URL_BROWSER : 'https://10.0.0.148:5000' // Gebruik deze om via ander apparaat te runnen
   },
   proxy: {
     '/api/': {

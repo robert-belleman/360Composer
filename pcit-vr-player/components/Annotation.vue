@@ -20,6 +20,10 @@
         <!-- moeten misschien <div> brackets omheen -->
         {{ handleMovement() }}
       </template>
+      <template v-else-if="annotation.type == 2">
+        <!-- moeten misschien <div> brackets omheen -->
+        {{ handleBlowing() }}
+      </template>
     </template>
 
     <template v-else-if="selectedOption !== null && feedbackActive">
@@ -210,6 +214,70 @@ export default {
               this.selectOption(option)
             }
           })
+        })
+    },
+    handleBlowing () {
+      /* This function is based on the code in this git repository:
+       * https://github.com/qwertywertyerty/detecting-blowing-mic
+       */
+      // navigator.getUserMedia || navigator.webkitGetUserMedia ||
+      //                     navigator.mozGetUserMedia || navigator.msGetUserMedia
+      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then((stream) => {
+          // audioTracks = stream.getAudioTracks()
+          // const mediaRecorder = new mediaRecorder(stream)
+          // mediaRecorder.start()
+
+          // mediaRecorder.requestData()
+
+          const audioContext = new AudioContext()
+          const analyser = audioContext.createAnalyser()
+          const microphone = audioContext.createMediaStreamSource(stream)
+
+          analyser.fftSize = 1024
+          analyser.smoothingTimeConstant = 0.8
+
+          microphone.connect(analyser)
+
+          return new Promise((resolve) => {
+            this.timer = setInterval(() => {
+              const audioData = new Uint8Array(analyser.frequencyBinCount)
+              analyser.getByteFrequencyData(audioData)
+              let sum = 0
+
+              audioData.forEach((val) => {
+                sum += val
+              })
+
+              const average = sum / analyser.frequencyBinCount
+
+              if (average > 90) {
+                // wanneer klaar
+                stream.getTracks().forEach((track) => {
+                  track.stop()
+                })
+                audioContext.close()
+                clearInterval(this.timer)
+                /* eslint-disable no-console */
+                console.log('Er is geblaas gedetecteerd!')
+                /* eslint-enable no-console */
+                resolve('1')
+              }
+            }, 750)
+          })
+            .then((result) => {
+              this.annotation.options.forEach((option) => {
+                if (option.option === result) {
+                  this.selectOption(option)
+                }
+              })
+            })
+        })
+        .catch((err) => {
+          /* eslint-disable no-console */
+          console.log(err)
+          /* eslint-enable no-console */
+          return '0'
         })
     },
     switchSegment (option) {
