@@ -51,6 +51,12 @@ npm run build
 npm run start
 ```
 
+or run in development using
+
+```bash
+npm run dev
+```
+
 # Scene-editor
 
 ## Frontend
@@ -95,10 +101,11 @@ On macOS, it's easiest to install Docker using Homebrew Cask:
 You can get Docker for Windows from the [Docker store][docker-windows].
 
 ### Configuration
-The only configuration needed for the backend is a database password. To add this, simply create a ```.env``` file in the backend folder. Include the following variable in this environment file
+The only configuration needed for the backend is a database password. To add this, simply create a ```.env``` file in the backend folder. Include the following variables in this environment file
 
 ```shell
 DATABASE_PASSWORD=<your database password>
+JWT_SECRET_KEY=<your secret key>
 ```
 
 Add a strong, random password here for access to your database.
@@ -157,3 +164,23 @@ instead of
     port: 3001
   },
 ```
+
+
+# Windows setup:
+Run these steps on top of the ones above to setup the application on windows:
+- Install docker for windows on https://docs.docker.com/docker-for-windows/install/
+- After installing docker on windows and restarting, it will ask you to complete
+  another step. Follow the link that docker gives and follow the specified step.
+  After this, you will be asked to restart again. Do this.
+- install node.js on https://nodejs.org/en/download/
+- install git from https://git-scm.com/download/win
+- Open command prompt and go to the directory of the pcit-vr project.
+  (you may need to go to OneDrive first and then navigate to the pcit-vr project)
+- Delete package-lock.json in scene-editor/frontend
+- run the following commands:
+  ```bash
+  npm install typescript --save-dev
+  npm install http-proxy-middleware --save-dev
+  npm install node-sass
+  ```
+  in scene-editor/frontend.
