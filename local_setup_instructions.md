@@ -170,8 +170,9 @@ instead of
 Run these steps on top of the ones above to setup the application on windows:
 - Install docker for windows on https://docs.docker.com/docker-for-windows/install/
 - After installing docker on windows and restarting, it will ask you to complete
-  another step. Follow the link that docker gives and follow the specified step.
-  After this, you will be asked to restart again. Do this.
+  another step by downloading WSL2. Follow the link that docker gives and
+  follow the specified step. After this, you will be asked to restart again.
+  Do this.
 - install node.js on https://nodejs.org/en/download/
 - install git from https://git-scm.com/download/win
 - Open command prompt and go to the directory of the pcit-vr project.

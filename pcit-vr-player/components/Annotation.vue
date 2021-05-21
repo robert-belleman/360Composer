@@ -124,19 +124,21 @@ export default {
   methods: {
     handleMovement () {
       const interval = 100
+      const margin = 10
+      const speedThreshold = margin * interval * 0.003
+      const threshold = 30
+      const camera = document.getElementById('camera')
+
       let firstRotation = []
       let prevRotation = []
       let prevDirection = []
       let maxDeviation = [0, 0]
       let directionChanges = [0, 0]
-      let rotations = []
 
       return new Promise((resolve) => {
         const timer = setInterval(() => {
-          const camera = document.getElementById('camera')
           const rotationVec = camera.getAttribute('rotation')
           const rotation = [rotationVec.y, rotationVec.x]
-          rotations.push(rotation)
 
           if (!firstRotation.length) {
             firstRotation = rotation
@@ -151,9 +153,6 @@ export default {
              * in a direction to make the movement count as the user nodding or
              * shaking their head.
              */
-            const margin = 10
-            const speedThreshold = margin * interval * 0.003
-            const threshold = 30
             let horDirection = rotation[0] - prevRotation[0]
             let verDirection = rotation[1] - prevRotation[1]
             const horDeviation = rotation[0] - firstRotation[0]
@@ -192,7 +191,6 @@ export default {
               prevDirection = []
               maxDeviation = [0, 0]
               directionChanges = [0, 0]
-              rotations = []
             } else {
               /* Make sure the sign of the direction stays the same when a
                * direction is 0, which means that the camera isn't moving.
