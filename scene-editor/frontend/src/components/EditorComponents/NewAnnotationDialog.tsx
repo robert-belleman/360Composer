@@ -222,10 +222,9 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
           <Typography variant="body1">Select the annotation type: </Typography>
           <select id="select-annotation-type" onChange={handleTypeChange}>
             <option value="0">Tekst</option>
-            <option value="1">Beweging</option>
+            <option value="1">Knikken/schudden</option>
             <option value="2">Blazen</option>
-            <option value="3">Klinkers</option>
-            <option value="4">Woorden</option>
+            <option value="3">Anders</option>
           </select>
           {optionTable()}
         </DialogContent>

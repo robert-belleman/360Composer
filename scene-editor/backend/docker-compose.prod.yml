@@ -18,10 +18,10 @@ services:
         - ./assets/:/app/app/static/assets/
 
     command: bash -c "/entrypoint.sh"
-    depends_on: 
+    depends_on:
         - postgres
         - redis
-  
+
   worker:
     image: backend
     command: python app/worker.py
@@ -71,6 +71,6 @@ services:
       - ../frontend/build:/frontend/build
     ports:
       - 8080:8080
-      
+
 volumes:
   postgres:

@@ -14,6 +14,10 @@ from app.schemas.customer import customer_schema, customer_create_schema, custom
 
 from app.models.customer import Customer as CustomerModel
 
+from app.schemas.annotation_option import option_schema
+
+import sys
+
 ns = api.namespace("customer")
 
 @ns.route('/')
@@ -98,3 +102,75 @@ class CustomerDelete(Resource):
         db.session.commit()
 
         return "", HTTPStatus.OK
+
+
+customer_options = {}
+customer_options_chosen = {}
+
+@ns.route('/<string:id>/options')
+@ns.response(HTTPStatus.NOT_FOUND, "Customer not found")
+@ns.param("id", "The customer identifier")
+class CustomerOptions(Resource):
+
+    @user_or_customer_jwt_required
+    @ns.marshal_with(option_schema)
+    def get(self, id):
+        claims = get_jwt_claims()
+
+        customer: CustomerModel = CustomerModel.query.filter_by(id=id).first_or_404()
+
+        if id in customer_options:
+            result = customer_options[id]
+            del customer_options[id]
+            return result, HTTPStatus.OK
+
+        return "Options not found", HTTPStatus.NOT_FOUND
+
+    @user_or_customer_jwt_required
+    @ns.expect(option_schema)
+    def post(self, id):
+        claims = get_jwt_claims()
+
+        customer: CustomerModel = CustomerModel.query.filter_by(id=id).first_or_404()
+
+        customer_options[id] = api.payload['options']
+
+        return "", HTTPStatus.OK
+
+
+@ns.route('/<string:id>/options/chosen')
+@ns.response(HTTPStatus.NOT_FOUND, "Customer not found")
+@ns.param("id", "The customer identifier")
+class CustomerOptionsChosen(Resource):
+
+    @user_or_customer_jwt_required
+    @ns.marshal_with(option_schema)
+    def get(self, id):
+        claims = get_jwt_claims()
+
+        customer: CustomerModel = CustomerModel.query.filter_by(id=id).first_or_404()
+
+        # print("customer_options = " + str(customer_options), file=sys.stderr)
+
+        if id in customer_options_chosen:
+            result = customer_options_chosen[id]
+            del customer_options_chosen[id]
+            return result, HTTPStatus.OK
+
+        return "Option not found", HTTPStatus.NOT_FOUND
+
+    @user_or_customer_jwt_required
+    @ns.expect(option_schema)
+    def post(self, id):
+        claims = get_jwt_claims()
+
+        customer: CustomerModel = CustomerModel.query.filter_by(id=id).first_or_404()
+
+        customer_options_chosen[id] = api.payload['chosen']
+
+        return "", HTTPStatus.OK
+
+# """
+# https://stackoverflow.com/questions/3433559/python-time-delays
+# https://stackoverflow.com/questions/4415672/python-theading-timer-how-to-pass-argument-to-the-callback
+# """

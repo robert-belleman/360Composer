@@ -22,6 +22,9 @@
       <template v-else-if="annotation.type == 2">
         {{ handleBlowing() }}
       </template>
+      <template v-else-if="annotation.type == 3">
+        {{ handleGeneral() }}
+      </template>
     </template>
 
     <template v-else-if="selectedOption !== null && feedbackActive">
@@ -53,7 +56,7 @@ import { mapActions } from 'vuex'
 import Button from './Button'
 import Tooltip from './Tooltip'
 
-function isEvenlyDistributed (array, sliceAmount, margin, avgThreshold) {
+function isEvenlyDistributed (array, sliceAmount, margin, threshold) {
   const sliceSize = Math.floor(array.length / sliceAmount)
   const repetitions = sliceSize * sliceAmount
   const averages = []
@@ -76,14 +79,18 @@ function isEvenlyDistributed (array, sliceAmount, margin, avgThreshold) {
 
   const average = sum / repetitions
 
+  /* If the average isn't bigger than or equal to the threshold, the volume
+   * isn't high enough so return false.
+   */
+  if (average < threshold) {
+    return false
+  }
+
   /* For each slice average, check if the difference between the slice average
-   * and the average of the whole array is out of the margin. Also check if the
-   * average is smaller than the threshold. If any of these conditions hold
-   * true, the array is not evenly distributed and the function returns false.
+   * and the average of the whole array is bigger than the margin.
    */
   for (let i = 0; i < averages.length; i++) {
-    if ((Math.abs(averages[i] - average) / average) > margin ||
-        average < avgThreshold) {
+    if ((Math.abs(averages[i] - average) / average) > margin) {
       return false
     }
   }
@@ -123,6 +130,17 @@ export default {
   },
   methods: {
     handleMovement () {
+      /* Define the time interval which indicates the time between measurements.
+       * Also define the margin for how much the user is allowed to move
+       * without it actually counting as moving. Then, define a threshold
+       * which defines the minimum rotation which is required in a single
+       * time interval to acknowledge movement. This threshold is
+       * multiplied by 0.003 because time is measured in milliseconds, so
+       * divide by 1000 to get a number that isn't too large. Finally,
+       * define the threshold for how much the camera has to have moved
+       * in a direction to make the movement count as the user nodding or
+       * shaking their head.
+       */
       const interval = 100
       const margin = 10
       const speedThreshold = margin * interval * 0.003
@@ -143,16 +161,6 @@ export default {
           if (!firstRotation.length) {
             firstRotation = rotation
           } else {
-            /* Define the margin for how much the user is allowed to move
-             * without it actually counting as moving. Then, define a threshold
-             * which defines the minimum rotation which is required in a single
-             * time interval to acknowledge movement. This threshold is
-             * multiplied by 0.003 because time is measured in milliseconds, so
-             * divide by 1000 to get a number that isn't too large. Finally,
-             * define the threshold for how much the camera has to have moved
-             * in a direction to make the movement count as the user nodding or
-             * shaking their head.
-             */
             let horDirection = rotation[0] - prevRotation[0]
             let verDirection = rotation[1] - prevRotation[1]
             const horDeviation = rotation[0] - firstRotation[0]
@@ -235,9 +243,9 @@ export default {
                 clearInterval(timer)
                 resolve('0')
               } else if (directionChanges[1] &&
-                        maxDeviation[0] < margin &&
-                        Math.abs(verDeviation) > threshold &&
-                        Math.sign(verDeviation) !== directionChanges[1]) {
+                         maxDeviation[0] < margin &&
+                         Math.abs(verDeviation) > threshold &&
+                         Math.sign(verDeviation) !== directionChanges[1]) {
                 clearInterval(timer)
                 resolve('1')
               }
@@ -260,6 +268,13 @@ export default {
       /* This function is based on the code in this git repository:
        * https://github.com/qwertywertyerty/detecting-blowing-mic
        */
+      navigator.getUserMedia = navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia
+      if (!navigator.getUserMedia) {
+        return
+      }
+
       navigator.mediaDevices.getUserMedia({ audio: true, video: false })
         .then((stream) => {
           /* Set up the audio input stream. */
@@ -279,10 +294,10 @@ export default {
 
               /* Calculate the boundaries of the indices which indicate
                * frequencies of blowing sounds. The lower bound for blowing
-               * frequencies is about 500, while the upper bound is 3000. Since
-               * getByteFrequencyData() returns an array with a frequency range
-               * of 0 to 0.5 * audioContext.sampleRate, These numbers can be
-               * multiplied by 2 to avoid an extra multiplication.
+               * frequencies is about 3000, while the upper bound is 15000.
+               * Since getByteFrequencyData() returns an array with a frequency
+               * range of 0 to 0.5 * audioContext.sampleRate, These numbers can
+               * be multiplied by 2 to avoid an extra multiplication.
                */
               const n = analyser.frequencyBinCount
               // NOTE: MAAK HIER NOG EEN LEKKER EXPERIMENTJE VAN VOOR IN JE
@@ -317,6 +332,22 @@ export default {
                 }
               })
             })
+        })
+    },
+    handleGeneral () {
+      /* eslint-disable no-console */
+      console.log('options posted: ', this.annotation.options)
+      /* eslint-enable no-console */
+      this.$axios.$post(`/api/customer/${this.$route.params.user}/options`, { options: this.annotation.options })
+        .then((_) => {
+          const timer = setInterval(() => {
+            this.$axios.$get(`/api/customer/${this.$route.params.user}/options/chosen`)
+              .catch()
+              .then((chosenOption) => {
+                clearInterval(timer)
+                this.selectOption(chosenOption)
+              })
+          }, 1000)
         })
     },
     switchSegment (option) {
