@@ -1,29 +1,45 @@
 <template>
   <a-entity>
     <template v-if="annotation.options.length > 0 && !feedbackActive">
-      <Tooltip
-        :text="annotation.annotation"
-        :row="1"
-        :of="totalRows"
-      />
-      <template v-if="annotation.type == 0">
+      <!--<template v-if="showResults">
         <Button
-          v-for="(option, i) in annotation.options"
-          :key="i"
-          :row="i + 2"
-          :of="totalRows"
-          :text-value="option.option"
-          @click="selectOption(option)"
+          :row="1"
+          :of="1"
+          :geometry="'primitive: plane; height: 5; width: 5'"
+          :material="'opacity: 1.0; transparent: false'"
+          :text-color="'black'"
+          :text-value="rotations"
+          :slice-text="false"
+          :clickable="false"
         />
       </template>
-      <template v-else-if="annotation.type == 1">
-        {{ handleMovement() }}
-      </template>
-      <template v-else-if="annotation.type == 2">
-        {{ handleBlowing() }}
-      </template>
-      <template v-else-if="annotation.type == 3">
-        {{ handleGeneral() }}
+      -->
+
+      <template>
+        <Tooltip
+          :text="annotation.annotation"
+          :row="1"
+          :of="totalRows"
+        />
+        <template v-if="annotation.type == 0">
+          <Button
+            v-for="(option, i) in annotation.options"
+            :key="i"
+            :row="i + 2"
+            :of="totalRows"
+            :text-value="option.option"
+            @click="selectOption(option)"
+          />
+        </template>
+        <template v-else-if="annotation.type == 1">
+          {{ handleMovement() }}
+        </template>
+        <template v-else-if="annotation.type == 2">
+          {{ handleBlowing() }}
+        </template>
+        <template v-else-if="annotation.type == 3">
+          {{ handleGeneral() }}
+        </template>
       </template>
     </template>
 
@@ -55,6 +71,53 @@
 import { mapActions } from 'vuex'
 import Button from './Button'
 import Tooltip from './Tooltip'
+
+// function formatData (data) {
+//   function isNumber (n) {
+//     return !isNaN(parseFloat(n)) && isFinite(n)
+//   }
+
+//   function roundValues (array, precision) {
+//     const roundedArray = []
+
+//     array.forEach(function round (elem) {
+//       if (isNumber(elem)) {
+//         roundedArray.push(Number.parseFloat(elem.toFixed(precision)))
+//       } else if (elem.constructor === Array) {
+//         roundedArray.push(roundValues(elem, precision))
+//       } else {
+//         roundedArray.push(elem)
+//       }
+//     })
+
+//     return roundedArray
+//   }
+
+//   const roundedData = roundValues(data, 2)
+//   return JSON.stringify(roundedData).split(',[').join(',\n[').split(',').join(', ').split(' \n').join('\n')
+// }
+
+// let file = null
+
+// function saveResults (content, name) {
+//   const blob = new Blob([content], { type: 'text/plain' })
+
+//   if (file !== null) {
+//     window.URL.revokeobjectURL(file)
+//   }
+
+//   file = window.URL.createObjectURL(blob)
+//   const link = document.createElement('a')
+//   link.setAttribute('download', name)
+//   link.href = file
+//   document.body.appendChild(link)
+
+//   window.requestAnimationFrame(function () {
+//     const event = new MouseEvent('click')
+//     link.dispatchEvent(event)
+//     document.body.removeChild(link)
+//   })
+// }
 
 function isEvenlyDistributed (array, sliceAmount, margin, threshold) {
   const sliceSize = Math.floor(array.length / sliceAmount)
@@ -117,6 +180,8 @@ export default {
     return {
       feedbackActive: false,
       selectedOption: null
+      // showResults: false,
+      // rotations: []
     }
   },
   computed: {
@@ -127,6 +192,14 @@ export default {
         return 2 // If there's no options, this is a message annotation, only show the text and a continue button
       }
     }
+    // annotationTypes () {
+    //   const types = []
+    //   this.$axios.$get(`/api/annotation/types`)
+    //     .then((res) => types = res.data)
+    //     .catch((e) => console.log(e))
+    //   console.log('types = ', types)
+    //   return types
+    // }
   },
   methods: {
     handleMovement () {
@@ -141,28 +214,49 @@ export default {
        * in a direction to make the movement count as the user nodding or
        * shaking their head.
        */
-      const interval = 100
-      const margin = 10
-      const speedThreshold = margin * interval * 0.003
-      const threshold = 30
+      const interval = 50
+      // const margin = 5
+      const speedThreshold = interval * 0.01
+      const horThreshold = 8
+      const verThreshold = 6
+      const maxCount = 500 / interval
       const camera = document.getElementById('camera')
 
+      // const rotations = [] // TEMP
+      let count = 0
+      let horMargin = 3
+      let verMargin = 2
       let firstRotation = []
       let prevRotation = []
       let prevDirection = []
       let maxDeviation = [0, 0]
       let directionChanges = [0, 0]
 
+      /* eslint-disable no-console */
+      // console.log('Hey hallo print eens wat')
+      /* eslint-enable no-console */
+
       return new Promise((resolve) => {
         const timer = setInterval(() => {
+          function reset () {
+            firstRotation = []
+            prevDirection = []
+            maxDeviation = [0, 0]
+            directionChanges = [0, 0]
+            horMargin = 3
+            verMargin = 2
+            count = 0
+          }
+
           const rotationVec = camera.getAttribute('rotation')
           const rotation = [rotationVec.y, rotationVec.x]
+          // this.rotations.push(rotation) // TEMP
 
           if (!firstRotation.length) {
             firstRotation = rotation
           } else {
-            let horDirection = rotation[0] - prevRotation[0]
-            let verDirection = rotation[1] - prevRotation[1]
+            const horDirection = rotation[0] - prevRotation[0]
+            const verDirection = rotation[1] - prevRotation[1]
             const horDeviation = rotation[0] - firstRotation[0]
             const verDeviation = rotation[1] - firstRotation[1]
 
@@ -173,9 +267,36 @@ export default {
              */
             if (Math.abs(horDeviation) > maxDeviation[0]) {
               maxDeviation[0] = Math.abs(horDeviation)
+              /* Update margin so it is a third of the maximum deviation from
+               * the first rotation.
+               */
+              if (maxDeviation[0] > horThreshold) {
+                horMargin = 3 + maxDeviation[0] * 0.1 // UPDATED
+              }
             }
             if (Math.abs(verDeviation) > maxDeviation[1]) {
               maxDeviation[1] = Math.abs(verDeviation)
+              if (maxDeviation[1] > verThreshold) {
+                verMargin = 2 + maxDeviation[1] * 0.1 // UPDATED
+              }
+            }
+
+            if ((Math.abs(horDirection) < speedThreshold &&
+                 Math.abs(horDeviation) > Math.max(maxDeviation[0] - speedThreshold, horThreshold)) || // UPDATED
+                (Math.abs(verDirection) < speedThreshold &&
+                 Math.abs(verDeviation) > Math.max(maxDeviation[1] - speedThreshold, verThreshold))) {
+              if (count < maxCount) {
+                count++
+                /* eslint-disable no-console */
+                // console.log('count is nu ', count)
+                /* eslint-enable no-console */
+                return
+              } else {
+                /* eslint-disable no-console */
+                // console.log('Jonguhhhh')
+                /* eslint-enable no-console */
+                reset()
+              }
             }
 
             /* If the camera exceeds the margins in both directions or doesn't
@@ -188,29 +309,29 @@ export default {
              * NOTE: MAY NEED SOME TWEAKING, BECAUSE THE USER MAY HOLD THEIR HEAD
              * STILL FOR LONGER THAN THE INTERVAL WHEN CHANGING DIRECTIONS.
              */
-            if ((maxDeviation[0] > margin &&
-                maxDeviation[1] > margin) ||
-                (prevDirection.length &&
-                Math.abs(horDirection) < speedThreshold &&
-                Math.abs(prevDirection[0]) < speedThreshold &&
-                Math.abs(verDirection) < speedThreshold &&
-                Math.abs(prevDirection[1]) < speedThreshold)) {
-              firstRotation = rotation
-              prevDirection = []
-              maxDeviation = [0, 0]
-              directionChanges = [0, 0]
+            if ((maxDeviation[0] > horMargin &&
+                maxDeviation[1] > verMargin) ||
+                (Math.abs(horDirection) < speedThreshold &&
+                // Math.abs(horDeviation) < Math.max(maxDeviation[0], horThreshold) && // UPDATED
+                //  &&
+                // Math.abs(verDeviation) < Math.max(maxDeviation[1], verThreshold)
+                Math.abs(verDirection) < speedThreshold)) { // UPDATED
+              /* eslint-disable no-console */
+              // console.log('Reset2')
+              /* eslint-enable no-console */
+              reset()
             } else {
               /* Make sure the sign of the direction stays the same when a
                * direction is 0, which means that the camera isn't moving.
                */
-              if (prevDirection.length &&
-                  Math.sign(horDirection) === 0) {
-                horDirection += Math.sign(prevDirection[0])
-              }
-              if (prevDirection.length &&
-                  Math.sign(verDirection) === 0) {
-                verDirection += Math.sign(prevDirection[1])
-              }
+              // if (prevDirection.length &&
+              //     Math.sign(horDirection) === 0) {
+              //   horDirection += Math.sign(prevDirection[0])
+              // }
+              // if (prevDirection.length &&
+              //     Math.sign(verDirection) === 0) {
+              //   verDirection += Math.sign(prevDirection[1])
+              // }
 
               /* Check if the camera movement changes direction and the camera
                * has moved enough in order for it to (possibly) count as the
@@ -221,13 +342,21 @@ export default {
               if (!directionChanges[0] &&
                   prevDirection.length &&
                   Math.sign(horDirection) !== Math.sign(prevDirection[0]) &&
-                  maxDeviation[0] > threshold) {
+                  Math.abs(horDirection) > speedThreshold && // UPDATED
+                  maxDeviation[0] > horThreshold) {
+                /* eslint-disable no-console */
+                // console.log('horizontale richtingsverandering')
+                /* eslint-enable no-console */
                 directionChanges[0] = Math.sign(prevDirection[0])
               }
               if (!directionChanges[1] &&
                   prevDirection.length &&
                   Math.sign(verDirection) !== Math.sign(prevDirection[1]) &&
-                  maxDeviation[1] > threshold) {
+                  Math.abs(verDirection) > speedThreshold && // UPDATED
+                  maxDeviation[1] > verThreshold) {
+                /* eslint-disable no-console */
+                // console.log('Verticale richtingsverandering')
+                /* eslint-enable no-console */
                 directionChanges[1] = Math.sign(prevDirection[1])
               }
 
@@ -237,31 +366,76 @@ export default {
               * corresponding to the type of movement.
               */
               if (directionChanges[0] &&
-                  maxDeviation[1] < margin &&
-                  Math.abs(horDeviation) > threshold &&
+                  maxDeviation[1] < verMargin &&
+                  Math.abs(horDeviation) > horThreshold / 2 &&
                   Math.sign(horDeviation) !== directionChanges[0]) {
                 clearInterval(timer)
-                resolve('0')
+                /* eslint-disable no-console */
+                console.log('Geschud')
+                /* eslint-enable no-console */
+                resolve('Geschud')
               } else if (directionChanges[1] &&
-                         maxDeviation[0] < margin &&
-                         Math.abs(verDeviation) > threshold &&
+                         maxDeviation[0] < horMargin &&
+                         Math.abs(verDeviation) > verThreshold / 2 &&
                          Math.sign(verDeviation) !== directionChanges[1]) {
                 clearInterval(timer)
-                resolve('1')
+                /* eslint-disable no-console */
+                console.log('Geknikt')
+                /* eslint-enable no-console */
+                resolve('Geknikt')
               }
 
-              prevDirection = [horDirection, verDirection]
+              if ((directionChanges[0] &&
+                   Math.sign(horDirection) === directionChanges[0] &&
+                   maxDeviation[0] - Math.abs(horDeviation) > speedThreshold) ||
+                  (directionChanges[1] &&
+                   Math.sign(verDirection) === directionChanges[1] &&
+                   maxDeviation[1] - Math.abs(verDeviation) > speedThreshold)) {
+                /* eslint-disable no-console */
+                // console.log('Ik kom in het nieuwe stukje code!!!')
+                /* eslint-enable no-console */
+                reset()
+              }
+
+              // if (Math.abs(rotation[0]) > 90 || Math.abs(rotation[1]) > 90) {
+              //   clearInterval(timer)
+              //   resolve('1')
+              // }
+              if (Math.abs(horDirection) > speedThreshold) {
+                prevDirection[0] = horDirection // UPDATED
+                /* eslint-disable no-console */
+                // console.log('hordirection = ', Math.abs(horDirection), ' en speedthreshold = ', speedThreshold)
+                /* eslint-enable no-console */
+              }
+              if (Math.abs(verDirection) > speedThreshold) {
+                prevDirection[1] = verDirection // UPDATED
+                /* eslint-disable no-console */
+                // console.log('verdirection = ', Math.abs(verDirection), ' en speedthreshold = ', speedThreshold)
+                /* eslint-enable no-console */
+              }
+              // prevDirection = [horDirection, verDirection]
             }
           }
           prevRotation = rotation
         }, interval)
       })
         .then((result) => {
+        // .then((_) => {
+          console.log('result = ', result, ' en type = ', typeof result)
+          // this.annotationTypes.map((type) => {
+          //   if (type.text == 'Geknikt/geschud')
+          // })
+          // this.annotationTypes
           this.annotation.options.forEach((option) => {
+            /* eslint-disable no-console */
+            console.log('option = ', option.option, ' en type = ', typeof option.option)
+            /* eslint-enable no-console */
             if (option.option === result) {
               this.selectOption(option)
             }
           })
+          // const formattedData = formatData(this.rotations)
+          // saveResults(formattedData, 'beweging_test.txt')
         })
     },
     handleBlowing () {

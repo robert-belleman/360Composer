@@ -15,12 +15,14 @@ from app.util.auth import user_jwt_required, user_or_customer_jwt_required
 
 from app.models.annotation import Annotation as AnnotationModel
 from app.models.option import Option as OptionModel
+from app.models.annotation_type import AnnotationType as AnnotationTypeModel
 from app.models.action import Action as ActionModel, ActionType
 from app.models.scene import Scene as SceneModel
 from app.models.project import Project as ProjectModel
 from app.models.scenario import ScenarioScene as ScenarioSceneModel, ScenarioSceneLink as ScenarioSceneLinkModel
 
 from app.schemas.annotation_option import annotation_option_schema, add_annotation_option_schema, update_annotation_option_schema, delete_annotation_option_schema
+from app.schemas.annotation_type import annotation_type_schema
 
 ns = api.namespace("annotation")
 
@@ -72,7 +74,7 @@ class AnnotationOptions(Resource):
         if not action_type:
             return "Invalid Action Type", HTTPStatus.BAD_REQUEST
 
-        feedback = api.payload["feedback"]  
+        feedback = api.payload["feedback"]
 
         option = OptionModel(
             annotation_id=annotation.id,
@@ -125,3 +127,11 @@ class AnnotationOptionDelete(Resource):
       db.session.commit()
 
       return HTTPStatus.OK
+
+@ns.route("/types")
+class AnnotationTypes(Resource):
+
+    @user_or_customer_jwt_required
+    @ns.marshal_with(annotation_type_schema)
+    def get(self):
+        return AnnotationTypeModel.query.all()

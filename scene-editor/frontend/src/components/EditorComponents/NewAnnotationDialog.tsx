@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
+import MenuItem from '@material-ui/core/MenuItem';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -14,7 +15,8 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import Grid from '@material-ui/core/Grid'
+import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
@@ -23,7 +25,6 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import axios from "axios";
 
 import "./NewAnnotationDialog.scss";
-import { Typography } from '@material-ui/core';
 
 const valueLabelFormat = (value:number) => {
   const minutes = Math.floor(value / 60);
@@ -48,9 +49,38 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
     value: string;
     feedback: string;
   }
+
+  type AnnotationType = {
+    id: number;
+    text: string;
+  }
+
   const [options, setOptions] : any = useState([]);
   const [question, setQuestion] = useState("");
   const [type, setType] = useState(0);
+  const [types, setTypes] = useState([]);
+  const [defaultOptions, setDefaultOptions] = useState(false);
+
+  /* Call getAnnotationTypes only once when rendering. Based on the following URL:
+   * https://www.pluralsight.com/guides/executing-promises-in-a-react-component
+   */
+  React.useEffect(() => {
+    const getAnnotationTypes = () => {
+      axios.get(`/api/annotation/types`)
+        .then((res) => setTypes(res.data))
+        .catch((e) => console.log(e))
+    }
+    getAnnotationTypes()
+  }, [])
+
+  const movementOptions: Array<AnnotationOption> =
+    [{value: "Geknikt", feedback: ""},
+     {value: "Geschud", feedback: ""},
+     {value: "Geen reactie", feedback: ""}]
+
+  const blowingOptions: Array<AnnotationOption> =
+    [{value: "Geblazen", feedback: ""},
+     {value: "Geen reactie", feedback: ""}]
 
   const createAnnotation = async () => {
 
@@ -92,6 +122,16 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
 
   const handleTypeChange = (event: any) => {
     setType(event.target.value)
+    if (event.target.value === 1) {
+      setOptions(movementOptions)
+      setDefaultOptions(true)
+    } else if (event.target.value === 2) {
+      setOptions(blowingOptions)
+      setDefaultOptions(true)
+    }
+    else {
+      setDefaultOptions(false)
+    }
   }
 
   const handleOptionChange = (index: number, event: any) => {
@@ -143,6 +183,24 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
     ])
   }
 
+  const typeSelection = () => {
+    return (
+      <TextField
+        select
+        label="Type"
+        value={type}
+        onChange={handleTypeChange}
+        helperText="Select the annotation type"
+      >
+        {types.map((type: AnnotationType) => (
+          <MenuItem key={type.id} value={type.id}>
+            {type.text}
+          </MenuItem>
+        ))}
+      </TextField>
+    )
+  }
+
   const optionTable = () => {
     return (
         <div>
@@ -166,6 +224,7 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
                         helperText="This will be displayed as the text of the option"
                         value={option.value}
                         onChange={(event) => {handleOptionChange(index, event)}}
+                        disabled={defaultOptions}
                       />
                     </Grid>
                     <Grid item xs={6} style={{padding: 5}}>
@@ -182,21 +241,25 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
                       />
                     </Grid>
                   </Grid>
-                  <ListItemSecondaryAction>
-                    <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteOption(index)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
+                  <Box display={defaultOptions ? "none" : "block"}>
+                    <ListItemSecondaryAction>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteOption(index)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </Box>
                 </ListItem>
               ))}
-               <ListItem autoFocus button onClick={handleAddOption}>
-                <ListItemAvatar>
-                    <Avatar>
-                    <AddIcon />
-                    </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary="Add Option" />
-              </ListItem>
+              <Box display={defaultOptions ? "none" : "block"}>
+                <ListItem autoFocus button onClick={handleAddOption}>
+                  <ListItemAvatar>
+                      <Avatar>
+                      <AddIcon />
+                      </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText primary="Add Option" />
+                </ListItem>
+              </Box>
           </List>
       </div>
     )
@@ -219,13 +282,7 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
             value={question}
             onChange={handleDescriptionChange}
           />
-          <Typography variant="body1">Select the annotation type: </Typography>
-          <select id="select-annotation-type" onChange={handleTypeChange}>
-            <option value="0">Tekst</option>
-            <option value="1">Knikken/schudden</option>
-            <option value="2">Blazen</option>
-            <option value="3">Anders</option>
-          </select>
+          {typeSelection()}
           {optionTable()}
         </DialogContent>
         <DialogActions>

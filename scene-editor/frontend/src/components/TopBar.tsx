@@ -26,7 +26,7 @@ import "./TopBar.scss";
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
-    zIndex: 9999,
+    zIndex: 50,
     background: '#2196f3',
     boxShadow: 'none'
   },
