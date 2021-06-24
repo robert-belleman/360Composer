@@ -16,13 +16,6 @@
         <p>Dit is de pagina waarop de toezichthouder van de gebruiker die een tijdlijn afspeelt invoer kan geven.</p>
       </template>
 
-      <!--
-      <template>
-        <p>Druk op de volgende knop om de speler te stoppen:</p>
-        <button @click="stopPlayer()"></button>
-      </template>
-      -->
-
       <template v-if="options">
         <p>Druk op een van de volgende knoppen om aan te geven welke invoer de gebruiker heeft gegeven, dan wordt de corresponderende scène afgespeeld:</p>
         <button
@@ -81,8 +74,6 @@
 </style>
 
 <script>
-// import logIn from '../_uuid/_user/index'
-// import Button from '../../components/Button'
 
 export default {
   data () {
@@ -122,10 +113,10 @@ export default {
             clearInterval(timer)
             this.options = options
           })
-      }, 1000)
+      }, 3000)
     },
     selectOption (option) {
-      this.$axios.$post(`/api/customer/${this.$route.params.user}/options/chosen`, { chosen: option })
+      this.$axios.$post(`/api/customer/${this.$route.params.user}/options/chosen`, { option_id: option.option_id })
         .then((_) => {
           this.options = null
         })

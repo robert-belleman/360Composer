@@ -31,6 +31,5 @@ def upgrade():
 
     op.create_foreign_key(constraint_name='annotation_type_id_fkey', source_table='annotation', referent_table='annotation_type', local_cols=['type'], remote_cols=['id'])
 
-
 def downgrade():
-    pass
+    op.drop_table('annotation_type')

@@ -104,20 +104,26 @@ const valueLabelFormat = (value:number) => {
 const movementOptions: Array<string> = ["Geknikt", "Geschud", "Geen reactie"]
 const blowingOptions: Array<string> = ["Geblazen", "Geen reactie"]
 
+let addQueue: Array<string> = []
+let deleteQueue: Array<string> = []
+let tempId = 0
+let initialOptions: Array<string> = []
+let types: Array<AnnotationType> = []
+
 export default ({sceneID, annotationID, open, closeHandler, onError, videoLength}:UpdateAnnotationDialogProps) => {
   const [annotation, setAnnotation] = useState(INITIAL_ANNOTATION)
   const [defaultOptions, setDefaultOptions] = useState(false);
-  const [types, setTypes] = useState([]);
-  const [initialOptions, setInitialOptions] = useState<string[]>([])
-  const [deleteQueue, setDeleteQueue] = useState<string[]>([])
-  const [addQueue, setAddQueue] = useState<string[]>([])
-  const [tempId, setTempId] = useState(0)
+  // const [types, setTypes] = useState([]);
+  // const [initialOptions, setInitialOptions] = useState<string[]>([])
+  // const [deleteQueue, setDeleteQueue] = useState<string[]>([])
+  // const [addQueue, setAddQueue] = useState<string[]>([])
+  // const [tempId, setTempId] = useState(0)
 
   useEffect(() => {
     fetchAnnotation()
     const getAnnotationTypes = () => {
       axios.get(`/api/annotation/types`)
-        .then((res) => setTypes(res.data))
+        .then((res) => types = res.data)
         .catch((e) => console.log(e))
     }
 
@@ -125,7 +131,7 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
   }, [])
 
   useEffect (() => {
-    if (!Array.isArray(annotation.options) || !annotation.options.length) {
+    if (!annotation.options.length) {
       if (annotation.type === 1) {
         handleAddOptions(null, movementOptions)
       } else if (annotation.type === 2) {
@@ -161,12 +167,16 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
 
 
     if (annotation.type === 1) {
+      // console.log('er is geswitched naar movement')
       if (!equals(texts, movementOptions)) {
+        // console.log('er wordt wat verwijderd')
         handleDeleteOptions(null, ids)
       }
     }
     else if (annotation.type === 2) {
+      // console.log('er is geswitched naar blowing')
       if (!equals(texts, blowingOptions)) {
+        // console.log('er wordt wat verwijderd')
         handleDeleteOptions(null, ids)
       }
     }
@@ -185,7 +195,7 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
         data.options.forEach((option: Option) => {
           options.push(option.id)
         })
-        setInitialOptions(options)
+        initialOptions = options
       })
   }
 
@@ -276,8 +286,8 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
 
     return new Promise ((resolve, reject) => {
       setAnnotation({...annotation, options: newList})
-      setAddQueue(newAddQueue)
-      setDeleteQueue(newDeleteQueue)
+      addQueue = newAddQueue
+      deleteQueue = newDeleteQueue
       setAnnotation({...annotation, options: newList})
       resolve(1)
     })
@@ -326,8 +336,8 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
       i++
     })
 
-    setTempId(tempId + i)
-    setAddQueue(newAddQueue)
+    tempId += i
+    addQueue = newAddQueue
     setAnnotation({...annotation, options: newOptions})
   }
 
@@ -349,9 +359,10 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
   }
 
   const reset = () => {
-    setAddQueue([])
-    setDeleteQueue([])
-    setTempId(0)
+    addQueue = []
+    deleteQueue = []
+    tempId = 0
+    fetchAnnotation()
   }
 
   const save = () => {
@@ -366,7 +377,7 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
 
   const cancel = () => {
     reset()
-    fetchAnnotation()
+    // fetchAnnotation()
     closeHandler(false)
   }
 

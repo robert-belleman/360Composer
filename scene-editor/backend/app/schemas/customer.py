@@ -21,3 +21,16 @@ customer_delete_schema = api.model("Customer Delete", {
   "id": fields.String(description="The ID of the user"),
   "therapist_id": fields.String(description="The id of the therapist"),
 })
+
+customer_option_schema = api.model("Customer Option", {
+  "option_id": fields.String(description="The ID of the option"),
+  "option": fields.String(description="The text of the option")
+})
+
+add_customer_annotation_schema = api.model("Add Customer Annotation", {
+  "annotation_id": fields.String(description="The id of the annotation")
+})
+
+add_customer_option_schema = api.model("Add Customer Option", {
+  "option_id": fields.String(description="The id of the option")
+})

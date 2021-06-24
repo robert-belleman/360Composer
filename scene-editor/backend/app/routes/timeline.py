@@ -295,9 +295,9 @@ class TimelineExport(Resource):
             for (action, option) in options:
                 link = ScenarioSceneLinkModel.query.filter_by(source_id=scenario_scene_id, action_id=action.id).first()
                 next_scene = link.target_id if link is not None else None
-                options_.append({"option": option.text, "feedback": option.feedback, "next_segment_id": next_scene})
+                options_.append({"id": option.id, "option": option.text, "feedback": option.feedback, "next_segment_id": next_scene})
 
-            annotations_.append({"annotation": annotation.text, "timestamp": annotation.timestamp * 1000000, "type": annotation.type, "options": options_})
+            annotations_.append({"id": annotation.id, "annotation": annotation.text, "timestamp": annotation.timestamp * 1000000, "type": annotation.type, "options": options_})
 
         return annotations_
 

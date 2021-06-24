@@ -82,6 +82,24 @@ export default {
       return this.$axios.$post('/api/user/customer-login', { id, access_code: name })
         .then(_ => this.setUserID(id))
     },
+    deleteCustomerOption () {
+      this.$axios.$post(`/api/customer/${this.$route.params.user}/options/chosen/delete`)
+    },
+    deleteCustomerAnnotation () {
+      this.$axios.$post(`/api/customer/${this.$route.params.user}/options/delete`)
+    },
+    async getAudioStream () {
+      // const audioStream = null
+      await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then((stream) => { window.stream = stream })
+        .catch(_ => console.log('Er is geen toestemming gegeven om de microfoon te gebruiken.'))
+      // console.log('dit is de stream in index.vue', audioStream)
+      // sessionStorage.setItem('audioStream', JSON.stringify(audioStream))
+      // if (audioStream) {}
+      // window.stream = audioStream
+      // console.log('dit is de stream in index.vue: ', window.stream)
+      // return window.stream
+    },
     setTimelineID (id) {
       this.$store.commit('setActiveTimeline', id)
     },
@@ -110,6 +128,9 @@ export default {
 
       this.logIn()
         .then(this.retrieveExport)
+        .then(this.getAudioStream)
+        .then(this.deleteCustomerOption)
+        .then(this.deleteCustomerAnnotation)
         .then(this.pressStart)
         .then(this.pushStartEvent)
     },

@@ -10,11 +10,12 @@ from app.util.auth import user_jwt_required, user_or_customer_jwt_required
 from app.routes.api import api
 from app.models.database import db
 
-from app.schemas.customer import customer_schema, customer_create_schema, customer_delete_schema
+from app.schemas.customer import customer_schema, customer_create_schema, customer_delete_schema, add_customer_annotation_schema, customer_option_schema, add_customer_option_schema
 
 from app.models.customer import Customer as CustomerModel
-
-from app.schemas.annotation_option import option_schema
+from app.models.option import Option as OptionModel
+from app.models.customer_annotation import CustomerAnnotation as CustomerAnnotationModel
+from app.models.customer_option import CustomerOption as CustomerOptionModel
 
 import sys
 
@@ -104,8 +105,17 @@ class CustomerDelete(Resource):
         return "", HTTPStatus.OK
 
 
-customer_options = {}
-customer_options_chosen = {}
+def delete_customer_option(id, commit=True):
+    CustomerOptionModel.query.filter_by(customer_id=id).delete()
+    if commit:
+        db.session.commit()
+
+
+def delete_customer_annotation(id, commit=True):
+    CustomerAnnotationModel.query.filter_by(customer_id=id).delete()
+    if commit:
+        db.session.commit()
+
 
 @ns.route('/<string:id>/options')
 @ns.response(HTTPStatus.NOT_FOUND, "Customer not found")
@@ -113,27 +123,50 @@ customer_options_chosen = {}
 class CustomerOptions(Resource):
 
     @user_or_customer_jwt_required
-    @ns.marshal_with(option_schema)
+    @ns.marshal_with(customer_option_schema)
     def get(self, id):
         claims = get_jwt_claims()
 
-        customer: CustomerModel = CustomerModel.query.filter_by(id=id).first_or_404()
+        customer_annotation = CustomerAnnotationModel.query.filter_by(customer_id=id).first_or_404()
+        annotation_id = customer_annotation.annotation_id
 
-        if id in customer_options:
-            result = customer_options[id]
-            del customer_options[id]
-            return result, HTTPStatus.OK
+        if claims["id"] != id:
+            return "Unauthorized for user", HTTPStatus.UNAUTHORIZED
+
+        options = (
+            db.session.query(OptionModel)\
+                .filter(OptionModel.annotation_id == annotation_id)\
+                .all()
+        )
+
+        if options:
+            options_ = []
+            for option in options:
+                options_.append({"option_id": option.id, "option": option.text})
+
+            delete_customer_annotation(id)
+            return options_, HTTPStatus.OK
 
         return "Options not found", HTTPStatus.NOT_FOUND
 
     @user_or_customer_jwt_required
-    @ns.expect(option_schema)
+    @ns.expect(add_customer_annotation_schema)
     def post(self, id):
         claims = get_jwt_claims()
+        annotation_id = api.payload["annotation_id"]
 
-        customer: CustomerModel = CustomerModel.query.filter_by(id=id).first_or_404()
+        if claims["id"] != id:
+            return "Unauthorized for user", HTTPStatus.UNAUTHORIZED
 
-        customer_options[id] = api.payload['options']
+        row = CustomerAnnotationModel(
+            customer_id=id,
+            annotation_id=annotation_id
+        )
+
+        delete_customer_annotation(id, False)
+
+        db.session.add(row)
+        db.session.commit()
 
         return "", HTTPStatus.OK
 
@@ -144,29 +177,74 @@ class CustomerOptions(Resource):
 class CustomerOptionsChosen(Resource):
 
     @user_or_customer_jwt_required
-    @ns.marshal_with(option_schema)
+    @ns.marshal_with(customer_option_schema)
     def get(self, id):
         claims = get_jwt_claims()
 
-        customer: CustomerModel = CustomerModel.query.filter_by(id=id).first_or_404()
+        customer_option = CustomerOptionModel.query.filter_by(customer_id=id).first_or_404()
+        option_id = customer_option.option_id
 
-        # print("customer_options = " + str(customer_options), file=sys.stderr)
+        if claims["id"] != id:
+            return "Unauthorized for user", HTTPStatus.UNAUTHORIZED
 
-        if id in customer_options_chosen:
-            result = customer_options_chosen[id]
-            del customer_options_chosen[id]
-            return result, HTTPStatus.OK
+        option = OptionModel.query.filter_by(id=option_id).first_or_404()
+        option_ = {"option_id": option.id, "option": option.text}
+        delete_customer_option(id)
 
-        return "Option not found", HTTPStatus.NOT_FOUND
+        return option_, HTTPStatus.OK
 
     @user_or_customer_jwt_required
-    @ns.expect(option_schema)
+    @ns.expect(add_customer_option_schema)
+    def post(self, id):
+        claims = get_jwt_claims()
+        option_id = api.payload["option_id"]
+
+        if claims["id"] != id:
+            return "Unauthorized for user", HTTPStatus.UNAUTHORIZED
+
+        row = CustomerOptionModel(
+            customer_id=id,
+            option_id=option_id
+        )
+
+        delete_customer_option(id, False)
+
+        db.session.add(row)
+        db.session.commit()
+
+        return "", HTTPStatus.OK
+
+
+@ns.route('/<string:id>/options/delete')
+@ns.response(HTTPStatus.NOT_FOUND, "Customer not found")
+@ns.param("id", "The customer identifier")
+class CustomerOptionsDelete(Resource):
+
+    @user_or_customer_jwt_required
     def post(self, id):
         claims = get_jwt_claims()
 
-        customer: CustomerModel = CustomerModel.query.filter_by(id=id).first_or_404()
+        if claims["id"] != id:
+            return "Unauthorized for user", HTTPStatus.UNAUTHORIZED
 
-        customer_options_chosen[id] = api.payload['chosen']
+        delete_customer_annotation(id)
+
+        return "", HTTPStatus.OK
+
+
+@ns.route('/<string:id>/options/chosen/delete')
+@ns.response(HTTPStatus.NOT_FOUND, "Customer not found")
+@ns.param("id", "The customer identifier")
+class CustomerOptionsChosenDelete(Resource):
+
+    @user_or_customer_jwt_required
+    def post(self, id):
+        claims = get_jwt_claims()
+
+        if claims["id"] != id:
+            return "Unauthorized for user", HTTPStatus.UNAUTHORIZED
+
+        delete_customer_option(id)
 
         return "", HTTPStatus.OK
 
