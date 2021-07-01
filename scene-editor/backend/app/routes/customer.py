@@ -247,8 +247,3 @@ class CustomerOptionsChosenDelete(Resource):
         delete_customer_option(id)
 
         return "", HTTPStatus.OK
-
-# """
-# https://stackoverflow.com/questions/3433559/python-time-delays
-# https://stackoverflow.com/questions/4415672/python-theading-timer-how-to-pass-argument-to-the-callback
-# """

@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect } from 'react';
 
-import { concat, forEach, initial } from 'lodash'
+import { concat } from 'lodash'
 
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -31,7 +31,6 @@ import axios from "axios";
 
 import "./NewAnnotationDialog.scss";
 import Annotation from './Annotation';
-import { SetStateAction } from '@babylonjs/core';
 
 type Annotation = {
   id: string,
@@ -113,11 +112,6 @@ let types: Array<AnnotationType> = []
 export default ({sceneID, annotationID, open, closeHandler, onError, videoLength}:UpdateAnnotationDialogProps) => {
   const [annotation, setAnnotation] = useState(INITIAL_ANNOTATION)
   const [defaultOptions, setDefaultOptions] = useState(false);
-  // const [types, setTypes] = useState([]);
-  // const [initialOptions, setInitialOptions] = useState<string[]>([])
-  // const [deleteQueue, setDeleteQueue] = useState<string[]>([])
-  // const [addQueue, setAddQueue] = useState<string[]>([])
-  // const [tempId, setTempId] = useState(0)
 
   useEffect(() => {
     fetchAnnotation()
@@ -167,16 +161,12 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
 
 
     if (annotation.type === 1) {
-      // console.log('er is geswitched naar movement')
       if (!equals(texts, movementOptions)) {
-        // console.log('er wordt wat verwijderd')
         handleDeleteOptions(null, ids)
       }
     }
     else if (annotation.type === 2) {
-      // console.log('er is geswitched naar blowing')
       if (!equals(texts, blowingOptions)) {
-        // console.log('er wordt wat verwijderd')
         handleDeleteOptions(null, ids)
       }
     }
@@ -377,7 +367,6 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
 
   const cancel = () => {
     reset()
-    // fetchAnnotation()
     closeHandler(false)
   }
 
