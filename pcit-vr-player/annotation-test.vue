@@ -124,6 +124,19 @@ function saveResults (content, name) {
   })
 }
 
+function getMean (data) {
+  const sum = data.reduce((acc, val) => acc + val)
+  const mean = sum / data.length
+  return mean
+}
+
+function getStd (data) {
+  const sum = data.reduce((acc, val) => acc + val)
+  const mean = sum / data.length
+  const std = Math.sqrt(data.reduce((acc, val) => acc + (val - mean) ** 2) / data.length)
+  return std
+}
+
 export default {
   components: {
     Button,
@@ -216,6 +229,10 @@ export default {
             const data = audioData.slice(0, upperBound)
 
             audioDatas.push(data)
+            const mean = getMean(data)
+            const stdev = getStd(data)
+            audioDatas.push(mean)
+            audioDatas.push(stdev)
 
             const camera = document.getElementById('camera')
             const rotationVec = camera.getAttribute('rotation')

@@ -64,43 +64,17 @@ import { mapActions } from 'vuex'
 import Button from './Button'
 import Tooltip from './Tooltip'
 
-function isEvenlyDistributed (array, sliceAmount, margin, threshold) {
-  const sliceSize = Math.floor(array.length / sliceAmount)
-  const repetitions = sliceSize * sliceAmount
-  const averages = []
+function isBlowing (data, maxStd) {
+  const sum = data.reduce((acc, val) => acc + val)
+  const mean = sum / data.length
+  const std = Math.sqrt(data.reduce((acc, val) => acc + (val - mean) ** 2) / data.length)
 
-  let sliceSum = 0.0
-  let sum = 0.0
-
-  /* Calculate the sum of the values in the array, which is used later to
-   * calculate the average, and the average of slices of the array of size
-   * sliceSize.
+  /* If the average isn't bigger than or equal to 50, the volume isn't high
+   * enough so return false. Also, if the standard deviation is higher than 50,
+   * the sound isn't blowing.
    */
-  for (let i = 0; i < repetitions; i++) {
-    sum += array[i]
-    sliceSum += array[i]
-    if (i > 0 && i % sliceSize === 0) {
-      averages.push(sliceSum / sliceSize)
-      sliceSum = 0
-    }
-  }
-
-  const average = sum / repetitions
-
-  /* If the average isn't bigger than or equal to the threshold, the volume
-   * isn't high enough so return false.
-   */
-  if (average < threshold) {
+  if (mean < 50 || std > maxStd) {
     return false
-  }
-
-  /* For each slice average, check if the difference between the slice average
-   * and the average of the whole array is bigger than the margin.
-   */
-  for (let i = 0; i < averages.length; i++) {
-    if ((Math.abs(averages[i] - average) / average) > margin) {
-      return false
-    }
   }
 
   return true
@@ -137,6 +111,13 @@ export default {
     }
   },
   methods: {
+    getUserSamsungModelNumber () {
+      const model = navigator.userAgent.match(/SM-G\d{3}/)
+      if (model) {
+        return parseInt(model[0].match(/\d{3}/)[0])
+      }
+      return null
+    },
     handleMovement () {
       /* Define the time interval which indicates the time between measurements.
        * Also define the margin for how much the user is allowed to move
@@ -332,6 +313,20 @@ export default {
         const analyser = audioContext.createAnalyser()
         const microphone = audioContext.createMediaStreamSource(stream)
 
+        let maxBlowCount = 4
+        let maxStd = 35
+
+        const samsungModelNumber = this.getUserSamsungModelNumber()
+        /* Check if device is from Samsung Galaxy S series and if so, check if
+         * the model came out after the Samsung Galaxy S9+ or is a special
+         * edition.
+         */
+        if (samsungModelNumber &&
+            (samsungModelNumber > 965 || samsungModelNumber < 900)) {
+          maxBlowCount = 2
+          maxStd = 40
+        }
+
         let blowCount = 0
         let timeout = null
 
@@ -367,17 +362,14 @@ export default {
             const upperBound = Math.min(Math.floor(upperFrequency / stepSize), analyser.frequencyBinCount)
             const data = audioData.slice(0, upperBound)
 
-            if (isEvenlyDistributed(data, 10, 0.4, 70)) {
+            if (isBlowing(data, maxStd)) {
               blowCount++
             } else {
               blowCount = 0
             }
 
-            if (blowCount > 2) {
+            if (blowCount > maxBlowCount) {
               clearInterval(timer)
-              stream.getTracks().forEach((track) => {
-                track.stop()
-              })
               audioContext.close()
               resolve('Geblazen')
             }
