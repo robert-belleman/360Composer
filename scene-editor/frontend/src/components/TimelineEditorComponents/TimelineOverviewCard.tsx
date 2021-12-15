@@ -2,21 +2,23 @@ import React from 'react';
 
 import { range } from 'lodash';
 
-import Button from "@material-ui/core/Button";
-import Divider from "@material-ui/core/Divider";
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 
-import Skeleton from '@material-ui/lab/Skeleton';
+import Skeleton from '@mui/material/Skeleton';
 
-import InfoIcon from '@material-ui/icons/Info';
+import InfoIcon from '@mui/icons-material/Info';
 
-import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-const useStyles = makeStyles((theme: Theme) =>
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
     createStyles({
       root: {
         flexGrow: 1,

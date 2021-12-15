@@ -6,26 +6,28 @@ import { range } from 'lodash';
 
 import axios from 'axios';
 
-import Card from '@material-ui/core/Card';
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import CardMedia from '@material-ui/core/CardMedia';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid'
+import Card from '@mui/material/Card';
+import CardActionArea from '@mui/material/CardActionArea';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid'
 
-import Skeleton from '@material-ui/lab/Skeleton';
+import Skeleton from '@mui/material/Skeleton';
 
-import AddIcon from '@material-ui/icons/Add';
+import AddIcon from '@mui/icons-material/Add';
 
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
 import placeholder from '../static/images/placeholder.jpg'
 
 import NewProjectDialog from "./SideMenuComponents/NewProjectDialog";
 
-const useStyles = makeStyles((theme: Theme) =>
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
   createStyles({
     root: {
         flexGrow: 1,

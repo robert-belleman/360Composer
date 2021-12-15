@@ -2,29 +2,30 @@ import React, {useState, useEffect} from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-import Grid from '@material-ui/core/Grid';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import IconButton from '@material-ui/core/IconButton';
-import Snackbar from '@material-ui/core/Snackbar';
+import Grid from '@mui/material/Grid';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
+import Snackbar from '@mui/material/Snackbar';
 
-import DeleteIcon from '@material-ui/icons/Delete';
-import AddIcon from '@material-ui/icons/Add';
-import { Button } from '@material-ui/core';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import { Button } from '@mui/material';
 
-import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 import NewUserDialog from './UserViewComponents/NewUserDialog';
 
@@ -69,7 +70,8 @@ const DeleteWarningDialog = ({open, id, handleClose, handleDelete}:any) => {
   )
 }
 
-const useStyles = makeStyles((theme: Theme) =>
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
   createStyles({
     root: {
       flexGrow: 1,
@@ -151,7 +153,10 @@ const Users = () => {
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.tag}</TableCell>
                 <TableCell>{user.access_code}</TableCell>
-                <TableCell><IconButton aria-label="delete" onClick={() => setWarningState({open: true, id: user.id})}><DeleteIcon /></IconButton></TableCell>
+                <TableCell><IconButton
+                  aria-label="delete"
+                  onClick={() => setWarningState({open: true, id: user.id})}
+                  size="large"><DeleteIcon /></IconButton></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -162,7 +167,7 @@ const Users = () => {
       <DeleteWarningDialog id={warningState.id} open={warningState.open} handleDelete={() => deleteUser(warningState.id)} handleClose={() => setWarningState({open: false, id: ""})} />
       <UserSnackbar open={alertState.open} message={alertState.message} severity={alertState.severity} handleClose={handleAlertClose} />
     </div>
-  )
+  );
 }
 
 export default Users;

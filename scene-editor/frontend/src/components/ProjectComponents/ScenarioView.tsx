@@ -4,37 +4,40 @@ import axios from 'axios';
 
 import {range} from 'lodash';
 
-import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
+import Button from '@mui/material/Button';
 
-import AddIcon from '@material-ui/icons/Add';
+import AddIcon from '@mui/icons-material/Add';
 
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Snackbar from '@material-ui/core/Snackbar';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Snackbar from '@mui/material/Snackbar';
 
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardContent from '@material-ui/core/CardContent';
-import CardActions from '@material-ui/core/CardActions';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import EditIcon from '@material-ui/icons/Edit';
-import Tooltip from '@material-ui/core/Tooltip';
-import Paper from '@material-ui/core/Paper';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import EditIcon from '@mui/icons-material/Edit';
+import Tooltip from '@mui/material/Tooltip';
+import Paper from '@mui/material/Paper';
 
-import AccountTreeIcon from '@material-ui/icons/AccountTree';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import DeleteIcon from '@material-ui/icons/Delete';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
-import Skeleton from '@material-ui/lab/Skeleton';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import Skeleton from '@mui/material/Skeleton';
 
 import NewScenarioDialog from './ScenarioViewComponents/NewScenarioDialog';
+
+const theme = createTheme();
 
 type ScenarioTileProps = {
   name: string;
@@ -94,7 +97,7 @@ const ScenarioTile: React.FC<ScenarioTileProps> = ({ name, activeProject, id, de
       <Card variant="outlined" style={{backgroundColor: '#eeeeee'}}>
         <CardHeader
           action={
-            <IconButton aria-label="settings">
+            <IconButton aria-label="settings" size="large">
                 <MoreVertIcon />
             </IconButton>
           }
@@ -109,13 +112,19 @@ const ScenarioTile: React.FC<ScenarioTileProps> = ({ name, activeProject, id, de
         </CardContent>
           <CardActions disableSpacing>
             <Tooltip title="Edit" arrow>
-                <IconButton aria-label="edit" onClick={() => navigate(`/scenario-editor/${activeProject}/${id}`)}>
+                <IconButton
+                  aria-label="edit"
+                  onClick={() => navigate(`/scenario-editor/${activeProject}/${id}`)}
+                  size="large">
                     <EditIcon />
                 </IconButton>
             </Tooltip>
 
             <Tooltip title="Remove Scenario">
-              <IconButton aria-label="remove scenario" onClick={() => setWarningState({open: true, id})}>
+              <IconButton
+                aria-label="remove scenario"
+                onClick={() => setWarningState({open: true, id})}
+                size="large">
                 <DeleteIcon />
               </IconButton>
             </Tooltip>
@@ -140,7 +149,7 @@ export default ({activeProject, fullWidth}:ScenarioViewProps) => {
   const [warningState, setWarningState] = useState({open: false, id: ""});
   const [alertState, setAlertState] = useState({open: false, message: "", severity: ""})
 
-  const classes = (makeStyles((theme: Theme) =>
+  const classes = (makeStyles((theme) =>
     createStyles({
         root: {
             flexGrow: 1,

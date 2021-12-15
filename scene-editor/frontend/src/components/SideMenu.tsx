@@ -5,22 +5,24 @@ import { useNavigate } from "react-router-dom";
 
 import { View } from '../types/views';
 
-import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
-import Hidden from '@material-ui/core/Hidden';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import Hidden from '@mui/material/Hidden';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 
-import AccountTreeIcon from '@material-ui/icons/AccountTree';
-import PeopleIcon from '@material-ui/icons/People';
-import PieChartIcon from '@material-ui/icons/PieChart';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import PeopleIcon from '@mui/icons-material/People';
+import PieChartIcon from '@mui/icons-material/PieChart';
 
 const drawerWidth = 240;
 
-const useStyles = makeStyles((theme: Theme) =>
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
   createStyles({
     root: {
       display: 'flex',
@@ -83,7 +85,7 @@ const SideMenu: React.FC<SideMenuProps> = ({activeView}:SideMenuProps) => {
 
   return (
     <div>
-      <Hidden xsDown>
+      <Hidden smDown>
         <Drawer
           className={classes.drawer}
           variant="permanent"

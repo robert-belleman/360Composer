@@ -6,39 +6,40 @@ import ReactFlow, { Handle, Controls, Background, isEdge } from 'react-flow-rend
 
 import { concat, flatten } from 'lodash';
 
-import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import Collapse from '@material-ui/core/Collapse';
-import Grid from "@material-ui/core/Grid";
-import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import Tooltip from '@material-ui/core/Tooltip';
-import Switch from '@material-ui/core/Switch';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import { green } from '@material-ui/core/colors';
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardActionArea from '@mui/material/CardActionArea';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Collapse from '@mui/material/Collapse';
+import Grid from "@mui/material/Grid";
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Tooltip from '@mui/material/Tooltip';
+import Switch from '@mui/material/Switch';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import { green } from '@mui/material/colors';
 
-import Alert from '@material-ui/lab/Alert';
+import Alert from '@mui/material/Alert';
 
-import RefreshIcon from '@material-ui/icons/Refresh';
-import BackupIcon from '@material-ui/icons/Backup';
-import AddIcon from '@material-ui/icons/Add';
-import EditIcon from '@material-ui/icons/Edit';
-import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import HomeIcon from '@material-ui/icons/Home';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import CallSplitIcon from '@material-ui/icons/CallSplit';
-import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
-import CloseIcon from '@material-ui/icons/Close';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import BackupIcon from '@mui/icons-material/Backup';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import HomeIcon from '@mui/icons-material/Home';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import CallSplitIcon from '@mui/icons-material/CallSplit';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import CloseIcon from '@mui/icons-material/Close';
 
-import Skeleton from '@material-ui/lab/Skeleton';
+import Skeleton from '@mui/material/Skeleton';
 
 import TopBar from "../../components/TopBar";
 import SideMenu from "../../components/SideMenu";
@@ -49,7 +50,9 @@ import NewSceneDialog from "../../components/ScenarioEditorComponents/AddSceneDi
 import UpdateScenarioDialog from "../../components/ScenarioEditorComponents/UpdateScenarioDialog";
 
 import './ScenarioEditor.scss';
-import { Divider } from '@material-ui/core';
+import { Divider } from '@mui/material';
+
+const theme = createTheme();
 
 const BACKGROUND = (index:number) => {
   const colors = ["#2196f3", "#ffc107", "#795548", "#e91e63"]
@@ -93,7 +96,7 @@ const SceneNode = ({selected, data}:SceneNodeProps) => {
 
   const unreachable = data.timelineValidation.validating  && data.timelineValidation.state.invalid_nodes.indexOf(data.id) !== -1
 
-  const classes = (makeStyles((theme:Theme) => createStyles({
+  const classes = (makeStyles((theme) => createStyles({
     tooltip: {
       display: 'flex',
       alignItems: 'center',
@@ -485,7 +488,7 @@ const ScenarioEditor:React.FC = () => {
       .then(() => validateTimeline(timelineValidation.validating))
   }
 
-  const classes = (makeStyles((theme:Theme) => createStyles({
+  const classes = (makeStyles((theme) => createStyles({
     paper: {
       marginTop: 20,
       padding: theme.spacing(2)
@@ -546,7 +549,7 @@ const ScenarioEditor:React.FC = () => {
   )
 
   const editor = () => fetchingTimelines 
-    ? (<Skeleton style={{marginTop: 20}} variant="rect" height={700}/>)
+    ? (<Skeleton style={{marginTop: 20}} variant="rectangular" height={700}/>)
     : (
         <div className="editor-view">
           <ReactFlow 
@@ -565,12 +568,10 @@ const ScenarioEditor:React.FC = () => {
           >
             <Button
               variant="contained"
-              color="default"
               size="small"
               endIcon={<AddIcon/>}
               onClick={() => setDialogOpen(true)}
-              style={{position: 'absolute', top: '20px', left: '20px', zIndex: 1000}}
-            >Add Scene</Button>
+              style={{position: 'absolute', top: '20px', left: '20px', zIndex: 1000}}>Add Scene</Button>
             { validationSwitch() }
             <Button
               variant="contained"

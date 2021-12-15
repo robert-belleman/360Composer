@@ -4,32 +4,34 @@ import {range} from 'lodash';
 
 import axios from 'axios';
 
-import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
-import IconButton from "@material-ui/core/IconButton";
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import Popover from '@material-ui/core/Popover';
-import Tooltip from '@material-ui/core/Tooltip';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import IconButton from "@mui/material/IconButton";
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemText from '@mui/material/ListItemText';
+import Popover from '@mui/material/Popover';
+import Tooltip from '@mui/material/Tooltip';
 
-import PeopleIcon from '@material-ui/icons/People';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
-import ShareIcon from '@material-ui/icons/Share';
+import PeopleIcon from '@mui/icons-material/People';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ShareIcon from '@mui/icons-material/Share';
 
-import Skeleton from '@material-ui/lab/Skeleton';
+import Skeleton from '@mui/material/Skeleton';
 
 import TimelineAddUserDialog from './TimelineAddUserDialog';
 
-const useStyles = makeStyles((theme: Theme) =>
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
     createStyles({
       root: {
         flexGrow: 1,
@@ -165,7 +167,7 @@ const TimelineUserList:React.FC<UserListProps> = ({timelineID}:UserListProps) =>
               inputProps={{ 'aria-labelledby': user.id }}
             />
             <Tooltip title="Share" arrow>
-              <IconButton onClick={handlePopoverOpen(user.id)}>
+              <IconButton onClick={handlePopoverOpen(user.id)} size="large">
                 <ShareIcon/>
               </IconButton>
             </Tooltip>

@@ -25,28 +25,29 @@ import {
 } from "@babylonjs/gui"
 import "@babylonjs/loaders"
 
-import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-import Button from '@material-ui/core/Button';
-import Container from '@material-ui/core/Container';
-import Divider from '@material-ui/core/Divider';
-import Card from "@material-ui/core/Card";
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import Slider from "@material-ui/core/Slider";
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Divider from '@mui/material/Divider';
+import Card from "@mui/material/Card";
+import CardActionArea from '@mui/material/CardActionArea';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Slider from "@mui/material/Slider";
 
-import Skeleton from '@material-ui/lab/Skeleton';
+import Skeleton from '@mui/material/Skeleton';
 
-import AddIcon from '@material-ui/icons/Add';
-import ImageIcon from '@material-ui/icons/Image';
-import ListIcon from '@material-ui/icons/List';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import StopIcon from '@material-ui/icons/Stop';
-import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
+import AddIcon from '@mui/icons-material/Add';
+import ImageIcon from '@mui/icons-material/Image';
+import ListIcon from '@mui/icons-material/List';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
 import axios from "axios";
 
@@ -64,6 +65,23 @@ import { View } from '../../types/views';
 
 import "./Editor.scss";
 
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
+      createStyles({
+        root: {
+          flexGrow: 1,
+          padding: theme.spacing(1),
+          [theme.breakpoints.up('sm')]: {
+            marginLeft: 240
+          }
+        },
+        top: {
+          padding: theme.spacing(2),
+          boxSizing: 'border-box'
+        }
+      })
+    )
+
 const Editor: React.FC = () => {
 
     const { project_id, scene_id } = useParams<'project_id' | 'scene_id'>();
@@ -72,6 +90,7 @@ const Editor: React.FC = () => {
     const param:string|null = useQuery().get('goBack');
     const goBack = !(param === null || param === undefined)
   
+    const classes = useStyles();
 
     const [scene, setScene]: any = useState(undefined);
     const [video, setVideo]: any = useState(undefined);
@@ -313,24 +332,6 @@ const Editor: React.FC = () => {
          console.log("Current scene is undefined")
      }
     }
-
-    const useStyles = makeStyles((theme: Theme) =>
-      createStyles({
-        root: {
-          flexGrow: 1,
-          padding: theme.spacing(1),
-          [theme.breakpoints.up('sm')]: {
-            marginLeft: 240
-          }
-        },
-        top: {
-          padding: theme.spacing(2),
-          boxSizing: 'border-box'
-        }
-      })
-    )
-
-    const classes = useStyles();
 
     // loads a single mesh by object_id and adds it to the scene
     const loadMesh = (assetID: string) => {

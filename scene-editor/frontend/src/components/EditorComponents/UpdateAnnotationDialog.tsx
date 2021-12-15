@@ -2,30 +2,30 @@ import React, { useState, useEffect } from 'react';
 
 import { concat } from 'lodash'
 
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import MenuItem from '@material-ui/core/MenuItem';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Divider from '@material-ui/core/Divider';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Divider from '@mui/material/Divider';
 
-import Avatar from '@material-ui/core/Avatar';
-import Grid from '@material-ui/core/Grid';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import Slider from '@material-ui/core/Slider'
-import Typography from '@material-ui/core/Typography'
-import Box from '@material-ui/core/Box';
+import Avatar from '@mui/material/Avatar';
+import Grid from '@mui/material/Grid';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import Slider from '@mui/material/Slider'
+import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box';
 
-import IconButton from '@material-ui/core/IconButton';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
+import IconButton from '@mui/material/IconButton';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import axios from "axios";
 
@@ -395,70 +395,72 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
 
   const optionTable = () => {
     return (
-        <div>
-            <List>
-              {annotation.options.map((option:Option, index:number) => (
-                <ListItem key={index}>
-                  <ListItemAvatar>
-                    <Avatar >
-                      {index + 1}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <Grid container>
-                    <Grid item xs={6} style={{padding: 5}}>
-                      <TextField
-                        className={"textField"}
-                        size="medium"
-                        label="Option"
-                        helperText="This will be displayed as the text of the option"
-                        multiline
-                        fullWidth
-                        rowsMax={4}
-                        value={option.text}
-                        onChange={(event) => {handleOptionChange(index, event)}}
-                        disabled={defaultOptions}
-                      />
-                    </Grid>
-                    <Grid item xs={6} style={{padding: 5}}>
-                      <TextField
-                        className={"textField"}
-                        size="medium"
-                        label="Feedback"
-                        helperText="This will be shown after choosing this option"
-                        value={option.feedback}
-                        multiline
-                        fullWidth
-                        rowsMax={4}
-                        onChange={(event) => {handleFeedbackChange(index, event)}}
-                        />
-                    </Grid>
+      <div>
+          <List>
+            {annotation.options.map((option:Option, index:number) => (
+              <ListItem key={index}>
+                <ListItemAvatar>
+                  <Avatar >
+                    {index + 1}
+                  </Avatar>
+                </ListItemAvatar>
+                <Grid container>
+                  <Grid item xs={6} style={{padding: 5}}>
+                    <TextField
+                      className={"textField"}
+                      size="medium"
+                      label="Option"
+                      helperText="This will be displayed as the text of the option"
+                      multiline
+                      fullWidth
+                      maxRows={4}
+                      value={option.text}
+                      onChange={(event) => {handleOptionChange(index, event)}}
+                      disabled={defaultOptions}
+                    />
                   </Grid>
-                  <Box display={defaultOptions ? "none" : "block"}>
-                    <ListItemSecondaryAction>
-                      <IconButton edge="end" aria-label="delete"
-                        onClick={(event) => {
-                          handleDeleteOptions(event, [option.id]);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </Box>
-                </ListItem>
-              ))}
-              <Box display={defaultOptions ? "none" : "block"}>
-                <ListItem autoFocus button onClick={(event) => handleAddOptions(event, [""])}>
-                  <ListItemAvatar>
-                    <Avatar>
-                      <AddIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText primary="Add Option" />
-                </ListItem>
-              </Box>
-          </List>
-      </div>
-    )
+                  <Grid item xs={6} style={{padding: 5}}>
+                    <TextField
+                      className={"textField"}
+                      size="medium"
+                      label="Feedback"
+                      helperText="This will be shown after choosing this option"
+                      value={option.feedback}
+                      multiline
+                      fullWidth
+                      maxRows={4}
+                      onChange={(event) => {handleFeedbackChange(index, event)}}
+                      />
+                  </Grid>
+                </Grid>
+                <Box display={defaultOptions ? "none" : "block"}>
+                  <ListItemSecondaryAction>
+                    <IconButton
+                      edge="end"
+                      aria-label="delete"
+                      onClick={(event) => {
+                        handleDeleteOptions(event, [option.id]);
+                      }}
+                      size="large">
+                      <DeleteIcon />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </Box>
+              </ListItem>
+            ))}
+            <Box display={defaultOptions ? "none" : "block"}>
+              <ListItem autoFocus button onClick={(event) => handleAddOptions(event, [""])}>
+                <ListItemAvatar>
+                  <Avatar>
+                    <AddIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="Add Option" />
+              </ListItem>
+            </Box>
+        </List>
+    </div>
+    );
   }
 
   return (

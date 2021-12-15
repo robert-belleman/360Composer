@@ -2,22 +2,24 @@ import React from 'react';
 
 import {range} from 'lodash';
 
-import Avatar from "@material-ui/core/Avatar";
-import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import Tooltip from '@material-ui/core/Tooltip';
+import Avatar from "@mui/material/Avatar";
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemText from '@mui/material/ListItemText';
+import Tooltip from '@mui/material/Tooltip';
 
-import AddIcon from '@material-ui/icons/Add';
-import ImageIcon from '@material-ui/icons/Image';
-import Skeleton from '@material-ui/lab/Skeleton';
+import AddIcon from '@mui/icons-material/Add';
+import ImageIcon from '@mui/icons-material/Image';
+import Skeleton from '@mui/material/Skeleton';
 
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-const useStyles = makeStyles((theme: Theme) =>
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
     createStyles({
       list: {
         height: 200,
@@ -52,13 +54,13 @@ const SceneList:React.FC<SceneListProps> = ({isLoading, scenes, addHandler}:Scen
         />
         <ListItemSecondaryAction>
           <Tooltip title="Add to Timeline">
-            <IconButton edge="end" aria-label="add" onClick={addHandler(scene.id)}>
+            <IconButton edge="end" aria-label="add" onClick={addHandler(scene.id)} size="large">
               <AddIcon />
             </IconButton>
           </Tooltip>
         </ListItemSecondaryAction>
       </ListItem>
-    )
+    );
   })
 
   const renderLoadingElement = () => range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))

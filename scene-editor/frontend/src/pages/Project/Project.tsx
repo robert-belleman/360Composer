@@ -5,23 +5,50 @@ import TopBar from "../../components/TopBar";
 import SideMenu from "../../components/SideMenu";
 
 import { View } from '../../types/views';
-import { Grid,Typography, Box } from '@material-ui/core';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
+import { Grid,Typography, Box } from '@mui/material';
+import AppBar from '@mui/material/AppBar';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import AppsIcon from '@material-ui/icons/Apps';
-import ClearAllIcon from '@material-ui/icons/ClearAll';
+import AppsIcon from '@mui/icons-material/Apps';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 
 import AssetView from '../../components/ProjectComponents/AssetView';
 import SceneView from '../../components/ProjectComponents/SceneView';
 import ScenarioView from '../../components/ProjectComponents/ScenarioView';
 import TimelineView from '../../components/ProjectComponents/TimelineView';
 
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
+
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    root: {
+      flexGrow: 1,
+      padding: theme.spacing(3),
+      [theme.breakpoints.up('sm')]: {
+        marginLeft: 240
+      }
+    },
+    top: {
+      padding: theme.spacing(2),
+      boxSizing: 'border-box'
+    },
+    box: {
+      flexGrow: 1
+    },
+    panel: {
+      backgroundColor: 'white',
+      boxShadow: 'none',
+      borderRadius: '5px',
+      border: '1px solid rgba(0, 0, 0, 0.12)'
+    }
+  })
+)
 
 const GRID_VIEW = 'grid';
 const PANEL_VIEW = 'panel';
@@ -61,32 +88,6 @@ const a11yProps = (index: any) => ({
   id: `simple-tab-${index}`,
   'aria-controls': `simple-tabpanel-${index}`,
 });
-
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    root: {
-      flexGrow: 1,
-      padding: theme.spacing(3),
-      [theme.breakpoints.up('sm')]: {
-        marginLeft: 240
-      }
-    },
-    top: {
-      padding: theme.spacing(2),
-      boxSizing: 'border-box'
-    },
-    box: {
-      flexGrow: 1
-    },
-    panel: {
-      backgroundColor: 'white',
-      boxShadow: 'none',
-      borderRadius: '5px',
-      border: '1px solid rgba(0, 0, 0, 0.12)'
-    }
-  })
-)
-
 
 const Project = () => {
   const { project_id } = useParams<'project_id'>();

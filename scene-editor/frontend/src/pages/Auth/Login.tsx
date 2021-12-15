@@ -4,7 +4,7 @@ import "./Login.scss";
 
 import { useSelector } from 'react-redux';
 
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 const Login: React.FC = () => {

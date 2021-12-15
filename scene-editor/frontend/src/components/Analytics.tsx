@@ -1,27 +1,28 @@
 import React, {useEffect, useState} from 'react'
 import axios from 'axios'
 
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Grid from '@material-ui/core/Grid'
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Grid from '@mui/material/Grid'
 
-import GetAppIcon from '@material-ui/icons/GetApp';
+import GetAppIcon from '@mui/icons-material/GetApp';
 
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    root: {
+        flexGrow: 1,
+        padding: theme.spacing(2),
+    }
+  })
+)
 
 const Analytics = () => {
 
   const [days, setDays] = useState(30)
-
-  const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-      root: {
-          flexGrow: 1,
-          padding: theme.spacing(2),
-      }
-    })
-  )
 
   const classes = useStyles()
 

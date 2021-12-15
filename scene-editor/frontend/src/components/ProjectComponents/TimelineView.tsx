@@ -5,35 +5,36 @@ import axios from 'axios';
 
 import { range } from 'lodash';
 
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardContent from '@material-ui/core/CardContent';
-import CardActions from '@material-ui/core/CardActions';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import TextField from '@material-ui/core/TextField';
-import Paper from '@material-ui/core/Paper';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
-import Chip from '@material-ui/core/Chip';
-import Snackbar from '@material-ui/core/Snackbar';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import TextField from '@mui/material/TextField';
+import Paper from '@mui/material/Paper';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import Snackbar from '@mui/material/Snackbar';
 
-import SwapVertIcon from '@material-ui/icons/SwapVert';
-import TimelineIcon from '@material-ui/icons/Timeline';
-import EditIcon from '@material-ui/icons/Edit';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
+import SwapVertIcon from '@mui/icons-material/SwapVert';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-import Skeleton from '@material-ui/lab/Skeleton';
-import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
+import Skeleton from '@mui/material/Skeleton';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 type DialogProps = {
   open:boolean,
@@ -160,7 +161,8 @@ export default ({activeProject, fullWidth}: TimelineViewProps): ReactElement => 
     fetchTimelines()
   }, [])
 
-  const useStyles = makeStyles((theme:Theme) =>
+  const theme = createTheme();
+const useStyles = makeStyles((theme) =>
     createStyles({
         root: {
           flexGrow: 1,
@@ -246,12 +248,18 @@ export default ({activeProject, fullWidth}: TimelineViewProps): ReactElement => 
         </CardContent>
         <CardActions>
           <Tooltip title="Edit Timeline">
-            <IconButton aria-label="edit timeline" onClick={() => navigate(`/timeline-editor/${activeProject}/${timeline.id}`)}>
+            <IconButton
+              aria-label="edit timeline"
+              onClick={() => navigate(`/timeline-editor/${activeProject}/${timeline.id}`)}
+              size="large">
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Remove Timeline">
-            <IconButton aria-label="edit timeline" onClick={() => setWarningState({open: true, id: timeline.id})}>
+            <IconButton
+              aria-label="edit timeline"
+              onClick={() => setWarningState({open: true, id: timeline.id})}
+              size="large">
               <DeleteIcon />
             </IconButton>
           </Tooltip>

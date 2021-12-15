@@ -2,18 +2,20 @@ import React from 'react';
 
 import ReactFlow, { Handle, Controls, Background, isEdge } from 'react-flow-renderer';
 
-import Box from '@material-ui/core/Box';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
 
-import TimelineIcon from '@material-ui/icons/Timeline';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-const useStyles = makeStyles((theme: Theme) =>
+const theme = createTheme();
+const useStyles = makeStyles((theme) =>
     createStyles({
       root: {
         flexGrow: 1,

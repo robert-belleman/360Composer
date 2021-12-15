@@ -6,38 +6,41 @@ import {range} from 'lodash';
 
 import axios from 'axios';
 
-import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import AddIcon from '@material-ui/icons/Add';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardContent from '@material-ui/core/CardContent';
-import CardActions from '@material-ui/core/CardActions';
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import EditIcon from '@material-ui/icons/Edit';
-import Tooltip from '@material-ui/core/Tooltip';
-import Snackbar from '@material-ui/core/Snackbar';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import AddIcon from '@mui/icons-material/Add';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import EditIcon from '@mui/icons-material/Edit';
+import Tooltip from '@mui/material/Tooltip';
+import Snackbar from '@mui/material/Snackbar';
 
-import VideocamIcon from '@material-ui/icons/Videocam';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import DeleteIcon from '@material-ui/icons/Delete';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-import Skeleton from '@material-ui/lab/Skeleton';
+import Skeleton from '@mui/material/Skeleton';
 
 import NewSceneDialog from "./SceneViewComponents/NewSceneDialog";
-import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 import { fetchScenes } from '../../actions/sceneActions';
+
+const theme = createTheme();
 
 type SceneViewProps = {
   activeProject: string;
@@ -103,7 +106,7 @@ const SceneTile: React.FC<SceneTileProps> = ({ name, id, activeProject, descript
       <Card style={{backgroundColor: '#eeeeee'}} variant="outlined">
         <CardHeader
           action={
-            <IconButton aria-label="settings">
+            <IconButton aria-label="settings" size="large">
               <MoreVertIcon />
             </IconButton>
           }
@@ -118,21 +121,30 @@ const SceneTile: React.FC<SceneTileProps> = ({ name, id, activeProject, descript
         </CardContent>
         <CardActions disableSpacing>
           <Tooltip title="Play Scene" arrow>
-            <IconButton aria-label="Open in player" onClick={() => {
-                navigate("/scene-player/" + id);
-              }}>
+            <IconButton
+              aria-label="Open in player"
+              onClick={() => {
+                  navigate("/scene-player/" + id);
+                }}
+              size="large">
             <PlayArrowIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Edit" arrow>
-            <IconButton aria-label="edit" onClick={() => {
-                navigate(`/editor/${activeProject}/${id}`);
-            }}>
+            <IconButton
+              aria-label="edit"
+              onClick={() => {
+                  navigate(`/editor/${activeProject}/${id}`);
+              }}
+              size="large">
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete Scene" arrow>
-            <IconButton aria-label="share" onClick={() => setWarningState({open: true, id})}>
+            <IconButton
+              aria-label="share"
+              onClick={() => setWarningState({open: true, id})}
+              size="large">
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -165,7 +177,7 @@ const SceneView: React.FC<SceneViewProps> = ({activeProject, fullWidth}) => {
     .then(() => setLoadingScenes(false))
     .catch((e:any) => { console.log('error while fetching scenes', e); setLoadingScenes(false)} )
 
-  const classes = (makeStyles((theme: Theme) =>
+  const classes = (makeStyles((theme) =>
     createStyles({
       root: {
         flexGrow: 1,

@@ -7,22 +7,25 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logOut } from '../actions/authActions';
 import { toggleSidebar } from '../actions/sidebarActions';
 
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Box from "@material-ui/core/Box";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from '@material-ui/core/Typography';
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import Typography from '@mui/material/Typography';
 
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import SettingsIcon from '@material-ui/icons/Settings';
-import MenuIcon from '@material-ui/icons/Menu';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import SettingsIcon from '@mui/icons-material/Settings';
+import MenuIcon from '@mui/icons-material/Menu';
 
-import { makeStyles } from '@material-ui/core/styles';
+
+import { makeStyles, createStyles } from '@mui/styles';
+import { createTheme } from '@mui/material/styles';
 
 import logo from "../static/images/levvel-logo.png";
 
 import "./TopBar.scss";
 
+const theme = createTheme();
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -62,20 +65,30 @@ const TopBar: React.FC = () => {
     <AppBar className={classes.root} position="sticky">
       <Toolbar className={classes.toolbar}>
         <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={() => dispatch(toggleSidebar())}
-            className={classes.menuButton}
-        >
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={() => dispatch(toggleSidebar())}
+          className={classes.menuButton}
+          size="large">
           <MenuIcon />
         </IconButton>
         <img onClick={() => navigate('/')} style={{cursor: 'pointer'}} src={logo} alt="PCIT-VR" className={classes.logo} />
         <Box className={classes.box}/>
-        <IconButton edge="end" color="inherit" aria-label="log-out" onClick={() => navigate('/settings')}>
+        <IconButton
+          edge="end"
+          color="inherit"
+          aria-label="log-out"
+          onClick={() => navigate('/settings')}
+          size="large">
           <SettingsIcon />
         </IconButton>
-        <IconButton edge="end" color="inherit" aria-label="log-out" onClick={() => {dispatch(logOut()); navigate('/')}}>
+        <IconButton
+          edge="end"
+          color="inherit"
+          aria-label="log-out"
+          onClick={() => {dispatch(logOut()); navigate('/')}}
+          size="large">
           <ExitToAppIcon />
         </IconButton>
       </Toolbar>

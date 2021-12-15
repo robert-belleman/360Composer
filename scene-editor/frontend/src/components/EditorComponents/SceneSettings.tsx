@@ -1,10 +1,10 @@
 import React from "react";
 
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import Slider from '@material-ui/core/Slider';
-import BrightnessLowIcon from '@material-ui/icons/BrightnessLow';
-import BrightnessHighIcon from '@material-ui/icons/BrightnessHigh';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Slider from '@mui/material/Slider';
+import BrightnessLowIcon from '@mui/icons-material/BrightnessLow';
+import BrightnessHighIcon from '@mui/icons-material/BrightnessHigh';
 
 import "./SceneSettings.scss";
 

@@ -1,16 +1,16 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
 
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import IconButton from '@material-ui/core/IconButton';
-import AddIcon from '@material-ui/icons/Add';
-import Avatar from '@material-ui/core/Avatar';
-import CategoryIcon from '@material-ui/icons/Category';
-import Tooltip from '@material-ui/core/Tooltip';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemText from '@mui/material/ListItemText';
+import IconButton from '@mui/material/IconButton';
+import AddIcon from '@mui/icons-material/Add';
+import Avatar from '@mui/material/Avatar';
+import CategoryIcon from '@mui/icons-material/Category';
+import Tooltip from '@mui/material/Tooltip';
 
 import "./AssetList.scss";
 
@@ -38,7 +38,11 @@ const AssetListItem: React.FC<AssetListItemProps> = ({assetName, assetID, onAddA
       />
       <ListItemSecondaryAction>
       <Tooltip title="Add to scene" arrow>
-        <IconButton edge="end" aria-label="add to scene" onClick={() => {onAddAsset(assetID)}}>
+        <IconButton
+          edge="end"
+          aria-label="add to scene"
+          onClick={() => {onAddAsset(assetID)}}
+          size="large">
           <AddIcon />
         </IconButton>
       </Tooltip>
