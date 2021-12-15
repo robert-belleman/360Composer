@@ -1,7 +1,7 @@
 enum View {
   Project = 'project',
   Users = 'users',
-  Analytics = 'analytis'
+  Analytics = 'analytics'
 }
 
 export { View }
