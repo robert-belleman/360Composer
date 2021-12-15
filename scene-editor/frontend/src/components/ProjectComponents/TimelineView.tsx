@@ -1,5 +1,5 @@
 import React, { ReactElement, useState, useEffect } from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 
 import axios from 'axios';
 
@@ -139,7 +139,7 @@ const AddTimelineDialog = ({open, handleSubmit, handleClose}:DialogProps) => {
 }
 
 export default ({activeProject, fullWidth}: TimelineViewProps): ReactElement => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [warningState, setWarningState] = useState({open: false, id: ""});
@@ -246,7 +246,7 @@ export default ({activeProject, fullWidth}: TimelineViewProps): ReactElement => 
         </CardContent>
         <CardActions>
           <Tooltip title="Edit Timeline">
-            <IconButton aria-label="edit timeline" onClick={() => history.push(`/timeline-editor/${activeProject}/${timeline.id}`)}>
+            <IconButton aria-label="edit timeline" onClick={() => navigate(`/timeline-editor/${activeProject}/${timeline.id}`)}>
               <EditIcon />
             </IconButton>
           </Tooltip>

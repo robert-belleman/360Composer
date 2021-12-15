@@ -1,14 +1,16 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, Switch, Route, Redirect } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 
-import { retrieveToken } from './actions/tokenActions'
+import { retrieveToken } from './actions/authActions'
 
 import { View } from './types/views';
 
 import PageNotFound from "./pages/PageNotFound/PageNotFound";
 import Settings from "./pages/Settings/Settings";
-import Login from "./pages/Login/Login";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
+import RegisterDone from "./pages/Auth/RegisterDone";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Editor from "./pages/Editor/Editor";
 import ScenarioEditor from "./pages/ScenarioEditor/ScenarioEditor"
@@ -32,27 +34,27 @@ const AppRouter: React.FC = () => {
     return (
         hasToken() ?
         <BrowserRouter>
-            <Switch>
-                <Redirect exact from="/" to="/projects" />
-                <Route path="/scenario-editor/:projectID/:scenarioID" component={ScenarioEditor}></Route>
-                <Route path="/timeline-editor/:projectID/:timelineID" component={TimelineEditor}></Route>
-                <Route path="/editor/:project_id/:scene_id" component={Editor}></Route>
-                <Route path="/scene-player/:scene_id" component={ScenePlayer}></Route>
-                <Route path="/scenario-player/:scenario_id" component={ScenarioPlayer}></Route>
-                <Route exact path="/project/:project_id" component={Project}></Route>
-                <Route exact path="/projects"><Dashboard view={View.Project} /></Route>
-                <Route exact path="/analytics"><Dashboard view={View.Analytics} /></Route>
-                <Route exact path="/users"><Dashboard view={View.Users} /></Route>
-                <Route exact path="/settings"><Settings /></Route>
-                <Route component={PageNotFound} />
-            </Switch>
+            <Routes>
+                <Route path="/scenario-editor/:projectID/:scenarioID" element={<ScenarioEditor/>}></Route>
+                <Route path="/timeline-editor/:projectID/:timelineID" element={<TimelineEditor/>}></Route>
+                <Route path="/editor/:project_id/:scene_id" element={<Editor/>}></Route>
+                <Route path="/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
+                <Route path="/scenario-player/:scenario_id" element={<ScenarioPlayer/>}></Route>
+                <Route path="/project/:project_id" element={<Project/>}></Route>
+                <Route path="/projects" element={<Dashboard view={View.Project}/>}></Route>
+                <Route path="/analytics" element={<Dashboard view={View.Analytics}/>}></Route>
+                <Route path="/users" element={<Dashboard view={View.Users}/>}></Route>
+                <Route path="/settings" element={<Settings/>}></Route>
+                <Route path="*" element={<Navigate to="/projects" />} />
+            </Routes>
         </BrowserRouter>:
         <BrowserRouter>
-            <Switch>
-                <Route path="/editor/:scene_id" component={Editor}></Route>
-                <Route path="/scene-player/:scene_id" component={ScenePlayer}></Route>
-                <Route component={Login} />
-            </Switch>
+            <Routes>
+                <Route path="/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
+                <Route path="/register" element={<Register/>}></Route>
+                <Route path="/register-done" element={<RegisterDone/>}></Route>
+                <Route path="*" element={<Login/>} />
+            </Routes>
         </BrowserRouter>
     );
 };

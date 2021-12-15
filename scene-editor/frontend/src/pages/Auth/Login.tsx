@@ -1,5 +1,5 @@
 import React from "react";
-import LoginForm from "../../components/LoginForm";
+import LoginForm from "../../components/AuthComponents/LoginForm";
 import "./Login.scss";
 
 import { useSelector } from 'react-redux';

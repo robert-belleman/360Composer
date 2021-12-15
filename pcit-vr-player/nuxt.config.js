@@ -78,7 +78,7 @@ export default {
   },
   server: {
     // host: '0', // Deze line zorgt ervoor dat de server luistert op het IP adres.
-    port: 3001,
+    port: 3002,
     // https: {
     //   key: fs.readFileSync(path.resolve(__dirname, 'server.key')),
     //   cert: fs.readFileSync(path.resolve(__dirname, 'server.crt'))

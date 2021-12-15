@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import { useHistory, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { concat, sortBy } from 'lodash';
 
@@ -64,16 +64,10 @@ import { View } from '../../types/views';
 
 import "./Editor.scss";
 
-
-type EditorPageParams = {
-    project_id: string;
-    scene_id: string;
-};
-
 const Editor: React.FC = () => {
 
-    const { project_id, scene_id }: EditorPageParams = useParams();
-    const history = useHistory();
+    const { project_id, scene_id } = useParams<'project_id' | 'scene_id'>();
+    const navigate = useNavigate();
     const useQuery = () => new URLSearchParams(useLocation().search);
     const param:string|null = useQuery().get('goBack');
     const goBack = !(param === null || param === undefined)
@@ -557,7 +551,7 @@ const Editor: React.FC = () => {
     const renderAnnotations = () => {
       return annotations.length !== 0
         ? sortBy(annotations, ['timestamp']).map((annotation:any, index:number) => {
-          return (<Annotation sceneID={scene_id} annotationID={annotation.id} videoLength={currentVideoLength} num={index+1} key={`${annotation.id}-${index}`} onDelete={fetchAnnotations} update={annotationUpdate} annotation={annotation} options={annotation.options}/>)
+          return (<Annotation sceneID={scene_id!} annotationID={annotation.id} videoLength={currentVideoLength} num={index+1} key={`${annotation.id}-${index}`} onDelete={fetchAnnotations} update={annotationUpdate} annotation={annotation} options={annotation.options}/>)
         })
         : [renderAddAnnotation()]
     }
@@ -606,7 +600,7 @@ const Editor: React.FC = () => {
             <Divider style={{marginTop: 20, marginBottom: 20}} />
             <Typography variant="subtitle1" component="p" style={{display: 'flex', alignItems: 'center', flexWrap: 'wrap'}}><ImageIcon /> 360° media</Typography>
             <MediaSelector 
-              sceneID={scene_id} 
+              sceneID={scene_id!} 
               onMediaSelected={() => {fetchSceneData(); fetchAnnotations()}} // always fetch new scene data and annotations when something has changed with the media
               onMediaDeleted={() => fetchSceneData()}
               media={media}
@@ -705,7 +699,7 @@ const Editor: React.FC = () => {
       <div>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? history.goBack() : history.push(`/project/${project_id}?activeTab=scenes`)}>Back</Button>
+            <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? navigate(-1) : navigate(`/project/${project_id}?activeTab=scenes`)}>Back</Button>
           </Grid>
         </Grid>
       </div>
@@ -735,7 +729,7 @@ const Editor: React.FC = () => {
       </Card>
     )
 
-    return (
+    return scene_id ? (
         <div>
             <TopBar></TopBar>
             <SideMenu activeView={View.Project}/>
@@ -765,7 +759,7 @@ const Editor: React.FC = () => {
                   </Grid>
                 </Grid>
                 <NewAnnotationDialog 
-                  sceneID={scene_id} 
+                  sceneID={scene_id!} 
                   timeStamp={currentVideoTime} 
                   open={newAssetDialogOpen} 
                   closeHandler={setNewAssetDialogOpen} 
@@ -774,7 +768,7 @@ const Editor: React.FC = () => {
               </Container>
             </div>
             <UpdateSceneDialog
-              sceneID={scene_id}
+              sceneID={scene_id!}
               scene={{name: scene ? scene.name : "", description: scene ? scene.description : ""}}
               open={updateDialogOpen}
               closeHandler={() => setUpdateDialogOpen(false)}
@@ -782,7 +776,7 @@ const Editor: React.FC = () => {
             />
 
         </div>
-    );
+    ) : (<div>No scene id given</div>);
 };
 
 export default Editor;

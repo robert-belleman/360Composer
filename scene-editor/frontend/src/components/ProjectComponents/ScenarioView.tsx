@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 
 import {range} from 'lodash';
@@ -88,7 +88,7 @@ const DeleteWarningDialog = ({open, id, handleClose, handleDelete}:any) => {
 }
 
 const ScenarioTile: React.FC<ScenarioTileProps> = ({ name, activeProject, id, description, created_at, fullWidth, setWarningState }) => {
-  const history = useHistory();
+  const navigate = useNavigate();
   return (
     <Grid item xs={12} md={6} lg={fullWidth ? 3 : 6} xl={fullWidth ? 3 : 4}>
       <Card variant="outlined" style={{backgroundColor: '#eeeeee'}}>
@@ -109,7 +109,7 @@ const ScenarioTile: React.FC<ScenarioTileProps> = ({ name, activeProject, id, de
         </CardContent>
           <CardActions disableSpacing>
             <Tooltip title="Edit" arrow>
-                <IconButton aria-label="edit" onClick={() => history.push(`/scenario-editor/${activeProject}/${id}`)}>
+                <IconButton aria-label="edit" onClick={() => navigate(`/scenario-editor/${activeProject}/${id}`)}>
                     <EditIcon />
                 </IconButton>
             </Tooltip>

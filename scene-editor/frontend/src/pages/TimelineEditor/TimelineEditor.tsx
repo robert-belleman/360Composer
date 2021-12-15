@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import arrayMove from 'array-move';
 
@@ -53,13 +53,8 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 )
 
-type TimelineEditorPageParams = {
-  projectID: string,
-  timelineID: string,
-}
-
 const TimelineEditor = () => {
-  const {projectID, timelineID}: TimelineEditorPageParams = useParams();
+  const {projectID, timelineID} = useParams<'projectID' | 'timelineID'>();
 
   const [timeline, setTimeline] = useState(INITIAL_TIMELINE)
   const [timelineScenarios, setTimelineScenarios] = useState([] as any[]);
@@ -68,7 +63,7 @@ const TimelineEditor = () => {
   const [loadingTimeline, setLoadingTimeline] = useState(true);
   const [loadingTimelineScenarios, setLoadingTimelineScenarios] = useState(true);
 
-  const history = useHistory();  
+  const navigate = useNavigate();  
   const classes = useStyles();
 
   useEffect(() => {
@@ -137,7 +132,7 @@ const TimelineEditor = () => {
     <div>
       <Grid container spacing={3}>
         <Grid item xs={1}>
-          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => history.push(`/project/${projectID}?activeTab=timelines`)}>Back</Button>
+          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/project/${projectID}?activeTab=timelines`)}>Back</Button>
         </Grid>
         <Grid item xs={11}>
           <Box className={classes.box}/>
@@ -162,8 +157,8 @@ const TimelineEditor = () => {
           </Grid>
           <Grid item xs={12} md={12} lg={4}>
             <TimelineScenarioList
-              projectID={projectID}
-              timelineID={timelineID}
+              projectID={projectID!}
+              timelineID={timelineID!}
               randomized={timeline.randomized}
               timelineScenarios={timelineScenarios}
               onScenariosAdded={onScenariosAdded}
@@ -173,10 +168,10 @@ const TimelineEditor = () => {
             />
           </Grid>
           <Grid item xs={12} md={12} lg={4}>
-            <TimelineUserList timelineID={timelineID} />
+            <TimelineUserList timelineID={timelineID!} />
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
-            <TimelinePreview randomized={timeline.randomized} timelineScenarios={timelineScenarios} />
+            <TimelinePreview randomized={timeline.randomized} timelineScenarios={timelineScenarios!} />
           </Grid>
         </Grid>
       </div>

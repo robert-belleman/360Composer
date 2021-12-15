@@ -1,5 +1,7 @@
 import { SET_TOKEN, SET_LOADING } from '../types/actions';
-import { logIn as loginAPI, logOut as logOutAPI, fetchToken } from '../util/api';
+import { logIn as loginAPI, 
+         logOut as logOutAPI,  
+         fetchToken } from '../util/api';
 
 export const setToken = (token: any) => ({
   type: SET_TOKEN,

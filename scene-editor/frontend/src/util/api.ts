@@ -10,6 +10,10 @@ export const logOut = async () => {
     .catch((e:any) => console.log('error while logging out: ', e))
 }
 
+export const register = async (username:string, password:string) => {
+  return await axios.post(`/api/user/register`, {"username":username, "password": password} )
+}
+
 export const getScenes = async (activeProject:string) => {
   return await axios.get(`/api/project/${activeProject}/scenes`);
 }

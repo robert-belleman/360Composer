@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios';
 
 import ReactFlow, { Handle, Controls, Background, isEdge } from 'react-flow-renderer';
@@ -56,11 +56,6 @@ const BACKGROUND = (index:number) => {
   return colors[index] ? colors[index] : "#fff"
 }
 
-type ScenarioEditorPageParams = {
-  projectID:string,
-  scenarioID:string
-}
-
 type SceneNodeProps = {
   data: any,
   selected:any
@@ -90,7 +85,7 @@ const INITIAL_VALIDATION = {
 }
 
 const SceneNode = ({selected, data}:SceneNodeProps) => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const isStartNode = () => data.id === data.timeline.start_scene
 
@@ -148,7 +143,7 @@ const SceneNode = ({selected, data}:SceneNodeProps) => {
   }
 
   const handleEdit = () => {
-    history.push(`/editor/${data.projectID}/${data.scene_id}?goBack=true`)
+    navigate(`/editor/${data.projectID}/${data.scene_id}?goBack=true`)
   }
 
   const renderHandles = () => data.actions.map((action:any, index:number) => {
@@ -266,7 +261,7 @@ const SceneNode = ({selected, data}:SceneNodeProps) => {
 }
 
 const ScenarioEditor:React.FC = () => {
-  const {projectID, scenarioID}:ScenarioEditorPageParams = useParams();
+  const {projectID, scenarioID} = useParams<'projectID'|'scenarioID'>();
 
   const [fetchingTimelines, setFetchingTimelines] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -281,7 +276,7 @@ const ScenarioEditor:React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date(Date.now()))
   const [selectedEdges, setSelectedEdges] = useState([] as any[])
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (timeline !== INITIAL_TIMELINE) {
@@ -396,7 +391,7 @@ const ScenarioEditor:React.FC = () => {
   const previewScene = () => {
     saveScenarioTimeline();
 
-    history.push(`/scenario-player/${scenarioID}`)
+    navigate(`/scenario-player/${scenarioID}`)
   }
 
   const fetchScenarioTimeline = () => axios.get(`/api/scenario/${scenarioID}/`)
@@ -607,7 +602,7 @@ const ScenarioEditor:React.FC = () => {
     <div>
       <Grid container spacing={3}>
         <Grid item xs={1}>
-          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => history.push(`/project/${projectID}?activeTab=scenarios`)}>Back</Button>
+          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/project/${projectID}?activeTab=scenarios`)}>Back</Button>
         </Grid>
         <Grid item xs={11}>
           <Typography
@@ -668,15 +663,15 @@ const ScenarioEditor:React.FC = () => {
           </Grid>
         </Grid>
         <NewSceneDialog
-          projectID={projectID}
-          scenarioID={scenarioID}
+          projectID={projectID!}
+          scenarioID={scenarioID!}
           open={dialogOpen}
           closeHandler={() => setDialogOpen(false)}
           onScenesAdded={onScenesAdded} 
         />
         
         <UpdateScenarioDialog
-          scenarioID={scenarioID}
+          scenarioID={scenarioID!}
           scenario={{name: timeline.name, description: timeline.description}}
           open={updateDialogOpen}
           closeHandler={() => setUpdateDialogOpen(false)}

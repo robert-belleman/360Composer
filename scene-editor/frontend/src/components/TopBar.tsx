@@ -1,10 +1,10 @@
 import React from "react";
 
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { useSelector, useDispatch } from 'react-redux';
 
-import { logOut } from '../actions/tokenActions';
+import { logOut } from '../actions/authActions';
 import { toggleSidebar } from '../actions/sidebarActions';
 
 import AppBar from "@material-ui/core/AppBar";
@@ -56,7 +56,7 @@ const TopBar: React.FC = () => {
   const classes = useStyles();
 
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   return (
     <AppBar className={classes.root} position="sticky">
@@ -70,12 +70,12 @@ const TopBar: React.FC = () => {
         >
           <MenuIcon />
         </IconButton>
-        <img onClick={() => history.push('/')} style={{cursor: 'pointer'}} src={logo} alt="PCIT-VR" className={classes.logo} />
+        <img onClick={() => navigate('/')} style={{cursor: 'pointer'}} src={logo} alt="PCIT-VR" className={classes.logo} />
         <Box className={classes.box}/>
-        <IconButton edge="end" color="inherit" aria-label="log-out" onClick={() => history.push('/settings')}>
+        <IconButton edge="end" color="inherit" aria-label="log-out" onClick={() => navigate('/settings')}>
           <SettingsIcon />
         </IconButton>
-        <IconButton edge="end" color="inherit" aria-label="log-out" onClick={() => {dispatch(logOut()); history.push('/')}}>
+        <IconButton edge="end" color="inherit" aria-label="log-out" onClick={() => {dispatch(logOut()); navigate('/')}}>
           <ExitToAppIcon />
         </IconButton>
       </Toolbar>

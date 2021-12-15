@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React,  { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
 
@@ -8,7 +7,7 @@ import ScenarioPlayer from "../../components/ScenarioPlayer";
 const ScenePlayer: React.FC = () => {
     const [objects, setObjects] = useState([]);
     const [fetch, setFetch] = useState(true);
-    const { scenario_id }: EditorPageParams = useParams();
+    const { scenario_id } = useParams<'scenario_id'>();
 
     useEffect(() => {
         console.log(`Scenario ID: ${scenario_id}`);
@@ -23,7 +22,7 @@ const ScenePlayer: React.FC = () => {
     }
     
     return (
-        <ScenarioPlayer  scenarioID={scenario_id} onFinish={onFinish} onStart={onStart} />
+        <ScenarioPlayer  scenarioID={scenario_id!} onFinish={onFinish} onStart={onStart} />
     );
 };
 

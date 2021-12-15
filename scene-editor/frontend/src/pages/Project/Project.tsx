@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {useHistory, useParams, useLocation} from 'react-router-dom'
+import {useNavigate, useParams, useLocation} from 'react-router-dom'
 
 import TopBar from "../../components/TopBar";
 import SideMenu from "../../components/SideMenu";
@@ -87,13 +87,9 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 )
 
-type ProjectPageParams = {
-  project_id: string;
-};
-
 
 const Project = () => {
-  const { project_id }: ProjectPageParams = useParams();
+  const { project_id } = useParams<'project_id'>();
 
   const useQuery = () => new URLSearchParams(useLocation().search);
   const queryTab:string|null = useQuery().get('activeTab');
@@ -107,7 +103,7 @@ const Project = () => {
   }, [view])
 
   const classes = useStyles();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
@@ -156,16 +152,16 @@ const Project = () => {
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
-        <AssetView fullWidth={true} activeProject={project_id} />
+        <AssetView fullWidth={true} activeProject={project_id!} />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <SceneView fullWidth={true} activeProject={project_id} />
+        <SceneView fullWidth={true} activeProject={project_id!} />
       </TabPanel>
       <TabPanel value={value} index={2}>
-        <ScenarioView fullWidth={true} activeProject={project_id} />
+        <ScenarioView fullWidth={true} activeProject={project_id!} />
       </TabPanel>
       <TabPanel value={value} index={3}>
-        <TimelineView fullWidth={true} activeProject={project_id} />
+        <TimelineView fullWidth={true} activeProject={project_id!} />
       </TabPanel>
     </Grid>
   )
@@ -173,16 +169,16 @@ const Project = () => {
   const gridView = () => (
     <Grid container spacing={3}>
       <Grid item xs={12} md={12} lg={6}>
-        <AssetView fullWidth={false} activeProject={project_id} />
+        <AssetView fullWidth={false} activeProject={project_id!} />
       </Grid>
       <Grid item xs={12} md={12} lg={6}>
-        <SceneView fullWidth={false} activeProject={project_id} />
+        <SceneView fullWidth={false} activeProject={project_id!} />
       </Grid>
       <Grid item xs={12} md={12} lg={6}>
-        <ScenarioView fullWidth={false} activeProject={project_id} />
+        <ScenarioView fullWidth={false} activeProject={project_id!} />
       </Grid>
       <Grid item xs={12} md={12} lg={6}>
-        <TimelineView fullWidth={false} activeProject={project_id} />
+        <TimelineView fullWidth={false} activeProject={project_id!} />
       </Grid>
     </Grid>
   )

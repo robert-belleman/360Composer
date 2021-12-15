@@ -1,7 +1,7 @@
 import axios from "axios";
 
 import { refreshToken } from './api';
-import { logOut } from '../actions/tokenActions';
+import { logOut } from '../actions/authActions';
 
 const MUST_BE_USER = "Must be user";
 const NOT_EXISTS = "User or customer does not exist";

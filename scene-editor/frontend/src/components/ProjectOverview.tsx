@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 import { range } from 'lodash';
@@ -41,7 +41,7 @@ const ProjectOverview : React.FC = () => {
 
   const classes = useStyles();
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const token = useSelector((state:any) => state.token);
 
@@ -83,7 +83,7 @@ const ProjectOverview : React.FC = () => {
           </CardContent>
         </CardActionArea>
         <CardActions>
-          <Button size="small" color="primary" onClick={() => history.push(`/project/${project.id}`)}>
+          <Button size="small" color="primary" onClick={() => navigate(`/project/${project.id}`)}>
             Edit
           </Button>
         </CardActions>

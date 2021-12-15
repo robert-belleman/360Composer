@@ -5,7 +5,7 @@ import { reduce, extend } from 'lodash';
 import axios from 'axios';
 
 import { useSelector } from 'react-redux';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { View } from '../../types/views';
 
@@ -70,7 +70,7 @@ const Settings = () => {
   const initialValidState: any = reduce(["new", "current", "verify"].map(x => ({[x]: {valid: true, message: ""}})), extend)
 
   const classes = useStyles();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -170,7 +170,7 @@ const Settings = () => {
     <div>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => history.push(`/`)}>Back</Button>
+          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/`)}>Back</Button>
         </Grid>
       </Grid>
     </div>

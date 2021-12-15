@@ -1,7 +1,8 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 
-import { logIn } from '../actions/tokenActions'
+import { logIn } from '../../actions/authActions'
 
 import './LoginForm.scss';
 
@@ -24,7 +25,7 @@ const LoginForm: React.FC = () => {
           <input type="text" placeholder="username" id="username"/>
           <input type="password" placeholder="password" id="password"/>
           <input className="submitButton" type="submit" value="login"/>
-          <p className="message">Not registered? <a href="/">Create an account</a></p>
+          <p className="message">Not registered? <Link to="/register">Create an account</Link></p>
         </form>
     </div>
   );

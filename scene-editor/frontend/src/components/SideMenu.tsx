@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { View } from '../types/views';
 
@@ -53,26 +53,26 @@ type SideMenuProps = {
 };
 
 const SideMenu: React.FC<SideMenuProps> = ({activeView}:SideMenuProps) => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const classes = useStyles();
 
   const sidebarOpen = useSelector((state:any) => state.sidebarOpen);
 
   const SideMenuList = () => (
     <List className={classes.list}>
-      <ListItem button component="a" selected={activeView === View.Project} onClick={() => history.push('/projects')}>
+      <ListItem button component="a" selected={activeView === View.Project} onClick={() => navigate('/projects')}>
         <ListItemIcon>
           <AccountTreeIcon />
         </ListItemIcon>
         <ListItemText primary="Projects"/>
       </ListItem>
-      <ListItem button component="a" selected={activeView === View.Users} onClick={() => history.push('/users')}>
+      <ListItem button component="a" selected={activeView === View.Users} onClick={() => navigate('/users')}>
         <ListItemIcon>
           <PeopleIcon />
         </ListItemIcon>
         <ListItemText primary="Users"/>
       </ListItem>
-      <ListItem button component="a" selected={activeView === View.Analytics} onClick={() => history.push('/analytics')}>
+      <ListItem button component="a" selected={activeView === View.Analytics} onClick={() => navigate('/analytics')}>
         <ListItemIcon>
           <PieChartIcon />
         </ListItemIcon>

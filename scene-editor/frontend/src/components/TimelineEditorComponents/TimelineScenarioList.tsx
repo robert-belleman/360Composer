@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 
 import { range } from 'lodash';
 
-import { Container, Draggable } from "react-smooth-dnd";
+//import { Container, Draggable } from "react-smooth-dnd";
 
 import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
 
@@ -124,13 +124,13 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
 
   const ScenarioList = ({scenarios}:any) => (
     <List className={classes.list}>
-      <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onSortEnd}>
+      {/*<Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onSortEnd}>
         {scenarios.map((scenario:any, i:number) => (
           <Draggable key={scenario.id}>
             <ScenarioItem key={scenario.id} i={i} scenario={scenario} />
           </Draggable>
         ))}
-      </Container>
+      </Container>*/}
     </List>
   )
 
@@ -178,7 +178,7 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
         </Grid>
       </Grid>
       <TimelineAddScenarioDialog
-        projectID={projectID}
+        projectID={projectID!}
         timelineID={timelineID}
         open={scenarioDialogOpen}
         closeHandler={() => setScenarioDialogOpen(false)}

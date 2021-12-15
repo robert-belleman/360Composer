@@ -1,5 +1,5 @@
 import React,  { useEffect, useState } from 'react';
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 
 import {range} from 'lodash';
@@ -96,7 +96,7 @@ const DeleteWarningDialog = ({open, id, handleClose, handleDelete}:any) => {
 }
 
 const SceneTile: React.FC<SceneTileProps> = ({ name, id, activeProject, description, created_at, fullWidth, setWarningState }) => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   return (
     <Grid item xs={12} md={6} lg={fullWidth ? 3 : 6} xl={fullWidth ? 3 : 4}>
@@ -119,14 +119,14 @@ const SceneTile: React.FC<SceneTileProps> = ({ name, id, activeProject, descript
         <CardActions disableSpacing>
           <Tooltip title="Play Scene" arrow>
             <IconButton aria-label="Open in player" onClick={() => {
-                history.push("/scene-player/" + id);
+                navigate("/scene-player/" + id);
               }}>
             <PlayArrowIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Edit" arrow>
             <IconButton aria-label="edit" onClick={() => {
-                history.push(`/editor/${activeProject}/${id}`);
+                navigate(`/editor/${activeProject}/${id}`);
             }}>
               <EditIcon />
             </IconButton>
