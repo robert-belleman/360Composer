@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from app.models.database import db
+from app.models.project_asset import project_asset
 from sqlalchemy.dialects.postgresql import UUID
 
 class Project(db.Model):
@@ -10,6 +11,9 @@ class Project(db.Model):
     
     # project metadata
     name = db.Column(db.String(128))
+
+    assets = db.relationship('Asset', secondary=project_asset, lazy='subquery',
+        backref=db.backref('projects', lazy=True))
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
