@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 class Timeline(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    project_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False) # UUID of the related project
+    project_id = db.Column(UUID(as_uuid=True), db.ForeignKey("project.id"), unique=False, nullable=False) # UUID of the related project
 
     name = db.Column(db.String(128))
     description = db.Column(db.String(128))
@@ -15,8 +15,7 @@ class Timeline(db.Model):
     start = db.Column(UUID(as_uuid=True), db.ForeignKey("timeline_scenario.id", ondelete="SET NULL"), unique=False, nullable=True)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now,
-                           onupdate=datetime.now)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
     deleted_at = db.Column(db.DateTime, nullable=True)
 
     timeline_scenarios = db.relationship("TimelineScenario", foreign_keys="TimelineScenario.timeline_id", cascade="all, delete")

@@ -12,6 +12,5 @@ class Project(db.Model):
     name = db.Column(db.String(128))
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now,
-                           onupdate=datetime.now)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
     deleted_at = db.Column(db.DateTime, nullable=True)

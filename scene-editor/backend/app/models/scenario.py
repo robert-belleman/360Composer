@@ -7,7 +7,7 @@ from app.models.scene import Scene
 
 class Scenario(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    project_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False) # UUID of the related project
+    project_id = db.Column(UUID(as_uuid=True), db.ForeignKey("project.id"), unique=False, nullable=False) # UUID of the related project
     
     # project metadata
     name = db.Column(db.String(128))
@@ -20,7 +20,7 @@ class Scenario(db.Model):
 
 class ScenarioScene(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    scenario_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False) # UUID of the related scenario
+    scenario_id = db.Column(UUID(as_uuid=True), db.ForeignKey("scenario.id"), unique=False, nullable=False) # UUID of the related scenario
     scene_id = db.Column(UUID(as_uuid=True), db.ForeignKey(Scene.id), unique=False, nullable=False) # UUID of the related scene
     position_x = db.Column(db.Integer, default=0)
     position_y = db.Column(db.Integer, default=0)
@@ -48,6 +48,6 @@ class ScenarioScene(db.Model):
 
 class ScenarioSceneLink(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    source_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False) # UUID of the related scenario
+    source_id = db.Column(UUID(as_uuid=True), db.ForeignKey('scenario_scene.id'), unique=False, nullable=False) # UUID of the related scenario
     target_id = db.Column(UUID(as_uuid=True), db.ForeignKey('scenario_scene.id'), unique=False, nullable=True) # UUID of the related scenario
     action_id = db.Column(UUID(as_uuid=True), db.ForeignKey('action.id'), unique=False, nullable=False) # UUID of the related scenario

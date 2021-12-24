@@ -6,8 +6,8 @@ from sqlalchemy.dialects.postgresql import UUID
 
 class Scene(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    user_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False) # UUID of user that created the scene
-    project_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False) # UUID of the project this scene belongs to
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.id'), unique=False, nullable=False) # UUID of user that created the scene
+    project_id = db.Column(UUID(as_uuid=True), db.ForeignKey('project.id'), unique=False, nullable=False) # UUID of the project this scene belongs to
     
     video_id = db.Column(UUID(as_uuid=True), db.ForeignKey('asset.id', ondelete="SET NULL"), unique=False, nullable=True)
 

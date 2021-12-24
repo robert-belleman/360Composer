@@ -8,11 +8,11 @@ class Analytics(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.now)
     
-    timeline_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False)
-    timeline_scenario_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False)
-    scenario_scene_id = db.Column(UUID(as_uuid=True), unique=False, nullable=False)
+    timeline_id = db.Column(UUID(as_uuid=True), db.ForeignKey("timeline.id"), unique=False, nullable=False)
+    timeline_scenario_id = db.Column(UUID(as_uuid=True), db.ForeignKey("timeline_scenario.id"), unique=False, nullable=False)
+    scenario_scene_id = db.Column(UUID(as_uuid=True), db.ForeignKey("scenario_scene.id"), unique=False, nullable=False)
     customer_id = db.Column(UUID(as_uuid=True), db.ForeignKey('customer.id'), unique=False, nullable=False)
-    action_id = db.Column(UUID(as_uuid=True), unique=False, nullable=True)
+    action_id = db.Column(UUID(as_uuid=True), db.ForeignKey("action.id"), unique=False, nullable=True)
 
     type = db.Column(db.String(128), nullable=False)
     payload = db.Column(db.String(128), nullable=True)
