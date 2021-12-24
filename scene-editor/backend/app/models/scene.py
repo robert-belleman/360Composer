@@ -16,8 +16,7 @@ class Scene(db.Model):
     description = db.Column(db.Text)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now,
-                           onupdate=datetime.now)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
     deleted_at = db.Column(db.DateTime, nullable=True)
 
     action = db.relationship('Action', primaryjoin="Scene.id == Action.scene_id", foreign_keys='Action.scene_id', lazy=True)

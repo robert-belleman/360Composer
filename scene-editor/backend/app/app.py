@@ -8,7 +8,6 @@ from app.models import database, migrate
 from app.routes.api import api
 
 # import the routes
-from app.routes.hello_world import HelloWorld
 from app.routes.user import Login, CustomerLogin, User, UserProjects, UserUpdatePassword
 from app.routes.token import Token, TokenRefresh
 from app.routes.project import Project, ProjectAssets, ProjectScenarios, ProjectTimelines, ProjectScenes, ProjectCreate, ProjectObjects, ProjectVideos

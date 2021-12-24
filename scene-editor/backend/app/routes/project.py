@@ -45,6 +45,14 @@ class Project(Resource):
 
         return ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
 
+    @user_jwt_required
+    @ns.marshal_with(project_schema)
+    def delete(self, id):
+        claims = get_jwt_claims()
+        project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
+        db.session.delete(project)
+        db.session.commit()
+        return '', HTTPStatus.NO_CONTENT
 
 asset_upload = reqparse.RequestParser()
 asset_upload.add_argument("file", type=FileStorage, location="files", required=True, help="Asset file")

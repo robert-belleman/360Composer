@@ -17,7 +17,9 @@ import Grid from '@mui/material/Grid'
 
 import Skeleton from '@mui/material/Skeleton';
 
+import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
@@ -25,6 +27,7 @@ import { createTheme } from '@mui/material/styles';
 import placeholder from '../static/images/placeholder.jpg'
 
 import NewProjectDialog from "./SideMenuComponents/NewProjectDialog";
+import AlertDialog from "./UIComponents/AlertDialog"
 
 const theme = createTheme();
 const useStyles = makeStyles((theme) =>
@@ -40,6 +43,9 @@ const ProjectOverview : React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [openProjectDialog, setOpenProjectDialog] = useState(false);
   const [projects, setProjects] = useState([]);
+
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedProject, setSelectedProject] = useState('');
 
   const classes = useStyles();
 
@@ -64,6 +70,25 @@ const ProjectOverview : React.FC = () => {
     fetchProjects();
   };
 
+  const onDeleteProject = (id: string) => {
+    setSelectedProject(id)
+    setOpenDeleteDialog(true)
+  }
+
+  const onDelectProjectConfirm = (agree:boolean) => {
+    setOpenDeleteDialog(false)
+    if(agree && selectedProject){
+      axios
+        .delete(`/api/project/${selectedProject}/`)
+        .then((res)=>{
+          fetchProjects();
+        })
+        .catch((e) => {
+          console.log(e)
+        });
+    }
+  }
+
   const renderProject = (project:any) => (
     <Grid item xs={12} md={4} lg={3} key={project.id}>
       <Card variant="outlined">
@@ -84,10 +109,16 @@ const ProjectOverview : React.FC = () => {
             </Typography>
           </CardContent>
         </CardActionArea>
-        <CardActions>
+        <CardActions disableSpacing>
           <Button size="small" color="primary" onClick={() => navigate(`/project/${project.id}`)}>
             Edit
           </Button>
+          <IconButton 
+            onClick={()=>{onDeleteProject(project.id)}}
+            aria-label="Delete" 
+            sx={{ ml: 'auto'}}>
+            <DeleteIcon />
+          </IconButton>
         </CardActions>
       </Card>
     </Grid>
@@ -124,7 +155,15 @@ const ProjectOverview : React.FC = () => {
 
         { loading ? renderLoading() : renderProjects() }
       </Grid>
+
       <NewProjectDialog open={openProjectDialog} closeHandler={() => setOpenProjectDialog(false)} onProjectCreated={onProjectCreated} />
+      <AlertDialog 
+        open={openDeleteDialog} 
+        onClose={onDelectProjectConfirm}
+        title={'Do you really wish to delete the project?'}
+        message={'It will be removed permanently.'}
+        agreeButtonText={'Delete'}
+        disagreeButtonText={'Cancel'}/>
     </div>
   )
 }
