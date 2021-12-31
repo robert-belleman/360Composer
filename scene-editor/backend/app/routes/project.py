@@ -89,7 +89,7 @@ class ProjectAssets(Resource):
         claims = get_jwt_claims()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
 
-        return AssetModel.query.filter_by(project_id=id).all()
+        return project.assets
 
     @user_jwt_required
     @ns.marshal_with(asset_schema)
@@ -115,9 +115,7 @@ class ProjectAssets(Resource):
 
         meta = self.generate_asset_meta(asset_type, filename, path)
 
-        row = AssetModel(name=asset_name, project_id=project.id, user_id=project.user_id, path=asset_filename, asset_type=asset_type, thumbnail_path=meta["thumbnail_path"],
-                         duration=meta["duration"], file_size=meta["file_size"])
-        db.session.add(row)
+        row = AssetModel(name=asset_name, user_id=project.user_id, path=asset_filename, asset_type=asset_type, thumbnail_path=meta["thumbnail_path"], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
         db.session.commit()
 
         return row, HTTPStatus.CREATED
@@ -135,7 +133,7 @@ class ProjectObjects(Resource):
         claims = get_jwt_claims()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
-        return AssetModel.query.filter_by(project_id=id, asset_type=AssetType.model).all()
+        return project.assets.filter_by(asset_type=AssetType.model).all()
         
 @ns.route("/<string:id>/videos")
 @ns.response(HTTPStatus.NOT_FOUND, "Project not found")
@@ -150,7 +148,7 @@ class ProjectVideos(Resource):
         claims = get_jwt_claims()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
-        return AssetModel.query.filter_by(project_id=id, asset_type=AssetType.video).all()
+        return project.assets.filter_by(asset_type=AssetType.video).all()
 
 @ns.route("/<string:id>/scenes")
 @ns.response(HTTPStatus.NOT_FOUND, "Project not found")
@@ -163,7 +161,7 @@ class ProjectScenes(Resource):
         claims = get_jwt_claims()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
-        return SceneModel.query.filter_by(project_id=id).all()
+        return project.scenes
 
     @user_jwt_required
     @ns.expect(scene_create_schema)
@@ -175,6 +173,8 @@ class ProjectScenes(Resource):
                            project_id=project.id, 
                            user_id=api.payload["user_id"], 
                            description=api.payload["description"])
+
+        project.scenes.append(scene)
 
         db.session.add(scene)
         db.session.commit()
@@ -202,9 +202,9 @@ class ProjectScenarios(Resource):
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         scenario = ScenarioModel(name=api.payload['name'],
-                                 description=api.payload['description'],
-                                 project_id=project.id
-                    )
+                                 project_id=project.id,  
+                                 description=api.payload['description'])
+        project.scenarios.append(scenario)
 
         db.session.add(scenario)
         db.session.commit()
@@ -222,7 +222,7 @@ class ProjectTimelines(Resource):
         claims = get_jwt_claims()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
-        return TimelineModel.query.filter_by(project_id=id).all()
+        return project.timelines
 
     @user_jwt_required
     @ns.expect(timeline_create_schema)
@@ -237,6 +237,8 @@ class ProjectTimelines(Resource):
                                  start=None,
                                  project_id=project.id
                     )
+
+        project.timelines.append(timeline)
 
         db.session.add(timeline)
         db.session.commit()

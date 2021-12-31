@@ -27,8 +27,7 @@ def project_access_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         claims = get_jwt_claims()
-        asset = AssetModel.query.filter_by(id=kwargs['id'].split('.')[0]).first_or_404()
-        project = ProjectModel.query.filter_by(id=asset.project_id, user_id=claims['id']).first()
+        project = ProjectModel.query.filter_by(user_id=claims['id']).first()
 
         if project is None:
             return make_response(jsonify(msg='No access to project'), HTTPStatus.UNAUTHORIZED)

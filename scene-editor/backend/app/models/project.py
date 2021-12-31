@@ -14,6 +14,9 @@ class Project(db.Model):
 
     assets = db.relationship('Asset', secondary=project_asset, lazy='subquery',
         backref=db.backref('projects', lazy=True))
+    scenarios = db.relationship("Scenario", cascade="all, delete-orphan")
+    scenes = db.relationship("Scene", cascade="all, delete-orphan")
+    timelines = db.relationship("Timeline", cascade="all, delete-orphan")
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
