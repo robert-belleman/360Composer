@@ -12,7 +12,7 @@ from app.models.user import User as UserModel
 from app.models.customer import Customer as CustomerModel
 from app.models.timeline import CustomerTimeline as CustomerTimelineModel
 
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt_claims, get_raw_jwt, exceptions
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt, exceptions
 
 def valid_uuid(str_):
     try:
@@ -43,7 +43,7 @@ def user_jwt_required(fn):
         except exceptions.NoAuthorizationError:
             return "No cookie set", HTTPStatus.BAD_REQUEST
 
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         if claims['role'] != 'user':
           return make_response(jsonify(msg='Must be user'), HTTPStatus.UNAUTHORIZED)
@@ -69,7 +69,7 @@ def user_or_customer_jwt_required(fn):
         except exceptions.NoAuthorizationError:
             return "No cookie set", HTTPStatus.BAD_REQUEST
 
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         if claims['role'] != 'user' and claims['role'] != 'customer':
           return make_response(jsonify(msg='Must be user or customer'), HTTPStatus.UNAUTHORIZED)
@@ -97,7 +97,7 @@ def timeline_access_required(fn):
       except exceptions.NoAuthorizationError:
           return "No cookie set", HTTPStatus.BAD_REQUEST
 
-      claims = get_jwt_claims()
+      claims = get_jwt()
 
       if claims['role'] != 'user' and claims['role'] != 'customer':
           return make_response(jsonify(msg='Must be user or customer'), HTTPStatus.UNAUTHORIZED)

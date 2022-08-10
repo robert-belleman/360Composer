@@ -33,7 +33,7 @@ const AppRouter: React.FC = () => {
 
     return (
         hasToken() ?
-        <BrowserRouter>
+        <BrowserRouter basename={process.env.BASEPATH}>
             <Routes>
                 <Route path="/scenario-editor/:projectID/:scenarioID" element={<ScenarioEditor/>}></Route>
                 <Route path="/timeline-editor/:projectID/:timelineID" element={<TimelineEditor/>}></Route>
@@ -48,7 +48,7 @@ const AppRouter: React.FC = () => {
                 <Route path="*" element={<Navigate to="/projects" />} />
             </Routes>
         </BrowserRouter>:
-        <BrowserRouter>
+        <BrowserRouter basename={process.env.BASEPATH}>
             <Routes>
                 <Route path="/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
                 <Route path="/register" element={<Register/>}></Route>

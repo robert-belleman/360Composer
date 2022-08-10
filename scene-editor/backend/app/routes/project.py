@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from http import HTTPStatus
 
 from app.util.auth import user_jwt_required, user_or_customer_jwt_required
-from flask_jwt_extended import get_jwt_claims
+from flask_jwt_extended import get_jwt
 
 from app.routes.api import api
 from app.models.database import db
@@ -41,14 +41,14 @@ class Project(Resource):
     @user_jwt_required
     @ns.marshal_with(project_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         return ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
 
     @user_jwt_required
     @ns.marshal_with(project_schema)
     def delete(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         db.session.delete(project)
         db.session.commit()
@@ -86,7 +86,7 @@ class ProjectAssets(Resource):
     @user_jwt_required
     @ns.marshal_with(asset_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
 
         return project.assets
@@ -95,7 +95,7 @@ class ProjectAssets(Resource):
     @ns.marshal_with(asset_schema)
     @ns.expect(asset_upload)
     def post(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         args = asset_upload.parse_args()
@@ -130,7 +130,7 @@ class ProjectObjects(Resource):
     @user_jwt_required
     @ns.marshal_with(asset_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         return project.assets.filter_by(asset_type=AssetType.model).all()
@@ -145,7 +145,7 @@ class ProjectVideos(Resource):
     @user_jwt_required
     @ns.marshal_with(asset_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         return project.assets.filter_by(asset_type=AssetType.video).all()
@@ -158,7 +158,7 @@ class ProjectScenes(Resource):
     @user_jwt_required
     @ns.marshal_with(scene_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         return project.scenes
@@ -166,7 +166,7 @@ class ProjectScenes(Resource):
     @user_jwt_required
     @ns.expect(scene_create_schema)
     def post(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         scene = SceneModel(name=api.payload["name"], 
@@ -189,7 +189,7 @@ class ProjectScenarios(Resource):
     @ns.marshal_with(scenario_overview_schema)
     @user_jwt_required
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         return ScenarioModel.query.filter_by(project_id=id).all()
@@ -198,7 +198,7 @@ class ProjectScenarios(Resource):
     @ns.expect(scenario_create_schema)
     @ns.marshal_with(scenario_overview_schema)
     def post(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         scenario = ScenarioModel(name=api.payload['name'],
@@ -219,7 +219,7 @@ class ProjectTimelines(Resource):
     @user_jwt_required
     @ns.marshal_with(timeline_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         return project.timelines
@@ -228,7 +228,7 @@ class ProjectTimelines(Resource):
     @ns.expect(timeline_create_schema)
     @ns.marshal_with(timeline_schema)
     def post(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
         
         timeline = TimelineModel(name=api.payload['name'],

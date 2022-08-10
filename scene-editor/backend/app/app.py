@@ -29,7 +29,7 @@ migrate.init_app(app, database.db)
 
 jwt = JWTManager(app)
 
-@jwt.user_claims_loader
+@jwt.additional_claims_loader
 def add_claims_to_access_token(identity):
     return {'id': identity['id'], 'role': identity['role'] }
 

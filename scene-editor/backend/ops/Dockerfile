@@ -1,5 +1,7 @@
 FROM python:3.7 AS development
 
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils postgresql ffmpeg
+
 WORKDIR /app
 
 COPY requirements.txt /app
@@ -10,8 +12,6 @@ COPY ops/entrypoint.sh /
 COPY ops/uwsgi.ini /
 
 COPY migrations/ /app/migrations/
-
-RUN apt-get update && apt-get install -y postgresql ffmpeg
 
 FROM development AS production
 

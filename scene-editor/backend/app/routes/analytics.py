@@ -5,7 +5,7 @@ from flask import request, make_response
 from flask_restx import Resource, reqparse
 from http import HTTPStatus
 
-from flask_jwt_extended import get_jwt_claims
+from flask_jwt_extended import get_jwt
 
 from sqlalchemy import func, extract
 
@@ -75,7 +75,7 @@ class LegacyAnalyticsExport(Resource):
 
   @user_jwt_required
   def get(self):
-    claims = get_jwt_claims()
+    claims = get_jwt()
 
     num_days = request.args.get('days', default=30)
 

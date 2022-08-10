@@ -6,7 +6,7 @@ from http import HTTPStatus
 
 from functools import wraps
 
-from flask_jwt_extended import get_jwt_claims
+from flask_jwt_extended import get_jwt
 
 from app.util.auth import user_jwt_required, user_jwt_required
 
@@ -34,7 +34,7 @@ import datetime
 def project_access_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         scene = SceneModel.query.filter_by(id=kwargs['id']).first_or_404()
         project = ProjectModel.query.filter_by(id=scene.project_id, user_id=claims['id']).first()
 

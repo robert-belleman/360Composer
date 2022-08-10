@@ -1,0 +1,21 @@
+FROM node:16 as build
+
+ARG BASEPATH=/app
+ENV BASEPATH=$BASEPATH
+
+WORKDIR /app
+COPY ./scene-editor/frontend ./scene-editor-frontend
+WORKDIR ./scene-editor-frontend
+
+RUN npm install
+RUN npm run build
+
+FROM nginx:alpine as production
+
+WORKDIR /app
+RUN apk add python3 python3-dev py3-pip build-base libressl-dev musl-dev libffi-dev
+RUN pip3 install pip --upgrade
+RUN pip3 install certbot-nginx
+RUN mkdir /etc/letsencrypt
+RUN mkdir /static/
+COPY --from=build /app/scene-editor-frontend/build ./scene-editor-frontend

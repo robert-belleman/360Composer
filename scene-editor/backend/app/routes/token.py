@@ -5,7 +5,7 @@ import jwt
 
 from http import HTTPStatus
 
-from flask_jwt_extended import create_access_token, jwt_refresh_token_required, get_jwt_identity, set_access_cookies, set_refresh_cookies, verify_jwt_in_request, get_jwt_claims, exceptions
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, set_access_cookies, set_refresh_cookies, verify_jwt_in_request, get_jwt, exceptions
 
 from app.util.auth import user_jwt_required, user_or_customer_jwt_required
 
@@ -43,9 +43,9 @@ class Token(Resource):
 
 @ns.route("/refresh")
 class TokenRefresh(Resource):
-    @jwt_refresh_token_required
+    @jwt_required(refresh=True)
     def post(self):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         user = filter_for(claims['id'], claims['role'])
 
