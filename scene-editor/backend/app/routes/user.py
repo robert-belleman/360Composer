@@ -2,7 +2,7 @@ from flask import make_response, jsonify
 from flask_restx import Resource
 from http import HTTPStatus
 
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, set_access_cookies, set_refresh_cookies, verify_jwt_in_request, unset_jwt_cookies, get_jwt_claims
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, set_access_cookies, set_refresh_cookies, verify_jwt_in_request, unset_jwt_cookies, get_jwt
 
 from app.util.auth import user_jwt_required
 
@@ -125,7 +125,7 @@ class UserUpdatePassword(Resource):
     @user_jwt_required
     @ns.expect(update_password_schema)
     def post(self):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         if claims["id"] != api.payload["id"]:
             return "Unauthorized", HTTPStatus.UNAUTHORIZED

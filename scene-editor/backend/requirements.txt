@@ -1,9 +1,10 @@
-flask-restx==0.1.1
-flask==1.1.2
-flask_sqlalchemy==2.4.4
-flask-migrate==2.5.3
-flask_jwt_extended==3.25.0
-flask-cors==3.0.9
+flask-restx
+flask
+flask_sqlalchemy
+flask-migrate
+flask_jwt_extended
+flask-cors
+werkzeug
 psycopg2-binary==2.8.6
 requests==2.24.0
 redis==3.3.11

@@ -3,7 +3,7 @@ from flask import make_response, jsonify
 from flask_restx import Resource
 from http import HTTPStatus
 
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, set_access_cookies, set_refresh_cookies, verify_jwt_in_request, unset_jwt_cookies, get_jwt_claims
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, set_access_cookies, set_refresh_cookies, verify_jwt_in_request, unset_jwt_cookies, get_jwt
 
 from app.util.auth import user_jwt_required, user_or_customer_jwt_required
 
@@ -27,7 +27,7 @@ class Customers(Resource):
     @user_jwt_required
     @ns.marshal_with(customer_schema)
     def get(self):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         args = request.args
 
         if not args or not args["therapist_id"]:
@@ -47,7 +47,7 @@ class Customer(Resource):
     @user_jwt_required
     @ns.marshal_with(customer_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         customer: CustomerModel = CustomerModel.query.filter_by(id=id, therapist_id=claims['id']).first_or_404()
 
@@ -60,7 +60,7 @@ class CustomerCreate(Resource):
     @ns.expect(customer_create_schema)
     @ns.marshal_with(customer_schema)
     def post(self):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         name = api.payload['name']
         access_code = api.payload['access_code']
@@ -89,7 +89,7 @@ class CustomerDelete(Resource):
     @user_jwt_required
     @ns.expect(customer_delete_schema)
     def post(self):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         id = api.payload['id']
         therapist_id = api.payload['therapist_id']
@@ -125,7 +125,7 @@ class CustomerOptions(Resource):
     @user_or_customer_jwt_required
     @ns.marshal_with(customer_option_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         customer_annotation = CustomerAnnotationModel.query.filter_by(customer_id=id).first_or_404()
         annotation_id = customer_annotation.annotation_id
@@ -152,7 +152,7 @@ class CustomerOptions(Resource):
     @user_or_customer_jwt_required
     @ns.expect(add_customer_annotation_schema)
     def post(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         annotation_id = api.payload["annotation_id"]
 
         if claims["id"] != id:
@@ -179,7 +179,7 @@ class CustomerOptionsChosen(Resource):
     @user_or_customer_jwt_required
     @ns.marshal_with(customer_option_schema)
     def get(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         customer_option = CustomerOptionModel.query.filter_by(customer_id=id).first_or_404()
         option_id = customer_option.option_id
@@ -196,7 +196,7 @@ class CustomerOptionsChosen(Resource):
     @user_or_customer_jwt_required
     @ns.expect(add_customer_option_schema)
     def post(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         option_id = api.payload["option_id"]
 
         if claims["id"] != id:
@@ -222,7 +222,7 @@ class CustomerOptionsDelete(Resource):
 
     @user_or_customer_jwt_required
     def post(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         if claims["id"] != id:
             return "Unauthorized for user", HTTPStatus.UNAUTHORIZED
@@ -239,7 +239,7 @@ class CustomerOptionsChosenDelete(Resource):
 
     @user_or_customer_jwt_required
     def post(self, id):
-        claims = get_jwt_claims()
+        claims = get_jwt()
 
         if claims["id"] != id:
             return "Unauthorized for user", HTTPStatus.UNAUTHORIZED

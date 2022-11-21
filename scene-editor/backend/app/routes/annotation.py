@@ -10,7 +10,7 @@ from app.models.database import db
 
 from app.routes.api import api
 
-from flask_jwt_extended import get_jwt_claims
+from flask_jwt_extended import get_jwt
 from app.util.auth import user_jwt_required, user_or_customer_jwt_required
 
 from app.models.annotation import Annotation as AnnotationModel
@@ -29,7 +29,7 @@ ns = api.namespace("annotation")
 def project_access_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         annotation = AnnotationModel.query.filter_by(id=kwargs['id']).first_or_404()
         scene = SceneModel.query.filter_by(id=annotation.scene_id).first_or_404()
         project = ProjectModel.query.filter_by(id=scene.project_id, user_id=claims['id']).first()

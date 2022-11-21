@@ -9,7 +9,7 @@ from app.models.database import db
 
 from functools import wraps
 
-from flask_jwt_extended import get_jwt_claims
+from flask_jwt_extended import get_jwt
 from app.util.auth import user_jwt_required, user_or_customer_jwt_required
 
 from app.routes.api import api
@@ -26,7 +26,7 @@ ns = api.namespace("asset")
 def project_access_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        claims = get_jwt_claims()
+        claims = get_jwt()
         project = ProjectModel.query.filter_by(user_id=claims['id']).first()
 
         if project is None:
