@@ -415,9 +415,25 @@ const Editor: React.FC = () => {
       };
       
       videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
-        setCurrentVideoLength(event.target.duration)
+        setCurrentVideoLength(event.target.duration);
+        setStereoscopic(event.target.stereo_mode);
       };
     };
+
+    function setStereoscopic(val: number) {
+      console.log("STEREOSCOPIC METADATA: " + val)
+      switch (val) {
+        case 1:
+          videoDome.current.videomode = VideoDome.MODE_TOPBOTTOM;
+          break;
+        case 2:
+          videoDome.current.videomode = VideoDome.MODE_SIDEBYSIDE;
+          break;
+        default:
+          videoDome.current.videomode = VideoDome.MODE_MONOSCOPIC;
+          break;
+      }
+    }
 
     const annotationUpdate = (updatedAnnotation:any) => {
       setAnnotations(annotations.map((annotation:any) => annotation.id === updatedAnnotation.id ? updatedAnnotation : annotation))

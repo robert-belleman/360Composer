@@ -264,9 +264,24 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       };
       
       videoDome.current.videoTexture.video.onloadedmetadata = (event: any) => {
-        setCurrentVideoLength(event.target.duration)
+        setCurrentVideoLength(event.target.duration);
+        setStereoscopic(event.target.stereo_mode);
       };
     };
+
+    function setStereoscopic(mode: string) {
+      switch (mode) {
+        case "top_bottom":
+          videoDome.current.videomode = VideoDome.MODE_TOPBOTTOM;
+          break;
+        case "left_right":
+          videoDome.current.videomode = VideoDome.MODE_SIDEBYSIDE;
+          break;
+        default:
+          videoDome.current.videomode = VideoDome.MODE_MONOSCOPIC;
+          break;
+      }
+    }
 
     function renderStartButton(scene: any) {
       const manager = new GUI3DManager(scene);

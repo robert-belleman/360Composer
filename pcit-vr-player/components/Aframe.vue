@@ -5,7 +5,7 @@
   <p v-else-if="$fetchState.error">
     Error fetching product: {{ $fetchState.error.message }}
   </p>
-  <a-scene v-else auto-enter-vr>
+  <a-scene vr-mode-ui="enabled: true" v-else auto-enter-vr>
     <!-- Register components so that they can be used later -->
     <ArrowKeyRotationComponent />
     <CursorEnterComponent />
@@ -26,7 +26,7 @@
         crossorigin="anonymous"
         playsinline
         webkit-playsinline
-        :src="`/asset/${video.path}`"
+        :src="`${nginxUrl}/asset/${video.path}`"
         @timeupdate="handleTimeUpdate"
         @ended="handleEnded"
       />
@@ -82,7 +82,7 @@ export default {
     },
     pushAnalytics: {
       type: Boolean,
-      default: true
+      default: false
     }
   },
   async fetch () {
@@ -111,6 +111,9 @@ export default {
       })
 
       return videos
+    },
+    nginxUrl () {
+      return process.env.VUE_APP_NGINX_URL
     }
   },
   watch: {

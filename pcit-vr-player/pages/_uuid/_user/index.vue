@@ -50,7 +50,7 @@ export default {
     return {
       name: '',
       pressedStart: false,
-      pushAnalytics: true,
+      pushAnalytics: false,
       product: {}
     }
   },

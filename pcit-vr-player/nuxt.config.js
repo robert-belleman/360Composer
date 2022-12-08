@@ -21,7 +21,7 @@ export default {
     ],
     script: [
       {
-        src: 'https://aframe.io/releases/1.0.4/aframe.min.js',
+        src: 'https://aframe.io/releases/1.3.0/aframe.min.js',
         type: 'text/javascript'
       }
     ]
@@ -93,9 +93,10 @@ export default {
     '/api/': {
       target: 'http://localhost:5000/'
     },
-    '/asset/': {
-      target: 'http://localhost'
-    }
+    // '/asset/': {
+    //   target: 'http://localhost:8080/',
+    //   pathRewrite: {'^/asset': '/asset'}
+    // }
   },
   env: {
     gazeTime: 4000

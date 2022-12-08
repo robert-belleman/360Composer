@@ -29,7 +29,7 @@ export default {
     },
     pushAnalytics: {
       type: Boolean,
-      default: true
+      default: false
     }
   },
   data () {
