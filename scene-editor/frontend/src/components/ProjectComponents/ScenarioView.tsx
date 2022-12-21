@@ -114,7 +114,7 @@ const ScenarioTile: React.FC<ScenarioTileProps> = ({ name, activeProject, id, de
             <Tooltip title="Edit" arrow>
                 <IconButton
                   aria-label="edit"
-                  onClick={() => navigate(`/scenario-editor/${activeProject}/${id}`)}
+                  onClick={() => navigate(`/app/scenario-editor/${activeProject}/${id}`)}
                   size="large">
                     <EditIcon />
                 </IconButton>

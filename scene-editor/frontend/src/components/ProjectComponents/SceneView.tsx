@@ -124,7 +124,7 @@ const SceneTile: React.FC<SceneTileProps> = ({ name, id, activeProject, descript
             <IconButton
               aria-label="Open in player"
               onClick={() => {
-                  navigate("/scene-player/" + id);
+                  navigate("/app/scene-player/" + id);
                 }}
               size="large">
             <PlayArrowIcon />
@@ -134,7 +134,7 @@ const SceneTile: React.FC<SceneTileProps> = ({ name, id, activeProject, descript
             <IconButton
               aria-label="edit"
               onClick={() => {
-                  navigate(`/editor/${activeProject}/${id}`);
+                  navigate(`/app/editor/${activeProject}/${id}`);
               }}
               size="large">
               <EditIcon />

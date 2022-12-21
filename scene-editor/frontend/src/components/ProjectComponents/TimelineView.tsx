@@ -250,7 +250,7 @@ const useStyles = makeStyles((theme) =>
           <Tooltip title="Edit Timeline">
             <IconButton
               aria-label="edit timeline"
-              onClick={() => navigate(`/timeline-editor/${activeProject}/${timeline.id}`)}
+              onClick={() => navigate(`/app/timeline-editor/${activeProject}/${timeline.id}`)}
               size="large">
               <EditIcon />
             </IconButton>

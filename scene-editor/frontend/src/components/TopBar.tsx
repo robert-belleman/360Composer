@@ -73,13 +73,13 @@ const TopBar: React.FC = () => {
           size="large">
           <MenuIcon />
         </IconButton>
-        <img onClick={() => navigate('/')} style={{cursor: 'pointer'}} src={logo} alt="PCIT-VR" className={classes.logo} />
+        <img onClick={() => navigate('/app/')} style={{cursor: 'pointer'}} src={logo} alt="PCIT-VR" className={classes.logo} />
         <Box className={classes.box}/>
         <IconButton
           edge="end"
           color="inherit"
           aria-label="log-out"
-          onClick={() => navigate('/settings')}
+          onClick={() => navigate('/app/settings')}
           size="large">
           <SettingsIcon />
         </IconButton>
@@ -87,7 +87,7 @@ const TopBar: React.FC = () => {
           edge="end"
           color="inherit"
           aria-label="log-out"
-          onClick={() => {dispatch(logOut()); navigate('/')}}
+          onClick={() => {dispatch(logOut()); navigate('/app/')}}
           size="large">
           <ExitToAppIcon />
         </IconButton>

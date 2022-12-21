@@ -62,19 +62,19 @@ const SideMenu: React.FC<SideMenuProps> = ({activeView}:SideMenuProps) => {
 
   const SideMenuList = () => (
     <List className={classes.list}>
-      <ListItem button component="a" selected={activeView === View.Project} onClick={() => navigate('/projects')}>
+      <ListItem button component="a" selected={activeView === View.Project} onClick={() => navigate('/app/projects')}>
         <ListItemIcon>
           <AccountTreeIcon />
         </ListItemIcon>
         <ListItemText primary="Projects"/>
       </ListItem>
-      <ListItem button component="a" selected={activeView === View.Users} onClick={() => navigate('/users')}>
+      <ListItem button component="a" selected={activeView === View.Users} onClick={() => navigate('/app/users')}>
         <ListItemIcon>
           <PeopleIcon />
         </ListItemIcon>
         <ListItemText primary="Users"/>
       </ListItem>
-      <ListItem button component="a" selected={activeView === View.Analytics} onClick={() => navigate('/analytics')}>
+      <ListItem button component="a" selected={activeView === View.Analytics} onClick={() => navigate('/app/analytics')}>
         <ListItemIcon>
           <PieChartIcon />
         </ListItemIcon>

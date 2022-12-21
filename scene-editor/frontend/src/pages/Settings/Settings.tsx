@@ -172,7 +172,7 @@ const Settings = () => {
     <div>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/`)}>Back</Button>
+          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/app/`)}>Back</Button>
         </Grid>
       </Grid>
     </div>

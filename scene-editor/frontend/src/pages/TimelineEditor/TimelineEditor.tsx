@@ -134,7 +134,7 @@ const TimelineEditor = () => {
     <div>
       <Grid container spacing={3}>
         <Grid item xs={1}>
-          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/project/${projectID}?activeTab=timelines`)}>Back</Button>
+          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/app/project/${projectID}?activeTab=timelines`)}>Back</Button>
         </Grid>
         <Grid item xs={11}>
           <Box className={classes.box}/>

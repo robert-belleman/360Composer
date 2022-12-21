@@ -716,7 +716,7 @@ const Editor: React.FC = () => {
       <div>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? navigate(-1) : navigate(`/project/${project_id}?activeTab=scenes`)}>Back</Button>
+            <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? navigate(-1) : navigate(`/app/project/${project_id}?activeTab=scenes`)}>Back</Button>
           </Grid>
         </Grid>
       </div>

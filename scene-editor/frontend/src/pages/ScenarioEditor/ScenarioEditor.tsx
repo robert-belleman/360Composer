@@ -146,7 +146,7 @@ const SceneNode = ({selected, data}:SceneNodeProps) => {
   }
 
   const handleEdit = () => {
-    navigate(`/editor/${data.projectID}/${data.scene_id}?goBack=true`)
+    navigate(`/app/editor/${data.projectID}/${data.scene_id}?goBack=true`)
   }
 
   const renderHandles = () => data.actions.map((action:any, index:number) => {
@@ -394,7 +394,7 @@ const ScenarioEditor:React.FC = () => {
   const previewScene = () => {
     saveScenarioTimeline();
 
-    navigate(`/scenario-player/${scenarioID}`)
+    navigate(`/app/scenario-player/${scenarioID}`)
   }
 
   const fetchScenarioTimeline = () => axios.get(`/api/scenario/${scenarioID}/`)
@@ -603,7 +603,7 @@ const ScenarioEditor:React.FC = () => {
     <div>
       <Grid container spacing={3}>
         <Grid item xs={1}>
-          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/project/${projectID}?activeTab=scenarios`)}>Back</Button>
+          <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/app/project/${projectID}?activeTab=scenarios`)}>Back</Button>
         </Grid>
         <Grid item xs={11}>
           <Typography

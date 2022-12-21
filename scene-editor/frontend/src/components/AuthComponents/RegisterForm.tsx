@@ -25,7 +25,7 @@ const RegisterForm: React.FC = () => {
     else{
       register(username, password)
         .then(()=>{
-          navigate('/register-done', { replace: true })
+          navigate('/app/register-done', { replace: true })
         })
         .catch((e) => {
           if(e.response.status == 409){

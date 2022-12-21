@@ -18,6 +18,7 @@ import TimelineEditor from "./pages/TimelineEditor/TimelineEditor"
 import ScenePlayer from "./pages/ScenePlayer/ScenePlayer";
 import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
+import UserTest from "./pages/UserTest/UserTest";
 
 const AppRouter: React.FC = () => {
     // TODO: routes should be protected in the future
@@ -35,25 +36,26 @@ const AppRouter: React.FC = () => {
         hasToken() ?
         <BrowserRouter basename={process.env.BASEPATH}>
             <Routes>
-                <Route path="/scenario-editor/:projectID/:scenarioID" element={<ScenarioEditor/>}></Route>
-                <Route path="/timeline-editor/:projectID/:timelineID" element={<TimelineEditor/>}></Route>
-                <Route path="/editor/:project_id/:scene_id" element={<Editor/>}></Route>
-                <Route path="/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
-                <Route path="/scenario-player/:scenario_id" element={<ScenarioPlayer/>}></Route>
-                <Route path="/project/:project_id" element={<Project/>}></Route>
-                <Route path="/projects" element={<Dashboard view={View.Project}/>}></Route>
-                <Route path="/analytics" element={<Dashboard view={View.Analytics}/>}></Route>
-                <Route path="/users" element={<Dashboard view={View.Users}/>}></Route>
-                <Route path="/settings" element={<Settings/>}></Route>
-                <Route path="*" element={<Navigate to="/projects" />} />
+                <Route path="/app/scenario-editor/:projectID/:scenarioID" element={<ScenarioEditor/>}></Route>
+                <Route path="/app/timeline-editor/:projectID/:timelineID" element={<TimelineEditor/>}></Route>
+                <Route path="/app/editor/:project_id/:scene_id" element={<Editor/>}></Route>
+                <Route path="/app/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
+                <Route path="/app/scenario-player/:scenario_id" element={<ScenarioPlayer/>}></Route>
+                <Route path="/app/project/:project_id" element={<Project/>}></Route>
+                <Route path="/app/projects" element={<Dashboard view={View.Project}/>}></Route>
+                <Route path="/app/analytics" element={<Dashboard view={View.Analytics}/>}></Route>
+                <Route path="/app/users" element={<Dashboard view={View.Users}/>}></Route>
+                <Route path="/app/settings" element={<Settings/>}></Route>
+                <Route path="/app/*" element={<Navigate to="/app/projects" />} />
             </Routes>
         </BrowserRouter>:
         <BrowserRouter basename={process.env.BASEPATH}>
             <Routes>
-                <Route path="/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
-                <Route path="/register" element={<Register/>}></Route>
-                <Route path="/register-done" element={<RegisterDone/>}></Route>
-                <Route path="*" element={<Login/>} />
+                <Route path="/app/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
+                <Route path="/app/register" element={<Register/>}></Route>
+                <Route path="/app/register-done" element={<RegisterDone/>}></Route>
+                <Route path="/app/*" element={<Login/>} />
+                <Route path="/app/test" element={<UserTest/>}/>
             </Routes>
         </BrowserRouter>
     );

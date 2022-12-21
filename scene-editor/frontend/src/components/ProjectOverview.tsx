@@ -110,7 +110,7 @@ const ProjectOverview : React.FC = () => {
           </CardContent>
         </CardActionArea>
         <CardActions disableSpacing>
-          <Button size="small" color="primary" onClick={() => navigate(`/project/${project.id}`)}>
+          <Button size="small" color="primary" onClick={() => navigate(`/app/project/${project.id}`)}>
             Edit
           </Button>
           <IconButton 
