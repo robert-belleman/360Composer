@@ -1,22 +1,42 @@
-import React from "react";
+import React, {useState} from "react";
 
-import { useSelector } from 'react-redux';
-import { Button } from '@mui/material';
-
-import CircularProgress from '@mui/material/CircularProgress';
-
+import HomePage from "../../components/UserTestComponents/HomePage";
+import EndPage from "../../components/UserTestComponents/EndPage";
+import { UserTestComponentProps } from "../../components/UserTestComponents/ComponentProps";
+import BabylonTest from "../../components/UserTestComponents/BabylonTest";
 
 const UserTest: React.FC = () => {
-    const token = useSelector((state:any) => state.token)
+    interface UserInput {
+        device: string,
+        os: string,
+        workedbaby: boolean,
+        commentsbaby: string,
+    }
 
-    const form = () => (
-        <div className="user-test-page">
-            <p>HELLO WORLD</p>
-            <Button>Click To Continue</Button>
-        </div>
-    );
+    const testComponents: React.FC<UserTestComponentProps>[] = [
+        HomePage,
+        BabylonTest,
+        EndPage,
+    ];
+    
+    const [userInput, setUserInput] = useState<UserInput>({
+        device: "",
+        os: "",
+        workedbaby: true,
+        commentsbaby: ""
+    });
+    const [index, setIndex] = useState(0);
+    
+    let CurrentPage: React.FC<UserTestComponentProps> = testComponents[index];
+    const toNextPage = () => {
+        if(index < testComponents.length) {
+            setIndex(index + 1);
+            CurrentPage = testComponents[index];
+            return;
+        }
+    }
 
-    return token.loading ? <CircularProgress /> : form();
+    return <CurrentPage onFinish={toNextPage} userInput={userInput} setUserInput={setUserInput}/>;
 };
 
 export default UserTest;

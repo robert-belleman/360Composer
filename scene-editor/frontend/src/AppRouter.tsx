@@ -46,6 +46,7 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/analytics" element={<Dashboard view={View.Analytics}/>}></Route>
                 <Route path="/app/users" element={<Dashboard view={View.Users}/>}></Route>
                 <Route path="/app/settings" element={<Settings/>}></Route>
+                <Route path="/app/test" element={<UserTest/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
             </Routes>
         </BrowserRouter>:
