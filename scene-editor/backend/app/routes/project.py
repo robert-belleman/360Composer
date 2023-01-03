@@ -1,10 +1,10 @@
 import os
 
+from http import HTTPStatus
 from flask import request
 from flask_restx import Resource, reqparse
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
-from http import HTTPStatus
 
 from app.util.auth import user_jwt_required, user_or_customer_jwt_required
 from flask_jwt_extended import get_jwt
@@ -30,7 +30,7 @@ import app.util.util as util
 import hashlib, binascii, os
 import uuid
 import datetime
- 
+
 ns = api.namespace("project")
 
 @ns.route("/<string:id>/")
