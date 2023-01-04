@@ -4,6 +4,7 @@ import HomePage from "../../components/UserTestComponents/HomePage";
 import EndPage from "../../components/UserTestComponents/EndPage";
 import { UserTestComponentProps } from "../../components/UserTestComponents/ComponentProps";
 import BabylonTest from "../../components/UserTestComponents/BabylonTest";
+import AframeTest from "../../components/UserTestComponents/AframeTest";
 
 const UserTest: React.FC = () => {
     interface UserInput {
@@ -14,9 +15,10 @@ const UserTest: React.FC = () => {
     }
 
     const testComponents: React.FC<UserTestComponentProps>[] = [
-        HomePage,
         BabylonTest,
-        EndPage,
+        AframeTest,
+        HomePage,
+        EndPage
     ];
     
     const [userInput, setUserInput] = useState<UserInput>({
