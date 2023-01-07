@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React,  { useRef, useEffect, useState } from 'react';
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 
 import { range } from 'lodash';
@@ -28,6 +29,7 @@ import Skeleton from '@mui/material/Skeleton';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import MovieFilterIcon from '@mui/icons-material/MovieFilter';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 
 import NewAssetDialog from "./AssetViewComponents/NewAssetDialog";
@@ -83,6 +85,7 @@ const AssetView: React.FC<AssetViewProps> = ({activeProject, fullWidth}) => {
   const [checked, setChecked] = useState([] as any[]);
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [alertMessage, setAlertMessage] = useState({show: false, message:"", type: AlertType.None})
+  const navigate = useNavigate();
 
   const onAssetCreated = () => {
     setOpenAssetDialog(false);
@@ -91,7 +94,7 @@ const AssetView: React.FC<AssetViewProps> = ({activeProject, fullWidth}) => {
   };
 
   const theme = createTheme();
-const useStyles = makeStyles((theme) =>
+  const useStyles = makeStyles((theme) =>
     createStyles({
       root: {
         flexGrow: 1,
@@ -150,6 +153,11 @@ const useStyles = makeStyles((theme) =>
       .catch((e:any) => console.log('An error occured whilst deleting assets', e))
   }
 
+  const openAssetEditor = () => {
+    navigate(`/asset-editor/${activeProject}`)
+  }
+
+
   // use this to fetch the projects assets
   useEffect(() => {
     fetchAssets();
@@ -204,7 +212,14 @@ const useStyles = makeStyles((theme) =>
           <Button style={{marginTop: 10}} color="primary" startIcon={<AddIcon />} onClick={() => setOpenAssetDialog(true)}>Add Asset</Button>
         </Grid>
         <Grid item xs={2}>
-          <Box className={classes.box}></Box>
+          {/* <Box className={classes.box}></Box> */}
+          <Button
+            style={{marginTop: 10}} 
+            color="primary"
+            startIcon={<MovieFilterIcon />} 
+            onClick={() => openAssetEditor()}>
+            Edit Videos
+          </Button>
         </Grid>
         <Grid item xs={6}>
           <Button 
@@ -222,3 +237,5 @@ const useStyles = makeStyles((theme) =>
 };
 
 export default AssetView;
+
+

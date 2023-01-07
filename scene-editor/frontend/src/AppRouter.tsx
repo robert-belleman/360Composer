@@ -18,6 +18,7 @@ import TimelineEditor from "./pages/TimelineEditor/TimelineEditor"
 import ScenePlayer from "./pages/ScenePlayer/ScenePlayer";
 import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
+import AssetEditor from "./pages/AssetEditor/AssetEditor";
 
 const AppRouter: React.FC = () => {
     // TODO: routes should be protected in the future
@@ -35,7 +36,9 @@ const AppRouter: React.FC = () => {
         hasToken() ?
         <BrowserRouter basename={process.env.BASEPATH}>
             <Routes>
+                {/* project_id or projectID ??? */}
                 <Route path="/scenario-editor/:projectID/:scenarioID" element={<ScenarioEditor/>}></Route>
+                <Route path="/asset-editor/:project_id" element={<AssetEditor/>}></Route>
                 <Route path="/timeline-editor/:projectID/:timelineID" element={<TimelineEditor/>}></Route>
                 <Route path="/editor/:project_id/:scene_id" element={<Editor/>}></Route>
                 <Route path="/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
