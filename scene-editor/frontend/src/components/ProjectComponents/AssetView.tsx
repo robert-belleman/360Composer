@@ -1,5 +1,6 @@
 // @ts-nocheck
-import React,  { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { range } from 'lodash';
@@ -21,6 +22,9 @@ import IconButton from '@mui/material/IconButton';
 import Checkbox from '@mui/material/Checkbox';
 import Avatar from '@mui/material/Avatar';
 import Snackbar from '@mui/material/Snackbar';
+
+import EditIcon from '@mui/icons-material/Edit';
+import Tooltip from '@mui/material/Tooltip';
 
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -48,7 +52,7 @@ type AssetViewProps = {
   fullWidth: boolean;
 };
 
-const assetTypeToText = (type:string) => {
+const assetTypeToText = (type: string) => {
   const typeText = {
     'AssetType.video': '360° media',
     'AssetType.model': '3D model'
@@ -57,7 +61,7 @@ const assetTypeToText = (type:string) => {
   return typeText === undefined ? 'Unknown type' : typeText;
 }
 
-const viewTypeToText = (viewtype:string) => {
+const viewTypeToText = (viewtype: string) => {
   const viewtypeText = {
     'ViewType.mono': 'Monoscopic',
     'ViewType.sidetoside': 'Side to Side',
@@ -67,7 +71,7 @@ const viewTypeToText = (viewtype:string) => {
   return viewtypeText === undefined ? 'Unknown type' : viewtypeText;
 }
 
-const viewTypeToValue = (viewtype:string) => {
+const viewTypeToValue = (viewtype: string) => {
   const viewtypeText = {
     'ViewType.mono': 'mono',
     'ViewType.sidetoside': 'sidetoside',
@@ -77,7 +81,7 @@ const viewTypeToValue = (viewtype:string) => {
   return viewtypeText === undefined ? 'Unknown type' : viewtypeText;
 }
 
-const AssetsSnackbar = ({open, handleClose, message}:any) => {
+const AssetsSnackbar = ({ open, handleClose, message }: any) => {
   return (
     <Snackbar
       anchorOrigin={{
@@ -100,21 +104,23 @@ const AssetsSnackbar = ({open, handleClose, message}:any) => {
 }
 
 
-const AssetView: React.FC<AssetViewProps> = ({activeProject, fullWidth}) => {
+const AssetView: React.FC<AssetViewProps> = ({ activeProject, fullWidth }) => {
   const [assets, setAssets] = useState([]);
   const [openAssetDialog, setOpenAssetDialog] = useState(false);
   const [checked, setChecked] = useState([] as any[]);
   const [loadingAssets, setLoadingAssets] = useState(false);
-  const [alertMessage, setAlertMessage] = useState({show: false, message:"", type: AlertType.None})
+  const [alertMessage, setAlertMessage] = useState({ show: false, message: "", type: AlertType.None })
+
+  const navigate = useNavigate();
 
   const onAssetCreated = () => {
     setOpenAssetDialog(false);
-    setAlertMessage({show: true, message: "Asset(s) successfully created", type: Alert.Success})
+    setAlertMessage({ show: true, message: "Asset(s) successfully created", type: Alert.Success })
     fetchAssets();
   };
 
   const theme = createTheme();
-const useStyles = makeStyles((theme) =>
+  const useStyles = makeStyles((theme) =>
     createStyles({
       root: {
         flexGrow: 1,
@@ -153,7 +159,7 @@ const useStyles = makeStyles((theme) =>
       return console.log('error while fetching assets', e);
     }
   };
-  
+
   const handleToggle = (value: number) => () => {
     const currentIndex = checked.indexOf(value);
     const newChecked = [...checked];
@@ -176,25 +182,27 @@ const useStyles = makeStyles((theme) =>
   const handleSelect = async (value: string, id: string) => {
     console.log(value, id);
     await axios.post(`/api/asset/${id}/setview/${value}`)
-      .then(() => setAlertMessage({show: true, 
-                                   message: `Asset's view type succesfully changed to ${value}`,
-                                   type: Alert.Success}))
-      .catch((e:any) => console.log('An error occured whilst editing asset "view type"', e))
+      .then(() => setAlertMessage({
+        show: true,
+        message: `Asset's view type succesfully changed to ${value}`,
+        type: Alert.Success
+      }))
+      .catch((e: any) => console.log('An error occured whilst editing asset "view type"', e))
   };
 
   const deleteCheckedAssets = () => {
-    Promise.all(checked.map((id:any) => axios.post(`/api/asset/${id}/delete`)))
+    Promise.all(checked.map((id: any) => axios.post(`/api/asset/${id}/delete`)))
       .then(() => setChecked([]))
       .then(fetchAssets)
-      .then(() => setAlertMessage({show: true, message: "Asset(s) successfully deleted", type: Alert.Success}))
-      .catch((e:any) => console.log('An error occured whilst deleting assets', e))
+      .then(() => setAlertMessage({ show: true, message: "Asset(s) successfully deleted", type: Alert.Success }))
+      .catch((e: any) => console.log('An error occured whilst deleting assets', e))
   };
 
   // use this to fetch the projects assets
   useEffect(() => {
     fetchAssets();
   }, [activeProject]);
-  
+
   const classes = useStyles();
 
   const renderAssets = () => {
@@ -205,31 +213,31 @@ const useStyles = makeStyles((theme) =>
     return assets.map((asset: any) => (
       <ListItem key={asset.id} button>
         <ListItemAvatar>
-        <Avatar
+          <Avatar
             alt={asset.name}
             src={asset.thumbnail_path ? `/api/asset/${asset.id}/thumbnail` : defaultImage}
-        />
+          />
         </ListItemAvatar>
         <ListItemText id={asset.id} primary={asset.name} secondary={assetTypeToText(asset.asset_type) + ', ' + viewTypeToText(asset.view_type)} />
         <ListItemSecondaryAction>
-            <Select
-              labelId="viewtype"
-              id="viewtype-select"
-              value={viewTypeToValue(asset.view_type)}
-              label="View Type"
-              onChange={(event) => handleSelect(event.target.value, asset.id)}
-              autoWidth={true}
-            >
-              <MenuItem value={"mono"}>Monoscopic</MenuItem>
-              <MenuItem value={"sidetoside"}>Side to Side</MenuItem>
-              <MenuItem value={"toptobottom"}>Top to Bottom</MenuItem>
-            </Select>
-            <Checkbox
-              edge="end"
-              onChange={handleToggle(asset.id)}
-              checked={checked.indexOf(asset.id) !== -1}
-              inputProps={{ 'aria-labelledby': asset.id }}
-            />
+          <Select
+            labelId="viewtype"
+            id="viewtype-select"
+            value={viewTypeToValue(asset.view_type)}
+            label="View Type"
+            onChange={(event) => handleSelect(event.target.value, asset.id)}
+            autoWidth={true}
+          >
+            <MenuItem value={"mono"}>Monoscopic</MenuItem>
+            <MenuItem value={"sidetoside"}>Side to Side</MenuItem>
+            <MenuItem value={"toptobottom"}>Top to Bottom</MenuItem>
+          </Select>
+          <Checkbox
+            edge="end"
+            onChange={handleToggle(asset.id)}
+            checked={checked.indexOf(asset.id) !== -1}
+            inputProps={{ 'aria-labelledby': asset.id }}
+          />
         </ListItemSecondaryAction>
       </ListItem>
     ))
@@ -239,7 +247,7 @@ const useStyles = makeStyles((theme) =>
     if (loadingAssets) {
       return (
         <div className={classes.list}>
-          {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
+          {range(6).map((elem: number) => (<Skeleton key={elem} animation="wave" />))}
         </div>
       )
     }
@@ -249,29 +257,38 @@ const useStyles = makeStyles((theme) =>
 
   return (
     <Paper elevation={0} variant="outlined" className={classes.paper}>
-      <Typography variant="h4" component="p" className={classes.header}><PhotoLibraryIcon style={{marginRight:5}}/> 1. Assets</Typography>
+      <Typography variant="h4" component="p" className={classes.header}><PhotoLibraryIcon style={{ marginRight: 5 }} /> 1. Assets</Typography>
       {renderAssetsList()}
       <Grid container>
         <Grid item xs={4}>
-          <Button style={{marginTop: 10}} color="primary" startIcon={<AddIcon />} onClick={() => setOpenAssetDialog(true)}>Add Asset</Button>
+          <Button style={{ marginTop: 10 }} color="primary" startIcon={<AddIcon />} onClick={() => setOpenAssetDialog(true)}>Add Asset</Button>
         </Grid>
         <Grid item xs={2}>
           <Box className={classes.box}></Box>
         </Grid>
         <Grid item xs={6}>
-          <Button 
-            style={{marginTop: 10}}
+          <Button
+            style={{ marginTop: 10 }}
             color="secondary"
             startIcon={<DeleteIcon />}
             disabled={checked.length === 0}
             onClick={deleteCheckedAssets}>Delete Assets</Button>
-            <Button startIcon={<DeleteIcon />}>
-              BLAAAAAAAAAAAAAAAA
-            </Button>
         </Grid>
       </Grid>
+      <Button>
+        <Tooltip title="Edit" arrow>
+          <IconButton
+            aria-label="edit"
+            onClick={() => {
+              navigate(`/app/video-editor/${activeProject}`);
+            }}
+            size="large">
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+      </Button>
       <NewAssetDialog activeProject={activeProject} open={openAssetDialog} closeHandler={() => setOpenAssetDialog(false)} onAssetCreated={onAssetCreated} />
-      <AssetsSnackbar open={alertMessage.show} message={alertMessage.message} handleClose={() => setAlertMessage({...alertMessage, show: false})} />
+      <AssetsSnackbar open={alertMessage.show} message={alertMessage.message} handleClose={() => setAlertMessage({ ...alertMessage, show: false })} />
     </Paper>
   );
 };

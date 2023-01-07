@@ -19,6 +19,7 @@ import ScenePlayer from "./pages/ScenePlayer/ScenePlayer";
 import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
 import UserTest from "./pages/UserTest/UserTest";
+import VideoEditor from "./pages/VideoEditor/VideoEditor";
 
 const AppRouter: React.FC = () => {
     // TODO: routes should be protected in the future
@@ -47,6 +48,7 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/users" element={<Dashboard view={View.Users}/>}></Route>
                 <Route path="/app/settings" element={<Settings/>}></Route>
                 <Route path="/app/test" element={<UserTest/>}/>
+                <Route path="/app/video-editor/:projectID" element={<VideoEditor/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
             </Routes>
         </BrowserRouter>:
