@@ -83,8 +83,6 @@ services:
     build:
       context: .
       dockerfile: ./ops/Dockerfile.nginx
-      args:
-        BASEPATH: "/app"
     depends_on:
       - backend
     volumes:
