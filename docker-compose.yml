@@ -68,13 +68,13 @@ services:
     restart: unless-stopped
 
 # Geen idee waar deze voor is dus nu even gecomment - 18nov22_rico
-  # adminer:
-  #   image: adminer
-  #   restart: unless-stopped
-  #   depends_on: 
-  #     - postgres
-  #   ports:
-  #     - 8080:8080
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    depends_on: 
+      - postgres
+    ports:
+      - 8081:8081
 
   nginx:
     image: nginx
@@ -93,14 +93,14 @@ services:
     ports:
       - 8080:8080
 
-  player:
-    container_name: player
-    build:
-      context: ./pcit-vr-player
-      dockerfile: ./Dockerfile
-    restart: unless-stopped
-    ports:
-      - 3002:3002
+  # player:
+  #   container_name: player
+  #   build:
+  #     context: ./pcit-vr-player
+  #     dockerfile: ./Dockerfile
+  #   restart: unless-stopped
+  #   ports:
+  #     - 3002:3002
       
 volumes:
   postgres:

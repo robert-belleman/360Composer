@@ -413,24 +413,25 @@ const Editor: React.FC = () => {
       videoDome.videoTexture.video.ontimeupdate = (event: any) => {
         setCurrentVideoTime(event.target.currentTime);
       };
+
+      // set video to stereoscopic or mono
+      setStereoscopic(video.view_type);
       
       videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
         setCurrentVideoLength(event.target.duration);
-        setStereoscopic(event.target.stereo_mode);
       };
     };
 
-    function setStereoscopic(val: number) {
-      console.log("STEREOSCOPIC METADATA: " + val)
-      switch (val) {
-        case 1:
-          videoDome.current.videomode = VideoDome.MODE_TOPBOTTOM;
+    function setStereoscopic(mode: string) {
+      switch (mode) {
+        case "ViewType.toptobottom":
+          videoDome.videomode = VideoDome.MODE_TOPBOTTOM;
           break;
-        case 2:
-          videoDome.current.videomode = VideoDome.MODE_SIDEBYSIDE;
+        case "ViewType.sidetoside":
+          videoDome.videomode = VideoDome.MODE_SIDEBYSIDE;
           break;
-        default:
-          videoDome.current.videomode = VideoDome.MODE_MONOSCOPIC;
+        case "ViewType.mono":
+          videoDome.videomode = VideoDome.MODE_MONOSCOPIC;
           break;
       }
     }

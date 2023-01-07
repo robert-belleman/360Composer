@@ -262,22 +262,26 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       videoDome.current.videoTexture.video.ontimeupdate = (event: any) => {
         setCurrentVideoTime(event.target.currentTime);
       };
+
+      // set video to stereoscopic or mono
       
       videoDome.current.videoTexture.video.onloadedmetadata = (event: any) => {
         setCurrentVideoLength(event.target.duration);
-        setStereoscopic(event.target.stereo_mode);
+        setStereoscopic(video.view_type);
       };
+
+      videoDome.current.videomode = VideoDome.MODE_SIDEBYSIDE;
     };
 
     function setStereoscopic(mode: string) {
       switch (mode) {
-        case "top_bottom":
+        case "ViewType.toptobottom":
           videoDome.current.videomode = VideoDome.MODE_TOPBOTTOM;
           break;
-        case "left_right":
+        case "ViewType.sidetoside":
           videoDome.current.videomode = VideoDome.MODE_SIDEBYSIDE;
           break;
-        default:
+        case "ViewType.mono":
           videoDome.current.videomode = VideoDome.MODE_MONOSCOPIC;
           break;
       }

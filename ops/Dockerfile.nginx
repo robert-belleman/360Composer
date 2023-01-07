@@ -3,11 +3,14 @@ FROM node:16 as build
 ARG BASEPATH=/app
 ENV BASEPATH=$BASEPATH
 
-WORKDIR /app
-COPY /scene-editor/frontend ./scene-editor-frontend
-WORKDIR ./scene-editor-frontend
+COPY /scene-editor/frontend/package.json /app/scene-editor-frontend/package.json
+COPY /scene-editor/frontend/package-lock.json /app/scene-editor-frontend/package-lock.json
+WORKDIR /app/scene-editor-frontend
+RUN npm ci && npm cache clean --force
 
-RUN npm install
+COPY /scene-editor/frontend/src /app/scene-editor-frontend/src
+COPY /scene-editor/frontend/public /app/scene-editor-frontend/public
+COPY /scene-editor/frontend/tsconfig.json /app/scene-editor-frontend/tsconfig.json
 RUN npm run build
 
 FROM nginx:alpine as production

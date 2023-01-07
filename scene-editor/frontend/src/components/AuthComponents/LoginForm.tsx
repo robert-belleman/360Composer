@@ -25,7 +25,7 @@ const LoginForm: React.FC = () => {
           <input type="text" placeholder="username" id="username"/>
           <input type="password" placeholder="password" id="password"/>
           <input className="submitButton" type="submit" value="login"/>
-          <p className="message">Not registered? <Link to="/register">Create an account</Link></p>
+          <p className="message">Not registered? <Link to="/app/register">Create an account</Link></p>
         </form>
     </div>
   );

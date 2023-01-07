@@ -22,6 +22,9 @@ import Checkbox from '@mui/material/Checkbox';
 import Avatar from '@mui/material/Avatar';
 import Snackbar from '@mui/material/Snackbar';
 
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+
 import Alert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 
@@ -52,6 +55,26 @@ const assetTypeToText = (type:string) => {
   }[type]
 
   return typeText === undefined ? 'Unknown type' : typeText;
+}
+
+const viewTypeToText = (viewtype:string) => {
+  const viewtypeText = {
+    'ViewType.mono': 'Monoscopic',
+    'ViewType.sidetoside': 'Side to Side',
+    'ViewType.toptobottom': 'Top to Bottom',
+  }[viewtype]
+
+  return viewtypeText === undefined ? 'Unknown type' : viewtypeText;
+}
+
+const viewTypeToValue = (viewtype:string) => {
+  const viewtypeText = {
+    'ViewType.mono': 'mono',
+    'ViewType.sidetoside': 'sidetoside',
+    'ViewType.toptobottom': 'toptobottom',
+  }[viewtype]
+
+  return viewtypeText === undefined ? 'Unknown type' : viewtypeText;
 }
 
 const AssetsSnackbar = ({open, handleClose, message}:any) => {
@@ -120,13 +143,15 @@ const useStyles = makeStyles((theme) =>
     }),
   );
 
-  const fetchAssets = () => {
+  const fetchAssets = async () => {
     setLoadingAssets(true);
-    
-    return axios.get(`/api/project/${activeProject}/assets`, {})
-      .then((res:any) => setAssets(res.data))
-      .then(() => setLoadingAssets(false))
-      .catch((e) => console.log('error while fetching assets', e))
+    try {
+      const res = await axios.get(`/api/project/${activeProject}/assets`, {});
+      setAssets(res.data);
+      return setLoadingAssets(false);
+    } catch (e) {
+      return console.log('error while fetching assets', e);
+    }
   };
   
   const handleToggle = (value: number) => () => {
@@ -142,13 +167,28 @@ const useStyles = makeStyles((theme) =>
     setChecked(newChecked);
   };
 
+  const updateViewType = (value: string, id: string) => {
+    const newAssets = checked;
+    newAssets[assets.indexOf(id)].view_type = value;
+    setAssets(newAssets);
+  }
+
+  const handleSelect = async (value: string, id: string) => {
+    console.log(value, id);
+    await axios.post(`/api/asset/${id}/setview/${value}`)
+      .then(() => setAlertMessage({show: true, 
+                                   message: `Asset's view type succesfully changed to ${value}`,
+                                   type: Alert.Success}))
+      .catch((e:any) => console.log('An error occured whilst editing asset "view type"', e))
+  };
+
   const deleteCheckedAssets = () => {
     Promise.all(checked.map((id:any) => axios.post(`/api/asset/${id}/delete`)))
       .then(() => setChecked([]))
       .then(fetchAssets)
       .then(() => setAlertMessage({show: true, message: "Asset(s) successfully deleted", type: Alert.Success}))
       .catch((e:any) => console.log('An error occured whilst deleting assets', e))
-  }
+  };
 
   // use this to fetch the projects assets
   useEffect(() => {
@@ -170,8 +210,20 @@ const useStyles = makeStyles((theme) =>
             src={asset.thumbnail_path ? `/api/asset/${asset.id}/thumbnail` : defaultImage}
         />
         </ListItemAvatar>
-        <ListItemText id={asset.id} primary={asset.name} secondary={assetTypeToText(asset.asset_type)} />
+        <ListItemText id={asset.id} primary={asset.name} secondary={assetTypeToText(asset.asset_type) + ', ' + viewTypeToText(asset.view_type)} />
         <ListItemSecondaryAction>
+            <Select
+              labelId="viewtype"
+              id="viewtype-select"
+              value={viewTypeToValue(asset.view_type)}
+              label="View Type"
+              onChange={(event) => handleSelect(event.target.value, asset.id)}
+              autoWidth={true}
+            >
+              <MenuItem value={"mono"}>Monoscopic</MenuItem>
+              <MenuItem value={"sidetoside"}>Side to Side</MenuItem>
+              <MenuItem value={"toptobottom"}>Top to Bottom</MenuItem>
+            </Select>
             <Checkbox
               edge="end"
               onChange={handleToggle(asset.id)}

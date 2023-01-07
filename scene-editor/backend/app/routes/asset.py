@@ -18,6 +18,7 @@ from app.schemas.asset import asset_schema
 from app.schemas.scene import scene_schema
 
 from app.models.asset import Asset as AssetModel
+from app.models.asset import ViewType
 from app.models.project import Project as ProjectModel
  
 ns = api.namespace("asset")
@@ -83,6 +84,34 @@ class Thumbnail(Resource):
         asset = AssetModel.query.filter_by(id=id.split('.')[0]).first_or_404()
 
         db.session.delete(asset)
+        db.session.commit()
+
+        return "", HTTPStatus.OK
+
+@ns.route("/<string:id>/setview/<string:viewtype>")
+@ns.response(HTTPStatus.NOT_FOUND, "Thumbnail not found")
+@ns.param("id", "The asset identifier")
+@ns.param("viewtype", "The asset video type")
+class Thumbnail(Resource):
+
+    @user_jwt_required
+    @project_access_required
+    def post(self, id, viewtype):
+        """
+        Updates the asset view type
+        """
+        newviewtype = ViewType.mono
+        if viewtype == "mono":
+            newviewtype = ViewType.mono
+        elif viewtype == "sidetoside":
+            newviewtype = ViewType.sidetoside
+        elif viewtype == "toptobottom":
+            newviewtype = ViewType.toptobottom
+        else:
+            return "Unallowed View Type", HTTPStatus.FORBIDDEN
+
+        asset = AssetModel.query.filter_by(id=id.split('.')[0]).first_or_404()
+        asset.view_type = newviewtype
         db.session.commit()
 
         return "", HTTPStatus.OK

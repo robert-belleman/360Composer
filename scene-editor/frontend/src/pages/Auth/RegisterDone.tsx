@@ -10,7 +10,7 @@ const Register: React.FC = () => {
               style={{textAlign:'center'}}
               title="Registration succesfull!"/>
             <CardContent>
-                <Typography> Now you can proceed to <Link to="/">login</Link>.</Typography>
+                <Typography> Now you can proceed to <Link to="/app">login</Link>.</Typography>
             </CardContent>
         </CenterCard>
     );

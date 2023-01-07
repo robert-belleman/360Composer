@@ -6,6 +6,11 @@ class AssetType(enum.Enum):
     video = 0
     model = 1
 
+class ViewType(enum.Enum):
+    mono = 0
+    sidetoside = 1
+    toptobottom = 2
+
 from app.models.database import db
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -22,6 +27,7 @@ class Asset(db.Model):
     file_size = db.Column(db.Integer)
 
     asset_type = db.Column(db.Enum(AssetType), nullable=False)
+    view_type = db.Column(db.Enum(ViewType), nullable=False, default=ViewType.mono)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now,
