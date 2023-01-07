@@ -265,6 +265,9 @@ const useStyles = makeStyles((theme) =>
             startIcon={<DeleteIcon />}
             disabled={checked.length === 0}
             onClick={deleteCheckedAssets}>Delete Assets</Button>
+            <Button startIcon={<DeleteIcon />}>
+              BLAAAAAAAAAAAAAAAA
+            </Button>
         </Grid>
       </Grid>
       <NewAssetDialog activeProject={activeProject} open={openAssetDialog} closeHandler={() => setOpenAssetDialog(false)} onAssetCreated={onAssetCreated} />
