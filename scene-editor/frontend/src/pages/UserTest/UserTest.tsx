@@ -3,7 +3,6 @@ import React, {useState} from "react";
 import HomePage from "../../components/UserTestComponents/HomePage";
 import EndPage from "../../components/UserTestComponents/EndPage";
 import { UserTestComponentProps } from "../../components/UserTestComponents/ComponentProps";
-import BabylonTest from "../../components/UserTestComponents/BabylonTest";
 
 const UserTest: React.FC = () => {
     interface UserInput {
@@ -14,7 +13,6 @@ const UserTest: React.FC = () => {
     }
 
     const testComponents: React.FC<UserTestComponentProps>[] = [
-        BabylonTest,
         HomePage,
         EndPage
     ];

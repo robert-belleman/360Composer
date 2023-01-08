@@ -413,12 +413,10 @@ const Editor: React.FC = () => {
       videoDome.videoTexture.video.ontimeupdate = (event: any) => {
         setCurrentVideoTime(event.target.currentTime);
       };
-
-      // set video to stereoscopic or mono
-      setStereoscopic(video.view_type);
       
       videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
         setCurrentVideoLength(event.target.duration);
+        setStereoscopic(video.view_type);
       };
     };
 

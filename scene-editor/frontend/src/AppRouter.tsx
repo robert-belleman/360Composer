@@ -18,7 +18,8 @@ import TimelineEditor from "./pages/TimelineEditor/TimelineEditor"
 import ScenePlayer from "./pages/ScenePlayer/ScenePlayer";
 import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
-import UserTest from "./pages/UserTest/UserTest";
+// import UserTest from "./pages/UserTest/UserTest";
+import Player from "./pages/Player/Player";
 
 const AppRouter: React.FC = () => {
     // TODO: routes should be protected in the future
@@ -46,8 +47,9 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/analytics" element={<Dashboard view={View.Analytics}/>}></Route>
                 <Route path="/app/users" element={<Dashboard view={View.Users}/>}></Route>
                 <Route path="/app/settings" element={<Settings/>}></Route>
-                <Route path="/app/test" element={<UserTest/>}/>
+                {/* <Route path="/app/test" element={<UserTest/>}/> */}
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
+                <Route path="/player/:timelineID/:uuID" element={<Player/>}/>
             </Routes>
         </BrowserRouter>:
         <BrowserRouter basename={process.env.BASEPATH}>
@@ -56,7 +58,8 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/register" element={<Register/>}></Route>
                 <Route path="/app/register-done" element={<RegisterDone/>}></Route>
                 <Route path="/app/*" element={<Login/>} />
-                <Route path="/app/test" element={<UserTest/>}/>
+                {/* <Route path="/app/test" element={<UserTest/>}/> */}
+                <Route path="/player/:timelineID/:uuID" element={<Player/>}/>
             </Routes>
         </BrowserRouter>
     );
