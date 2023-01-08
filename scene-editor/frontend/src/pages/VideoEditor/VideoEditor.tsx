@@ -120,8 +120,33 @@ const VideoEditor: React.FC = () => {
   const classes = useStyles();
 
 
-  // ClipsContainer functions
+  // video variables
+  const [video, setVideo]: any = useState(undefined);
+  const [playing, setPlaying]: any = useState(false);
+  var [currentVideoTime, setCurrentVideoTime]: any = useState(0);
+  const [currentVideoLength, setCurrentVideoLength]: any = useState(0);
+  const [videoMarks, setVideoMarks]: any = useState([]);
 
+
+  // babylon variables
+  const [babylonScene, setBabylonScene]: any = useState(undefined);
+  const [sceneLight, setSceneLight]: any = useState(undefined);
+  const [babylonCamera, setBabylonCamera]: any = useState(undefined);
+  const [gizmoManager, setGizmoManager]: any = useState(undefined);
+  var [videoDome, setVideoDome]: any = useState(undefined);
+  var [guiManager, setGuiManager]: any = useState(undefined);
+  var [questionPlane, setQuestionPlane]: any = useState(undefined);
+
+  // sets the mesh that is currently selected by the user
+  var [activeMesh]: any = useState(null);
+
+  // contains the root mesh of all meshes currently in the scene
+  const [sceneRootMeshes, setSceneRootMeshes]: any = useState([]);
+
+  // scene settings
+  const [lightIntensity, setLightIntensity]: any = useState(0);
+
+  // CLIPSCONTAINER FUNCTIONS
   // Defines the delay of the drag event, how long the user has to 
   // hold the mouse down before the drag event is triggered.
   const sensors = useSensors(
@@ -132,7 +157,6 @@ const VideoEditor: React.FC = () => {
       }
     })
   );
-
 
   // Define the handleDragEnd function
   function handleDragEnd(event: DragEndEvent) {
@@ -149,33 +173,36 @@ const VideoEditor: React.FC = () => {
     }
   }
 
-
-
-
-
-
-
-
-
-
-
   //Timeline functions
-
   const [clips, setClips] = useState<Clip[]>([]);
-  // const prevClips = useRef<Clip[]>([]);  // Initialize prevClips to an empty array of Clip objects
-
-
   const [uidCounter, setUidCounter] = useState(1);
   const [trimcommand, setTrimcommand] = useState("");
-
-
+  const [currentTime, setCurrentTime] = React.useState(0);
   // Declare a state variable to track the currently selected item
   const [selectedItems, setSelectedItems] = useState<UniqueIdentifier[]>([]);
 
 
+  const fetchVideo = async () => {
+    axios.get(`/api/asset/48a624b40eff4b1c924f4452428478b9230108172303}`)
+      .then((res: any) => setVideo(res.data))
+      .catch((e) => console.log(e))
+  }
+
+
+  // loads video when we have fetched the video data
+  useEffect(() => {
+    fetchVideo();
+    if (video !== undefined)
+      loadVideo();
+  }, [video]);
+
+
+
+
+
+
   // Add a new video to the timeline
   const addVideoToTimeline = () => {
-
     const videoStart = 0;
     const videoEnd = 20.523000; //TODO: get video length
     const videoFps = 30; //TODO: get fps
@@ -186,8 +213,6 @@ const VideoEditor: React.FC = () => {
     // Give the next video a unique id
     setUidCounter(uidCounter + 1);
   }
-
-  const [currentTime, setCurrentTime] = React.useState(0);
 
   const handleTimeChange = (event: Event, newValue: number | number[], activeThumb: number) => {
     setCurrentTime(newValue as number);
@@ -202,7 +227,6 @@ const VideoEditor: React.FC = () => {
   }
 
   const handleClipSelect = (id: UniqueIdentifier) => {
-
     // If the clicked item is already the selected item, deselect it
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter(item => item !== id));
@@ -217,8 +241,171 @@ const VideoEditor: React.FC = () => {
     setSelectedItems([]);
   }
 
+  const loadVideo = () => {
+    if (video === undefined) {
+      return;
+    }
+
+    if (videoDome !== undefined) {
+      videoDome.dispose();
+    }
+
+    const posterURL = `/api/asset/${video.id}/thumbnail`;
+    videoDome = new VideoDome(
+      "videoDome",
+      [`/asset/${video.path}`],
+      {
+        resolution: 32,
+        clickToPlay: false,
+        autoPlay: playing,
+        poster: posterURL,
+        loop: false
+      },
+      babylonScene
+    );
+    setVideoDome(videoDome);
+
+    // reset video transport
+    setCurrentVideoLength(videoDome.videoTexture.video.duration)
+    setCurrentVideoTime(0);
+
+    // make sure playback is updated
+    videoDome.videoTexture.video.ontimeupdate = (event: any) => {
+      setCurrentVideoTime(event.target.currentTime);
+    };
+
+    // // set video to stereoscopic or mono
+    // setStereoscopic(video.view_type);
+
+    videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
+      setCurrentVideoLength(event.target.duration);
+    };
+  };
 
 
+
+
+
+
+
+
+  // runs whenever the seen has been set up
+  const onSceneReady = (scene: any) => {
+
+    // keep track of scene to use it later
+    setBabylonScene(scene);
+
+    var camera = new FreeCamera("camera1", new Vector3(0, 0, 3), scene);
+    // This targets the camera to scene origin
+    camera.setTarget(new Vector3(0, 0, 0));
+    camera.speed *= 0.2;
+    const canvas = scene.getEngine().getRenderingCanvas();
+    // This attaches the camera to the canvas
+    camera.attachControl(canvas, true);
+    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+    let light = new HemisphericLight("light", new Vector3(0, 4, 0), scene);
+    light.intensity = 1;
+
+    setBabylonCamera(camera);
+
+    // update state
+    setSceneLight(light);
+    setLightIntensity(1.0);
+
+
+  }
+
+  // gets called everytime a frame is rendered
+  const onRender = (scene: any) => {
+
+  }
+
+  // video functions
+  const stopVideo = () => {
+    videoDome.videoTexture.video.pause();
+    setPlaying(false);
+  }
+
+  const startVideo = () => {
+    videoDome.videoTexture.video.play();
+    setPlaying(true);
+  }
+
+  const updateVideo = (event: any, newValue: number | number[]) => {
+    setCurrentVideoTime(newValue);
+    videoDome.videoTexture.video.currentTime = newValue;
+  };
+
+
+  const valueLabelFormat = (value: number) => {
+    const minutes = Math.floor(value / 60);
+    const seconds = Math.floor(value % 60);
+
+    const minutesLabel = minutes < 10 ? `0${minutes}` : minutes
+    const secondsLabel = seconds < 10 ? `0${seconds}` : seconds
+
+    return `${minutesLabel}:${secondsLabel}`
+  }
+
+
+
+
+
+  const renderSceneComponent = () => (
+    <Paper variant="outlined" style={{ padding: 20, marginTop: 20 }}>
+      <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} id='VideoEditorCanvas' ></SceneComponent>
+      {renderTransport()}
+    </Paper>
+  )
+
+
+  const renderTransport = () => {
+    const playButton =  <Button
+                          variant="contained"
+                          size="small"
+                          className="playButton"
+                          color="primary"
+                          startIcon={<PlayArrowIcon />}
+                          onClick={startVideo}
+                        >Play</Button>
+
+    const stopButton =  <Button
+                          variant="contained"
+                          size="small"
+                          className="playButton"
+                          color="secondary"
+                          startIcon={<StopIcon />}
+                          onClick= {stopVideo}
+                        >Stop</Button>
+
+
+    return (
+      <Grid container>
+        <Grid item xs={2} style={{marginTop: 30, textAlign: 'center'}}>
+          <p>Start: 00:00</p>
+        </Grid>
+        <Grid item xs={8}>
+          <Slider
+            value={currentVideoTime}
+            defaultValue={0}
+            min={0}
+            max={currentVideoLength}
+            valueLabelFormat={valueLabelFormat}
+            onChange={updateVideo}
+            step={0.1}
+            marks={videoMarks}
+            valueLabelDisplay="on"
+            style={{marginTop: 40}}
+          >
+
+          </Slider>
+        </Grid>
+        <Grid item xs={2} style={{marginTop: 30, textAlign: 'center'}}>
+          <p>End: {valueLabelFormat(currentVideoLength)}</p>
+        </Grid>
+      </Grid>
+    );
+  }
 
 
 
