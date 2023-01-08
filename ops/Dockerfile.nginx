@@ -4,13 +4,14 @@ ARG BASEPATH=/app
 ENV BASEPATH=$BASEPATH
 
 COPY /scene-editor/frontend/package.json /app/scene-editor-frontend/package.json
-# COPY /scene-editor/frontend/package-lock.json /app/scene-editor-frontend/package-lock.json
-Run if [ -f /scene-editor /frontend /package-lock.json ]; then \
+# Als er al lokcaal een package-lock.json bestaat, dan wordt deze gebruikt.
+RUN if [ -f /scene-editor /frontend /package-lock.json ]; then \
     COPY /scene-editor/frontend/package-lock.json /app/scene-editor-frontend/package-lock.json; \
     fi
 
 WORKDIR /app/scene-editor-frontend
 
+# npm doet soms nogal raar. Daarom even deze cache clean en config rm.
 RUN npm cache clean --force && npm config rm proxy && npm config rm https-proxy && npm cache verify
 RUN if [ -f package-lock.json ]; then \
     npm ci; \
