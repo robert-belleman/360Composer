@@ -265,7 +265,6 @@ const SceneNode = ({selected, data}:SceneNodeProps) => {
 
 const ScenarioEditor:React.FC = () => {
   const {projectID, scenarioID} = useParams<'projectID'|'scenarioID'>();
-
   const [fetchingTimelines, setFetchingTimelines] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);

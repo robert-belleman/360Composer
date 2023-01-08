@@ -4,9 +4,19 @@ ARG BASEPATH=/app
 ENV BASEPATH=$BASEPATH
 
 COPY /scene-editor/frontend/package.json /app/scene-editor-frontend/package.json
-COPY /scene-editor/frontend/package-lock.json /app/scene-editor-frontend/package-lock.json
+# COPY /scene-editor/frontend/package-lock.json /app/scene-editor-frontend/package-lock.json
+Run if [ -f /scene-editor /frontend /package-lock.json ]; then \
+    COPY /scene-editor/frontend/package-lock.json /app/scene-editor-frontend/package-lock.json; \
+    fi
+
 WORKDIR /app/scene-editor-frontend
-RUN npm ci && npm cache clean --force
+
+RUN npm cache clean --force && npm config rm proxy && npm config rm https-proxy && npm cache verify
+RUN if [ -f package-lock.json ]; then \
+    npm ci; \
+    else \
+    npm install --legacy-peer-deps; \
+    fi
 
 COPY /scene-editor/frontend/src /app/scene-editor-frontend/src
 COPY /scene-editor/frontend/public /app/scene-editor-frontend/public
