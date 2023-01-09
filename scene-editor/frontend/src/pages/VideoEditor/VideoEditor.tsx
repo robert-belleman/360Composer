@@ -68,6 +68,15 @@ import { DataGrid } from '@mui/x-data-grid';
 import { getValue } from '@mui/system';
 
 
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Checkbox from '@mui/material/Checkbox';
+import IconButton from '@mui/material/IconButton';
+import CommentIcon from '@mui/icons-material/Comment';
+
 
 // Drag'n'Drop-kit
 import { DndContext, closestCenter, MouseSensor, PointerSensor, UniqueIdentifier, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -84,17 +93,13 @@ import SortableItem from '../../components/VideoEditorComponents/SortableItem';
 const theme = createTheme();
 const useStyles = makeStyles((theme) =>
   createStyles({
-    root: {
-      flexGrow: 1,
-      padding: theme.spacing(1),
-      [theme.breakpoints.up('sm')]: {
-        marginLeft: 240
-      }
-    },
-    top: {
-      padding: theme.spacing(2),
-      boxSizing: 'border-box'
-    }
+    // root: {
+    //   flexGrow: 1,
+    //   padding: theme.spacing(1),
+    //   [theme.breakpoints.up('sm')]: {
+    //     marginLeft: 240
+    //   }
+    // },
   })
 )
 
@@ -112,6 +117,9 @@ interface Clip {
 const VideoEditor: React.FC = () => {
 
   const { projectID } = useParams<`projectID`>();
+  const [project, setProject]: any = useState(undefined);
+
+  // Navigation initialization
   const navigate = useNavigate();
   const useQuery = () => new URLSearchParams(useLocation().search);
   const param: string | null = useQuery().get('goBack');
@@ -132,19 +140,8 @@ const VideoEditor: React.FC = () => {
   const [babylonScene, setBabylonScene]: any = useState(undefined);
   const [sceneLight, setSceneLight]: any = useState(undefined);
   const [babylonCamera, setBabylonCamera]: any = useState(undefined);
-  const [gizmoManager, setGizmoManager]: any = useState(undefined);
   var [videoDome, setVideoDome]: any = useState(undefined);
-  var [guiManager, setGuiManager]: any = useState(undefined);
-  var [questionPlane, setQuestionPlane]: any = useState(undefined);
 
-  // sets the mesh that is currently selected by the user
-  var [activeMesh]: any = useState(null);
-
-  // contains the root mesh of all meshes currently in the scene
-  const [sceneRootMeshes, setSceneRootMeshes]: any = useState([]);
-
-  // scene settings
-  const [lightIntensity, setLightIntensity]: any = useState(0);
 
   // CLIPSCONTAINER FUNCTIONS
   // Defines the delay of the drag event, how long the user has to 
@@ -181,9 +178,55 @@ const VideoEditor: React.FC = () => {
   // Declare a state variable to track the currently selected item
   const [selectedItems, setSelectedItems] = useState<UniqueIdentifier[]>([]);
 
+  const [checked, setChecked] = React.useState([0]);
+
+  const handleToggle = (value: number) => () => {
+    const currentIndex = checked.indexOf(value);
+    const newChecked = [...checked];
+
+    if (currentIndex === -1) {
+      newChecked.push(value);
+    } else {
+      newChecked.splice(currentIndex, 1);
+    }
+
+    setChecked(newChecked);
+  };
+
+  const fetchProject = () => {
+    console.log("fetching project with id: " + projectID + "")
+    axios.get(`/api/project/${projectID}`)
+      .then((res: any) => {
+        console.log("res.data")
+        console.log(res.data)
+        setProject(res.data)
+      })
+      .catch((e) => console.log(e))
+  }
+
+  useEffect(() => {
+    fetchProject();
+
+    console.log(projectID)
+    console.log(project)
+    console.log("project:" + project);
+  }, []);
+
+  const [assets, setAssets]: any = useState([]);
+
+  const fetchAssets = async () => {
+    axios.get(`/api/project/${projectID}/assets`)
+      .then((res: any) => setAssets(res.data))
+      .catch((e) => console.log(e))
+  }
+
+  useEffect(() => {
+    fetchAssets();
+    console.log(assets);
+  }, []);
 
   const fetchVideo = async () => {
-    axios.get(`/api/asset/48a624b40eff4b1c924f4452428478b9230108172303}`)
+    axios.get(`/api/asset/a259a197-5a74-466b-8e2e-3e44f7ba315a`)
       .then((res: any) => setVideo(res.data))
       .catch((e) => console.log(e))
   }
@@ -257,16 +300,17 @@ const VideoEditor: React.FC = () => {
       {
         resolution: 32,
         clickToPlay: false,
-        autoPlay: playing,
+        autoPlay: false,
+        loop: false,
         poster: posterURL,
-        loop: false
+
       },
       babylonScene
     );
     setVideoDome(videoDome);
 
     // reset video transport
-    setCurrentVideoLength(videoDome.videoTexture.video.duration)
+    setCurrentVideoLength(videoDome.videoTexture.video.duration)  //TODO make duration work
     setCurrentVideoTime(0);
 
     // make sure playback is updated
@@ -274,12 +318,13 @@ const VideoEditor: React.FC = () => {
       setCurrentVideoTime(event.target.currentTime);
     };
 
-    // // set video to stereoscopic or mono
-    // setStereoscopic(video.view_type);
-
     videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
       setCurrentVideoLength(event.target.duration);
     };
+
+    // // set video to stereoscopic or mono
+    // setStereoscopic(video.view_type);
+
   };
 
 
@@ -310,7 +355,6 @@ const VideoEditor: React.FC = () => {
 
     // update state
     setSceneLight(light);
-    setLightIntensity(1.0);
 
 
   }
@@ -351,37 +395,34 @@ const VideoEditor: React.FC = () => {
 
 
 
-  const renderSceneComponent = () => (
-    <Paper variant="outlined" style={{ padding: 20, marginTop: 20 }}>
-      <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} id='VideoEditorCanvas' ></SceneComponent>
-      {renderTransport()}
-    </Paper>
-  )
-
+  const exportTimelineVideo = () => {
+    fetchProject();
+    console.log("exporting timeline video");
+  };
 
   const renderTransport = () => {
-    const playButton =  <Button
-                          variant="contained"
-                          size="small"
-                          className="playButton"
-                          color="primary"
-                          startIcon={<PlayArrowIcon />}
-                          onClick={startVideo}
-                        >Play</Button>
+    const playButton = <Button
+      variant="contained"
+      size="small"
+      className="playButton"
+      color="primary"
+      startIcon={<PlayArrowIcon />}
+      onClick={startVideo}
+    >Play</Button>
 
-    const stopButton =  <Button
-                          variant="contained"
-                          size="small"
-                          className="playButton"
-                          color="secondary"
-                          startIcon={<StopIcon />}
-                          onClick= {stopVideo}
-                        >Stop</Button>
+    const stopButton = <Button
+      variant="contained"
+      size="small"
+      className="playButton"
+      color="secondary"
+      startIcon={<StopIcon />}
+      onClick={stopVideo}
+    >Stop</Button>
 
 
     return (
       <Grid container>
-        <Grid item xs={2} style={{marginTop: 30, textAlign: 'center'}}>
+        <Grid item xs={2} style={{ marginTop: 30, textAlign: 'center' }}>
           <p>Start: 00:00</p>
         </Grid>
         <Grid item xs={8}>
@@ -395,13 +436,16 @@ const VideoEditor: React.FC = () => {
             step={0.1}
             marks={videoMarks}
             valueLabelDisplay="on"
-            style={{marginTop: 40}}
+            style={{ marginTop: 40 }}
           >
 
           </Slider>
         </Grid>
-        <Grid item xs={2} style={{marginTop: 30, textAlign: 'center'}}>
+        <Grid item xs={2} style={{ marginTop: 30, textAlign: 'center' }}>
           <p>End: {valueLabelFormat(currentVideoLength)}</p>
+        </Grid>
+        <Grid item xs={12} style={{ textAlign: 'center' }}>
+          {playing ? stopButton : playButton}
         </Grid>
       </Grid>
     );
@@ -412,161 +456,165 @@ const VideoEditor: React.FC = () => {
   return (<>
     <TopBar></TopBar>
     <SideMenu activeView={View.Project} />
-    <div className={classes.root}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Paper elevation={0} variant="outlined" className={classes.top}>
-            <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? navigate(-1) : navigate(`/app/project/${projectID}?activeTab=assets`)}>Back</Button>
-          </Paper>
-        </Grid>
-      </Grid>
-      <div style={{
-        margin: 10,
-      }}>
+    <div style={{ marginLeft: 240, padding: 24 }}>
+      <Container maxWidth="xl">
         <Grid container spacing={2}>
-          <Grid xs={4}>
+          <Grid item xs={12}>
+            <Paper elevation={0} variant="outlined">
+              <Grid container>
+                <Grid item xs={4}>
+                  <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? navigate(-1) : navigate(`/app/project/${projectID}?activeTab=assets`)}>Back</Button>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="h5" component="h2" justifyContent="center">
+                    Project: {project.name}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Button color="primary" onClick={() => exportTimelineVideo()} sx={{
+                    marginRight: 0,
+                    marginLeft: 'auto',
+                    display: 'block',
+                  }}>Export Video</Button>
+                </Grid>
+
+              </Grid>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={4}>
             {/* AssetViewer Container */}
-            <Paper sx={{
-              // height: '100%',
-            }}>Assets
+            <Paper>
+              Assets
 
+              <List >
+                {assets.map((asset: any) => {
+                  const labelId = `checkbox-list-label-${asset.id}`;
 
-              <Box>
-                <DataGrid
-                  columns={[
-                    { field: 'name' }
-                  ]}
-                  rows={[
-                    { id: 1, name: 'video1' },
-                    { id: 2, name: 'video2' }]}
-                />
-              </Box>
+                  return (
+                    <ListItem
+                      key={asset.id}
+                      secondaryAction={
+                        <IconButton edge="end" aria-label="comments">
+                          <CommentIcon />
+                        </IconButton>
+                      }
+                      disablePadding
+                    >
+                      <ListItemButton role={undefined} onClick={handleToggle(asset.id)} dense>
+                        <ListItemIcon>
+                          <Checkbox
+                            edge="start"
+                            checked={checked.indexOf(asset.id) !== -1}
+                            tabIndex={-1}
+                            disableRipple
+                            inputProps={{ 'aria-labelledby': labelId }}
+                          />
+                        </ListItemIcon>
+                        <ListItemText id={labelId} primary={`${asset.name}`} />
+                      </ListItemButton>
+                    </ListItem>
+                  );
+                })}
+              </List>
               <Button onClick={addVideoToTimeline}>
                 ADD
               </Button>
-
-
-
-
             </Paper>
           </Grid>
-          <Grid xs sx={{
-            // height: '50vh',
-          }}>
+          <Grid item xs>
             {/* VideoPlayer Container */}
-            <Paper sx={{
-              // height: '100%',
-            }}>
-
-
-              <Box sx={{
-                // aspectRatio: '16/9',
-                // width: '100%',
-                // height: '56.25%',
-                backgroundColor: 'black',
-                // paddingBottom: '56.25%',
-
-                // maxWidth: '100%',
-              }}>
-
-              </Box>
+            <Paper style={{ padding: 10 }}>
+              <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} id='VideoEditorCanvas' ></SceneComponent>
+              {renderTransport()}
               <Slider
                 min={0}
                 max={100}
               />
             </Paper>
           </Grid>
-          <Grid xs={12}>
+          <Grid item xs={12}>
             {/* Timeline Container */}
-            <Paper>
-
-
+            <Paper sx={{
+              width: '100%',
+            }}>
+              {/* <div style={{
+              width: '90%',
+              margin: 'auto',
+            }}> */}
+              <Slider
+                value={currentTime}
+                min={0}
+                max={clips.reduce((total, clip) => total + clip.frameEnd, 0)}
+                onChange={handleTimeChange}
+                valueLabelDisplay="auto"
+              />
 
               <div style={{
-                height: '20px',
-              }}></div>
-
-              <div style={{
-                width: '90%',
-                margin: 'auto',
+                marginTop: '10px',
               }}>
-                <Slider
-                  value={currentTime}
-                  min={0}
-                  max={clips.reduce((total, clip) => total + clip.frameEnd, 0)}
-                  onChange={handleTimeChange}
-                  valueLabelDisplay="auto"
-                />
+                <div
+                  style={{
+                    backgroundColor: '#f0f0f0',
+                    boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.1)',
 
-                <div style={{
-                  marginTop: '10px',
-                }}>
-
-
-
-
-                  <div
-                    style={{
-                      backgroundColor: '#f0f0f0',
-                      boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.1)',
-
-                      margin: '0 auto',
-                      height: 120,
-                    }}
+                    margin: '0 auto',
+                    height: 120,
+                  }}
+                >
+                  <DndContext
+                    // This context is used to define the drag event.
+                    sensors={sensors}
+                    modifiers={[restrictToHorizontalAxis]}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
                   >
-                    <DndContext
-                      // This context is used to define the drag event.
-                      sensors={sensors}
-                      modifiers={[restrictToHorizontalAxis]}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
+                    <SortableContext
+                      // This context is used to define the sorting of the items.
+                      items={clips}
+                      strategy={horizontalListSortingStrategy}
                     >
-                      <SortableContext
-                        // This context is used to define the sorting of the items.
-                        items={clips}
-                        strategy={horizontalListSortingStrategy}
-                      >
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            height: "100%"
-                          }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          height: "100%"
+                        }}>
 
-                          {clips.map((clip: Clip) => {
+                        {clips.map((clip: Clip) => {
 
 
-                            return (
-                              <SortableItem
-                                key={clip.id}
-                                id={clip.id}
-                                clip={clip}
-                                // setClips={() => setClips(clips)}
-                                isSelected={selectedItems.includes(clip.id)}
-                                onSelect={() => {
-                                  console.log(`Select Clip #${clip.id}`)
-                                  handleClipSelect(clip.id)
-                                }
-                                }
-                              >
-                              </SortableItem>
-                            )
-                          })}
+                          return (
+                            <SortableItem
+                              key={clip.id}
+                              id={clip.id}
+                              clip={clip}
+                              // setClips={() => setClips(clips)}
+                              isSelected={selectedItems.includes(clip.id)}
+                              onSelect={() => {
+                                console.log(`Select Clip #${clip.id}`)
+                                handleClipSelect(clip.id)
+                              }
+                              }
+                            >
+                            </SortableItem>
+                          )
+                        })}
 
-                        </Box>
-                      </SortableContext>
-                    </DndContext >
-                  </div >
+                      </Box>
+                    </SortableContext>
+                  </DndContext >
+                </div >
 
-                  <Box>
-                    {clips.map(clip => {
-                      return (
-                        <p key={clip.id}>{clip.id} {clip.start} {clip.end} {clip.trim}</p>
-                      )
-                    })}
-                  </Box>
-                </div>
+                <Box>
+                  {clips.map(clip => {
+                    return (
+                      <p key={clip.id}>{clip.id} {clip.start} {clip.end} {clip.trim}</p>
+                    )
+                  })}
+                </Box>
               </div>
+              {/* </div> */}
               <p>{selectedItems}</p>
               <Button onClick={applyVideoEdit}>
                 Apply Changes
@@ -578,7 +626,7 @@ const VideoEditor: React.FC = () => {
             </Paper>
           </Grid>
         </Grid>
-      </div>
+      </Container>
     </div>
   </>);
 };
