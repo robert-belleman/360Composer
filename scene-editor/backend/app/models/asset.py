@@ -19,9 +19,14 @@ class Asset(db.Model):
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("user.id"), unique=False, nullable=False) # UUID of user that created the scene
     
     # Asset metadata
+
     name = db.Column(db.String(128))
     path = db.Column(db.String(128))
     thumbnail_path = db.Column(db.String(128))
+
+    # TODO change frames and fps to correct types
+    frames = db.Column(db.String)
+    fps = db.Column(db.String)
 
     duration = db.Column(db.Integer)
     file_size = db.Column(db.Integer)

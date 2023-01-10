@@ -117,6 +117,7 @@ interface Clip {
 const VideoEditor: React.FC = () => {
 
   const { projectID } = useParams<`projectID`>();
+
   const [project, setProject]: any = useState(undefined);
 
   // Navigation initialization
@@ -129,7 +130,7 @@ const VideoEditor: React.FC = () => {
 
 
   // video variables
-  const [video, setVideo]: any = useState(undefined);
+  const [videoData, setVideoData]: any = useState(undefined);
   const [playing, setPlaying]: any = useState(false);
   var [currentVideoTime, setCurrentVideoTime]: any = useState(0);
   const [currentVideoLength, setCurrentVideoLength]: any = useState(0);
@@ -193,7 +194,7 @@ const VideoEditor: React.FC = () => {
     setChecked(newChecked);
   };
 
-  const fetchProject = () => {
+  const fetchProject = async () => {
     console.log("fetching project with id: " + projectID + "")
     axios.get(`/api/project/${projectID}`)
       .then((res: any) => {
@@ -204,6 +205,7 @@ const VideoEditor: React.FC = () => {
       .catch((e) => console.log(e))
   }
 
+  // fetchProject();
   useEffect(() => {
     fetchProject();
 
@@ -211,6 +213,13 @@ const VideoEditor: React.FC = () => {
     console.log(project)
     console.log("project:" + project);
   }, []);
+
+  const getProjectName = () => {
+    if (project !== undefined) {
+      return project.name
+    }
+  }
+
 
   const [assets, setAssets]: any = useState([]);
 
@@ -222,37 +231,33 @@ const VideoEditor: React.FC = () => {
 
   useEffect(() => {
     fetchAssets();
-    console.log(assets);
+    console.log("assets:" + assets);
   }, []);
 
-  const fetchVideo = async () => {
-    axios.get(`/api/asset/a259a197-5a74-466b-8e2e-3e44f7ba315a`)
-      .then((res: any) => setVideo(res.data))
-      .catch((e) => console.log(e))
-  }
-
-
-  // loads video when we have fetched the video data
-  useEffect(() => {
-    fetchVideo();
-    if (video !== undefined)
-      loadVideo();
-  }, [video]);
-
-
-
-
-
+  const getVideoInformation = () => {
+    console.log(assets);
+    
+  };
 
   // Add a new video to the timeline
   const addVideoToTimeline = () => {
+    getVideoInformation();
     const videoStart = 0;
     const videoEnd = 20.523000; //TODO: get video length
     const videoFps = 30; //TODO: get fps
     const videoFrameStart = 0;
     const videoFrameEnd = 615; //TODO: get video length
 
-    setClips(clips => [...clips, { id: uidCounter, start: videoStart, end: videoEnd, trim: [videoStart, videoEnd], fps: videoFps, frameStart: videoFrameStart, frameEnd: videoFrameEnd }]);
+    setClips(clips => [...clips, {
+      id: uidCounter,
+      data: videoData,
+      start: videoStart,
+      end: videoEnd,
+      trim: [videoStart, videoEnd],
+      fps: videoFps,
+      frameStart: videoFrameStart,
+      frameEnd: videoFrameEnd
+    }]);
     // Give the next video a unique id
     setUidCounter(uidCounter + 1);
   }
@@ -284,48 +289,48 @@ const VideoEditor: React.FC = () => {
     setSelectedItems([]);
   }
 
-  const loadVideo = () => {
-    if (video === undefined) {
-      return;
-    }
+  // const loadVideo = () => {
+  //   if (video === undefined) {
+  //     return;
+  //   }
 
-    if (videoDome !== undefined) {
-      videoDome.dispose();
-    }
+  //   if (videoDome !== undefined) {
+  //     videoDome.dispose();
+  //   }
 
-    const posterURL = `/api/asset/${video.id}/thumbnail`;
-    videoDome = new VideoDome(
-      "videoDome",
-      [`/asset/${video.path}`],
-      {
-        resolution: 32,
-        clickToPlay: false,
-        autoPlay: false,
-        loop: false,
-        poster: posterURL,
+  //   const posterURL = `/api/asset/${video.id}/thumbnail`;
+  //   videoDome = new VideoDome(
+  //     "videoDome",
+  //     [`/asset/${video.path}`],
+  //     {
+  //       resolution: 32,
+  //       clickToPlay: false,
+  //       autoPlay: false,
+  //       loop: false,
+  //       poster: posterURL,
 
-      },
-      babylonScene
-    );
-    setVideoDome(videoDome);
+  //     },
+  //     babylonScene
+  //   );
+  //   setVideoDome(videoDome);
 
-    // reset video transport
-    setCurrentVideoLength(videoDome.videoTexture.video.duration)  //TODO make duration work
-    setCurrentVideoTime(0);
+  //   // reset video transport
+  //   setCurrentVideoLength(videoDome.videoTexture.video.duration)  //TODO make duration work
+  //   setCurrentVideoTime(0);
 
-    // make sure playback is updated
-    videoDome.videoTexture.video.ontimeupdate = (event: any) => {
-      setCurrentVideoTime(event.target.currentTime);
-    };
+  //   // make sure playback is updated
+  //   videoDome.videoTexture.video.ontimeupdate = (event: any) => {
+  //     setCurrentVideoTime(event.target.currentTime);
+  //   };
 
-    videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
-      setCurrentVideoLength(event.target.duration);
-    };
+  //   videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
+  //     setCurrentVideoLength(event.target.duration);
+  //   };
 
-    // // set video to stereoscopic or mono
-    // setStereoscopic(video.view_type);
+  //   // // set video to stereoscopic or mono
+  //   // setStereoscopic(video.view_type);
 
-  };
+  // };
 
 
 
@@ -462,15 +467,15 @@ const VideoEditor: React.FC = () => {
           <Grid item xs={12}>
             <Paper elevation={0} variant="outlined">
               <Grid container>
-                <Grid item xs={4}>
+                <Grid item xs={4} justifyContent="flex-start">
                   <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? navigate(-1) : navigate(`/app/project/${projectID}?activeTab=assets`)}>Back</Button>
                 </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="h5" component="h2" justifyContent="center">
-                    Project: {project.name}
+                <Grid item xs={4} justifyContent="center">
+                  <Typography variant="h5" component="h2">
+                    Project: {getProjectName()}
                   </Typography>
                 </Grid>
-                <Grid item xs={4}>
+                <Grid item xs={4} justifyContent="flex-end">
                   <Button color="primary" onClick={() => exportTimelineVideo()} sx={{
                     marginRight: 0,
                     marginLeft: 'auto',
@@ -482,7 +487,7 @@ const VideoEditor: React.FC = () => {
             </Paper>
           </Grid>
 
-          <Grid item xs={4}>
+          <Grid item xs={5} justifyContent="flex-start">
             {/* AssetViewer Container */}
             <Paper>
               Assets
@@ -522,7 +527,7 @@ const VideoEditor: React.FC = () => {
               </Button>
             </Paper>
           </Grid>
-          <Grid item xs>
+          <Grid item xs={7} justifyContent="flex-end">
             {/* VideoPlayer Container */}
             <Paper style={{ padding: 10 }}>
               <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} id='VideoEditorCanvas' ></SceneComponent>
