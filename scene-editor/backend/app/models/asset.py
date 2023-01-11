@@ -25,8 +25,8 @@ class Asset(db.Model):
     thumbnail_path = db.Column(db.String(128))
 
     # TODO change frames and fps to correct types
-    frames = db.Column(db.String)
-    fps = db.Column(db.String)
+    frames = db.Column(db.String(128))
+    fps = db.Column(db.String(128))
 
     duration = db.Column(db.Integer)
     file_size = db.Column(db.Integer)

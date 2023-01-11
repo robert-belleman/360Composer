@@ -64,6 +64,8 @@ def upgrade():
         sa.Column('name', sa.String(128)),
         sa.Column('path', sa.String(128)),
         sa.Column('thumbnail_path', sa.String(128)),
+        sa.Column('frames', sa.String(128)),
+        sa.Column('fps', sa.String(128)),
         sa.Column('asset_type', sa.Enum('video', 'model', name='asset_type'), nullable=False, server_default='model'),
         sa.Column('view_type', sa.Enum('mono', 'sidetoside', 'toptobottom', name='view_type'), nullable=False, server_default='mono'),
         sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
