@@ -270,10 +270,11 @@ const VideoEditor: React.FC = () => {
 
     console.log("addvideototimeline")
 
-    // Iterate over all selected videos to add them to the timeline
-    checked.map((assetid: any) => {
+    let counter = uidCounter;
 
-      console.log("testasset: " + assetid)
+    // Iterate over all selected videos to add them to the timeline
+    checked.forEach((assetid: any) => {
+
       const asset = assets.find((asset: any) => asset.id === assetid);
 
       if (asset === undefined) {
@@ -285,12 +286,14 @@ const VideoEditor: React.FC = () => {
         return
       }
 
-      // const videoStart = 0;
-      // const videoDuration = asset.duration;
-      // const videoFps = asset.fps;
+      // // Give the next video a unique id
+      // let currentUidCounter = uidCounter
+      // setUidCounter(c => c + 1);
+
+      console.log(uidCounter)
 
       setClips(clips => [...clips, {
-        id: uidCounter,
+        id: counter,
         videoID: asset.id,
         videoName: asset.name,
         videoDuraton: asset.duration,
@@ -299,19 +302,20 @@ const VideoEditor: React.FC = () => {
         endFrame: asset.frames,
         trim: [0, asset.frames],
         data: asset,
-        // start: videoStart,
-        // end: videoEnd,
-        // trim: [videoStart, videoEnd],
-        // fps: videoFps,
-        // frameStart: videoFrameStart,
-        // frameEnd: videoFrameEnd
       }]);
-      console.log("clips: " + clips)
-      // Give the next video a unique id
-      setUidCounter(uidCounter + 1);
+
+      counter += 1;
+
+      // console.log("clips: " + clips)
+
+
+      console.log("clips:")
+      console.log(clips)
 
     }
     );
+
+    setUidCounter(counter);
 
     // Empty the checked array
     setChecked([]);
@@ -458,7 +462,7 @@ const VideoEditor: React.FC = () => {
 
 
   const exportTimelineVideo = () => {
-    fetchProject();
+    
     console.log("exporting timeline video");
   };
 
@@ -685,6 +689,7 @@ const VideoEditor: React.FC = () => {
                 DELETE Selected Clips {selectedItems}
               </Button>
               <p>{trimcommand}</p>
+
             </Paper>
           </Grid>
         </Grid>

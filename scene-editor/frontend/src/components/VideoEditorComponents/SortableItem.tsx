@@ -145,26 +145,42 @@ const CustomSlider = styled(SliderUnstyled)(
 //   endFrame: number,
 //   trim: [number, number]
 //   data: any,
-  // other props
+// other props
 // }
 
 
 // interface SortableItemProps {
 //   clip: Clip,
 //   id: UniqueIdentifier,
-  
+
 //   // other props
 // }
 
+
+// Voorbeeld van de props.clip.data:
+// asset_type: "AssetType.video"
+// created_at: "2023-01-11"
+// duration: 26
+// file_size:11324728
+// fps:30
+// frames:791
+// id:"7d44193c-bc1f-4263-8d06-b8cdcf07e995"
+// name:"Skateboard.mp4"
+// path:"asset345a6cfeb98c4d26857c80e72dc143ca230111161817.mp4"
+// thumbnail_path:"/app/app/static/assets/asset345a6cfeb98c4d26857c80e72dc143ca230111161817.png"
+// updated_at:"2023-01-11"
+// view_type:"ViewType.mono"
 
 
 // Sortable Item within the ClipsContainer
 function SortableItem(props: any) {
 
-console.log(props.clip.data)
+  // console.log(props.clip.data.thumbnail_path)
   // Clipitem functions
-  const thumbnailUrl = props.clip.data.thumbnail_path ? props.clip.data.thumbnail_path : PlaceholderThumbnailUrl;
-    // "https://media.istockphoto.com/id/1322104312/photo/freedom-chains-that-transform-into-birds-charge-concept.jpg?b=1&s=170667a&w=0&k=20&c=-Y0krB2nXoyozDi-ZwKLfE0eDABiDxvanB-qOGqH4GU=";
+  const nail = "http://localhost:5000"+props.clip.data.thumbnail_path;
+  const thumbnailUrl = nail ? nail : PlaceholderThumbnailUrl;
+  // const thumbnailUrl = PlaceholderThumbnailUrl;
+  // "https://media.istockphoto.com/id/1322104312/photo/freedom-chains-that-transform-into-birds-charge-concept.jpg?b=1&s=170667a&w=0&k=20&c=-Y0krB2nXoyozDi-ZwKLfE0eDABiDxvanB-qOGqH4GU=";
 
 
   const [thumbValue, setThumbValue] = React.useState([props.clip.trim[0], props.clip.trim[1]]);
@@ -193,11 +209,11 @@ console.log(props.clip.data)
     // clip.trim = thumbValue;
     // TODO: Css trimmed part delete.
 
-    if (!(Array.isArray(newValue) && newValue.length === 2 )){
+    if (!(Array.isArray(newValue) && newValue.length === 2)) {
       console.log("Error: new trimvalue is not an array of length 2.")
       return;
     }
-    
+
     props.clip.trim = [...newValue] as [number, number];
   };
 
@@ -286,7 +302,10 @@ console.log(props.clip.data)
           onClick={
             event => { props.onSelect(event) }
           }
-        />
+        >
+          {props.clip.data.name}
+          </div>
+
 
         <CustomSlider
           sx={{
