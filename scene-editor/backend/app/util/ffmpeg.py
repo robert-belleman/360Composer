@@ -59,7 +59,9 @@ def __ffmpeg_get_video_resolution(video_info):
 
 
 def ffmpeg_get_video_fps(video_info):
-    return video_info['streams'][0]['r_frame_rate']
+    # Gets frame rate in format like: 30/1. So we need to split it.
+    fps = video_info['streams'][0]['r_frame_rate']
+    return float(fps.split('/')[0]) / float(fps.split('/')[1])
 
 
 def __ffmpeg_get_video_bitrate(video_info):
@@ -83,7 +85,7 @@ def __ffmpeg_get_video_audio_bitrate(video_info):
 
 
 def ffmpeg_get_video_frame_count(video_info):
-    return video_info['streams'][0]['nb_frames']
+    return int(video_info['streams'][0]['nb_frames'])
 
 
 def main():
