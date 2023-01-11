@@ -103,14 +103,27 @@ const useStyles = makeStyles((theme) =>
   })
 )
 
+// id: uidCounter,
+// videoID: asset.id,
+// videoName: asset.name,
+// videoDuraton: asset.duration,
+// videoFps: asset.fps,
+// videoFrames: asset.frames,
+// endFrame: asset.frames,
+// trim: [0, asset.frames]
+// data: asset,
+// start: video
+
 interface Clip {
   id: UniqueIdentifier,
-  start: number,
-  end: number,
+  videoID: string,
+  videoName: string,
+  videoDuraton: number,
+  videoFps: number,
+  videoFrames: number,
+  endFrame: number,
   trim: [number, number]
-  fps: number,
-  frameStart: number,
-  frameEnd: number,
+  data: any,
   // other props
 }
 
@@ -179,19 +192,26 @@ const VideoEditor: React.FC = () => {
   // Declare a state variable to track the currently selected item
   const [selectedItems, setSelectedItems] = useState<UniqueIdentifier[]>([]);
 
-  const [checked, setChecked] = React.useState([0]);
+  const [checked, setChecked]: any = React.useState([]);
 
-  const handleToggle = (value: number) => () => {
-    const currentIndex = checked.indexOf(value);
-    const newChecked = [...checked];
+  const handleToggle = (id: number) => () => {
+    // const currentIndex = checked.indexOf(value);
+    // const newChecked = [...checked];
 
-    if (currentIndex === -1) {
-      newChecked.push(value);
-    } else {
-      newChecked.splice(currentIndex, 1);
+    // if (currentIndex === -1) {
+    //   newChecked.push(value);
+    // } else {
+    //   newChecked.splice(currentIndex, 1);
+    // }
+
+    if (checked.includes(id)) {
+      setChecked(checked.filter((item: any) => item !== id));
+    }
+    else {
+      setChecked([...checked, id]);
     }
 
-    setChecked(newChecked);
+    console.log("newchecked=" + checked)
   };
 
   const fetchProject = async () => {
@@ -236,30 +256,67 @@ const VideoEditor: React.FC = () => {
 
   const getVideoInformation = () => {
     console.log(assets);
-    
+
   };
 
   // Add a new video to the timeline
   const addVideoToTimeline = () => {
-    getVideoInformation();
-    const videoStart = 0;
-    const videoEnd = 20.523000; //TODO: get video length
-    const videoFps = 30; //TODO: get fps
-    const videoFrameStart = 0;
-    const videoFrameEnd = 615; //TODO: get video length
+    // getVideoInformation(checked);
 
-    setClips(clips => [...clips, {
-      id: uidCounter,
-      data: videoData,
-      start: videoStart,
-      end: videoEnd,
-      trim: [videoStart, videoEnd],
-      fps: videoFps,
-      frameStart: videoFrameStart,
-      frameEnd: videoFrameEnd
-    }]);
-    // Give the next video a unique id
-    setUidCounter(uidCounter + 1);
+    if (checked.length < 1) {
+      console.log("no video selected");
+      return;
+    }
+
+    console.log("addvideototimeline")
+
+    // Iterate over all selected videos to add them to the timeline
+    checked.map((assetid: any) => {
+
+      console.log("testasset: " + assetid)
+      const asset = assets.find((asset: any) => asset.id === assetid);
+
+      if (asset === undefined) {
+        console.log("asset is undefined")
+        return
+      }
+      if (asset.duration === undefined || asset.fps === undefined || asset.frames === undefined) {
+        console.log("asset duration, fps or frames is undefined. Metadata of the asset is incorrect. asset: " + asset + "")
+        return
+      }
+
+      // const videoStart = 0;
+      // const videoDuration = asset.duration;
+      // const videoFps = asset.fps;
+
+      setClips(clips => [...clips, {
+        id: uidCounter,
+        videoID: asset.id,
+        videoName: asset.name,
+        videoDuraton: asset.duration,
+        videoFps: asset.fps,
+        videoFrames: asset.frames,
+        endFrame: asset.frames,
+        trim: [0, asset.frames],
+        data: asset,
+        // start: videoStart,
+        // end: videoEnd,
+        // trim: [videoStart, videoEnd],
+        // fps: videoFps,
+        // frameStart: videoFrameStart,
+        // frameEnd: videoFrameEnd
+      }]);
+      console.log("clips: " + clips)
+      // Give the next video a unique id
+      setUidCounter(uidCounter + 1);
+
+    }
+    );
+
+    // Empty the checked array
+    setChecked([]);
+
+
   }
 
   const handleTimeChange = (event: Event, newValue: number | number[], activeThumb: number) => {
@@ -550,7 +607,7 @@ const VideoEditor: React.FC = () => {
               <Slider
                 value={currentTime}
                 min={0}
-                max={clips.reduce((total, clip) => total + clip.frameEnd, 0)}
+                max={clips.reduce((total, clip) => total + clip.endFrame, 0)}
                 onChange={handleTimeChange}
                 valueLabelDisplay="auto"
               />
@@ -614,7 +671,7 @@ const VideoEditor: React.FC = () => {
                 <Box>
                   {clips.map(clip => {
                     return (
-                      <p key={clip.id}>{clip.id} {clip.start} {clip.end} {clip.trim}</p>
+                      <p key={clip.id}>id={clip.id}, trim={clip.trim}</p>
                     )
                   })}
                 </Box>

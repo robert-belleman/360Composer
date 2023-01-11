@@ -1,8 +1,4 @@
 import React, { useState } from 'react';
-import { CSS } from '@dnd-kit/utilities';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
 
 import { styled } from "@mui/material/styles";
 import { alpha } from "@mui/system";
@@ -10,6 +6,15 @@ import SliderUnstyled, {
   sliderUnstyledClasses
 } from "@mui/base/SliderUnstyled";
 import Card from '@mui/material/Card';
+import PlaceholderThumbnailUrl from "../../static/images/placeholder.jpg";
+
+// Drag'n'Drop-kit
+import { DndContext, closestCenter, MouseSensor, PointerSensor, UniqueIdentifier, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { useSortable, arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
+
+
 
 const iOSBoxShadow =
   "0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.13),0 0 0 1px rgba(0,0,0,0.02)";
@@ -130,24 +135,46 @@ const CustomSlider = styled(SliderUnstyled)(
 `
 );
 
+// interface Clip {
+//   id: UniqueIdentifier,
+//   videoID: string,
+//   videoName: string,
+//   videoDuraton: number,
+//   videoFps: number,
+//   videoFrames: number,
+//   endFrame: number,
+//   trim: [number, number]
+//   data: any,
+  // other props
+// }
+
+
+// interface SortableItemProps {
+//   clip: Clip,
+//   id: UniqueIdentifier,
+  
+//   // other props
+// }
+
+
+
 // Sortable Item within the ClipsContainer
 function SortableItem(props: any) {
 
-
+console.log(props.clip.data)
   // Clipitem functions
-
-  const thumbnailUrl =
-    "https://media.istockphoto.com/id/1322104312/photo/freedom-chains-that-transform-into-birds-charge-concept.jpg?b=1&s=170667a&w=0&k=20&c=-Y0krB2nXoyozDi-ZwKLfE0eDABiDxvanB-qOGqH4GU=";
-
-
-  const [thumbValue, setThumbValue] = React.useState([props.clip.frameStart, props.clip.frameEnd]);
+  const thumbnailUrl = props.clip.data.thumbnail_path ? props.clip.data.thumbnail_path : PlaceholderThumbnailUrl;
+    // "https://media.istockphoto.com/id/1322104312/photo/freedom-chains-that-transform-into-birds-charge-concept.jpg?b=1&s=170667a&w=0&k=20&c=-Y0krB2nXoyozDi-ZwKLfE0eDABiDxvanB-qOGqH4GU=";
 
 
-  const clipWidth = props.clip.frameEnd * 0.5;
+  const [thumbValue, setThumbValue] = React.useState([props.clip.trim[0], props.clip.trim[1]]);
+
+
+  const clipWidth = props.clip.endFrame * 0.5;
 
   function formatDuration(currentFrame: number) {
     // const frames = props.clip.endFrame;
-    const fps = props.clip.fps;
+    const fps = props.clip.videoFps;
 
     const minute = Math.floor(currentFrame / (fps * 60)) % 60;
     const second = Math.floor(currentFrame / fps) % 60;
@@ -163,8 +190,15 @@ function SortableItem(props: any) {
 
 
   const handleChangeEnd = (event: React.SyntheticEvent | Event, newValue: number | number[]) => {
-    props.clip.trim = thumbValue;
+    // clip.trim = thumbValue;
     // TODO: Css trimmed part delete.
+
+    if (!(Array.isArray(newValue) && newValue.length === 2 )){
+      console.log("Error: new trimvalue is not an array of length 2.")
+      return;
+    }
+    
+    props.clip.trim = [...newValue] as [number, number];
   };
 
 
