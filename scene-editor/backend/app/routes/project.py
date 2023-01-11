@@ -102,9 +102,9 @@ class ProjectAssets(Resource):
             video_metadata = ffmpeg_util.get_video_metadata(path)
 
             # TODO: instead of strings, make it the correct type
-            asset_meta["duration"] = int(video_metadata["duration"])
-            asset_meta["frames"] = video_metadata["frames"]
-            asset_meta["fps"] = video_metadata["fps"]
+            asset_meta["duration"] = int(ffmpeg_util.ffmpeg_get_video_duration(video_metadata))
+            asset_meta["frames"] = ffmpeg_util.ffmpeg_get_video_frame_count(video_metadata)
+            asset_meta["fps"] = ffmpeg_util.ffmpeg_get_video_fps(video_metadata)
 
             return asset_meta
 

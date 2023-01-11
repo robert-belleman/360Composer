@@ -50,15 +50,15 @@ def get_video_metadata(path):
     return info
 
 
-def __ffmpeg_get_video_duration(video_info):
-    return video_info['format']['duration']
+def ffmpeg_get_video_duration(video_info):
+    return float(video_info['format']['duration'])
 
 
 def __ffmpeg_get_video_resolution(video_info):
     return video_info['streams'][0]['width'], video_info['streams'][0]['height']
 
 
-def __ffmpeg_get_video_fps(video_info):
+def ffmpeg_get_video_fps(video_info):
     return video_info['streams'][0]['r_frame_rate']
 
 
@@ -82,7 +82,7 @@ def __ffmpeg_get_video_audio_bitrate(video_info):
     return video_info['streams'][1]['bit_rate']
 
 
-def __ffmpeg_get_video_frame_count(video_info):
+def ffmpeg_get_video_frame_count(video_info):
     return video_info['streams'][0]['nb_frames']
 
 
