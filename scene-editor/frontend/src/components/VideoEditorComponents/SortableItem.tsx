@@ -177,16 +177,20 @@ function SortableItem(props: any) {
 
   // console.log(props.clip.data.thumbnail_path)
   // Clipitem functions
-  const nail = "http://localhost:5000"+props.clip.data.thumbnail_path;
-  const thumbnailUrl = nail ? nail : PlaceholderThumbnailUrl;
+  // const nail = "http://localhost:5000"+props.clip.data.thumbnail_path;
+
+  // TODO: path seems weird. thumbnail_path directs to the backend path. 
+  const thp = props.clip.data.thumbnail_path;
+  const thumbnailUrl = thp ? "../../" +   thp.substr(thp.lastIndexOf('/') + 1) : PlaceholderThumbnailUrl;
+
   // const thumbnailUrl = PlaceholderThumbnailUrl;
   // "https://media.istockphoto.com/id/1322104312/photo/freedom-chains-that-transform-into-birds-charge-concept.jpg?b=1&s=170667a&w=0&k=20&c=-Y0krB2nXoyozDi-ZwKLfE0eDABiDxvanB-qOGqH4GU=";
 
 
   const [thumbValue, setThumbValue] = React.useState([props.clip.trim[0], props.clip.trim[1]]);
 
-
-  const clipWidth = props.clip.endFrame * 0.5;
+  
+  const clipWidth = props.clip.endFrame * props.viewZoom;
 
   function formatDuration(currentFrame: number) {
     // const frames = props.clip.endFrame;
@@ -314,7 +318,7 @@ function SortableItem(props: any) {
             "& .MuiSlider-track": {
               backgroundImage: "url(" + thumbnailUrl + ");",
               backgroundPosition:
-                -((thumbValue[0] / props.clip.frameEnd) * 100) * 0.01 * clipWidth,
+                -(thumbValue[0] / props.clip.endFrame) * clipWidth,
               backgroundSize:
                 clipWidth - thumbValue[0] / clipWidth + "px 100%",
             },

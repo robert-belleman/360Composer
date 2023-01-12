@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useMemo, useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { concat, sortBy } from 'lodash';
@@ -121,9 +121,11 @@ interface Clip {
   videoDuraton: number,
   videoFps: number,
   videoFrames: number,
+  startFrame: number,
   endFrame: number,
   trim: [number, number]
   data: any,
+  // thumbnail: any,
   // other props
 }
 
@@ -254,6 +256,16 @@ const VideoEditor: React.FC = () => {
     console.log("assets:" + assets);
   }, []);
 
+  const fetchThumbnail = (assetid: any) => {
+    axios.get(`/api/asset/${assetid}/thumbnail`)
+      .then((res: any) => {
+        console.log("THUMBNAIL")
+        console.log(res.data)
+        return res.data
+      })
+      .catch((e) => console.log(e))
+  }
+
   const getVideoInformation = () => {
     console.log(assets);
 
@@ -270,10 +282,9 @@ const VideoEditor: React.FC = () => {
 
     console.log("addvideototimeline")
 
-    let counter = uidCounter;
-
+    // let counter = che;
     // Iterate over all selected videos to add them to the timeline
-    checked.forEach((assetid: any) => {
+    checked.forEach((assetid: any, index: number) => {
 
       const asset = assets.find((asset: any) => asset.id === assetid);
 
@@ -286,28 +297,21 @@ const VideoEditor: React.FC = () => {
         return
       }
 
-      // // Give the next video a unique id
-      // let currentUidCounter = uidCounter
-      // setUidCounter(c => c + 1);
 
-      console.log(uidCounter)
-
+      // counter +=1;
       setClips(clips => [...clips, {
-        id: counter,
+        id: uidCounter + index,
         videoID: asset.id,
         videoName: asset.name,
         videoDuraton: asset.duration,
         videoFps: asset.fps,
         videoFrames: asset.frames,
+        startFrame: 0,
         endFrame: asset.frames,
         trim: [0, asset.frames],
         data: asset,
+        // thumbnail: fetchThumbnail(assetid),
       }]);
-
-      counter += 1;
-
-      // console.log("clips: " + clips)
-
 
       console.log("clips:")
       console.log(clips)
@@ -315,12 +319,10 @@ const VideoEditor: React.FC = () => {
     }
     );
 
-    setUidCounter(counter);
+    setUidCounter(uidCounter + checked.length);
 
     // Empty the checked array
     setChecked([]);
-
-
   }
 
   const handleTimeChange = (event: Event, newValue: number | number[], activeThumb: number) => {
@@ -350,50 +352,56 @@ const VideoEditor: React.FC = () => {
     setSelectedItems([]);
   }
 
-  // const loadVideo = () => {
-  //   if (video === undefined) {
-  //     return;
-  //   }
+  const loadVideo = () => {
+    if (assets[0] === undefined) {
+      return;
+    }
 
-  //   if (videoDome !== undefined) {
-  //     videoDome.dispose();
-  //   }
+    if (videoDome !== undefined) {
+      videoDome.dispose();
+    }
 
-  //   const posterURL = `/api/asset/${video.id}/thumbnail`;
-  //   videoDome = new VideoDome(
-  //     "videoDome",
-  //     [`/asset/${video.path}`],
-  //     {
-  //       resolution: 32,
-  //       clickToPlay: false,
-  //       autoPlay: false,
-  //       loop: false,
-  //       poster: posterURL,
+    const assetPaths = assets.map((asset: any) => `/asset/${asset.path}`);
 
-  //     },
-  //     babylonScene
-  //   );
-  //   setVideoDome(videoDome);
+    const posterURL = `/api/asset/${assets[0].id}/thumbnail`;
+    videoDome = new VideoDome(
+      "videoDome",
+      assetPaths,
+      {
+        resolution: 32,
+        clickToPlay: false,
+        autoPlay: false,
+        loop: false,
+        poster: posterURL,
 
-  //   // reset video transport
-  //   setCurrentVideoLength(videoDome.videoTexture.video.duration)  //TODO make duration work
-  //   setCurrentVideoTime(0);
+      },
+      babylonScene
+    );
+    setVideoDome(videoDome);
 
-  //   // make sure playback is updated
-  //   videoDome.videoTexture.video.ontimeupdate = (event: any) => {
-  //     setCurrentVideoTime(event.target.currentTime);
-  //   };
+    // reset video transport
+    setCurrentVideoLength(videoDome.videoTexture.video.duration)  //TODO make duration work
+    setCurrentVideoTime(0);
 
-  //   videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
-  //     setCurrentVideoLength(event.target.duration);
-  //   };
+    // make sure playback is updated
+    videoDome.videoTexture.video.ontimeupdate = (event: any) => {
+      setCurrentVideoTime(event.target.currentTime);
+    };
 
-  //   // // set video to stereoscopic or mono
-  //   // setStereoscopic(video.view_type);
+    videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
+      setCurrentVideoLength(event.target.duration);
+    };
 
-  // };
+    // // set video to stereoscopic or mono
+    // setStereoscopic(video.view_type);
 
+  };
 
+  // loads video when we have fetched the video data
+  useEffect(() => {
+    if (assets[0] !== undefined)
+      loadVideo();
+  }, [assets[0]]);
 
 
 
@@ -458,12 +466,33 @@ const VideoEditor: React.FC = () => {
   }
 
 
+  const exportTimelineVideosWithFfmpeg = async (command: string) => {
+    axios.post(`/api/video_editor/${projectID}`, {cmd: command})
+    .then((res: any) => {
+      console.log("EXPORTED")
+      console.log(res.data)
+    })
+    .catch((e) => console.log(e))
+
+  }
 
 
 
   const exportTimelineVideo = () => {
-    
     console.log("exporting timeline video");
+
+
+    // Get the video clips from left to right, so use an foreach.
+    // clips.forEach(clip => {
+    //   console.log(clip)
+    // })
+    let command = "this is a testcommand for the api bLALALALALALALAL"
+    exportTimelineVideosWithFfmpeg(command);
+
+
+
+
+
   };
 
   const renderTransport = () => {
@@ -516,6 +545,17 @@ const VideoEditor: React.FC = () => {
       </Grid>
     );
   }
+
+  // const timelineDurationFrames = useMemo(() => {
+  //   return clips.reduce((total, clip) => total + clip.endFrame, 0);
+  // }, [clips]);
+
+  const [timelineDurationFrames, setTimelineDurationFrames] = useState(0);
+
+  useEffect(() => {
+      const duration = clips.reduce((total, clip) => total + clip.endFrame, 0);
+      setTimelineDurationFrames(duration);
+  }, [clips]);
 
 
 
@@ -611,7 +651,7 @@ const VideoEditor: React.FC = () => {
               <Slider
                 value={currentTime}
                 min={0}
-                max={clips.reduce((total, clip) => total + clip.endFrame, 0)}
+                max={timelineDurationFrames}
                 onChange={handleTimeChange}
                 valueLabelDisplay="auto"
               />
@@ -655,6 +695,7 @@ const VideoEditor: React.FC = () => {
                               key={clip.id}
                               id={clip.id}
                               clip={clip}
+                              viewZoom={0.5}
                               // setClips={() => setClips(clips)}
                               isSelected={selectedItems.includes(clip.id)}
                               onSelect={() => {
