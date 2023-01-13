@@ -1,4 +1,4 @@
-import React, {useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { concat, sortBy } from 'lodash';
@@ -466,34 +466,66 @@ const VideoEditor: React.FC = () => {
   }
 
 
-  const exportTimelineVideosWithFfmpeg = async (command: string) => {
-    axios.post(`/api/video_editor/${projectID}`, {cmd: command})
-    .then((res: any) => {
-      console.log("EXPORTED")
-      console.log(res.data)
-    })
-    .catch((e) => console.log(e))
+  const trimAsset = async (start: number | undefined, end: number | undefined, input: string, output: string) => {
+    axios.post(`/api/video_editor/${projectID}`,
+      { trim_start: start, trim_end: end, input_path: input, output_name: output })
+      .then((res: any) => {
+        console.log("EXPORTED")
+        console.log(res.data)
+      })
+      .catch((e) => console.log(e))
 
   }
 
+  const framesToTime = (frames: number, fps: number) => {
+    return Math.round((frames / fps) * 1000) / 1000;
+  };
 
-
-  const exportTimelineVideo = () => {
+  const exportTimelineVideo = async () => {
     console.log("exporting timeline video");
 
+    let trimPromises = [];
 
-    // Get the video clips from left to right, so use an foreach.
-    // clips.forEach(clip => {
-    //   console.log(clip)
-    // })
-    let command = "this is a testcommand for the api bLALALALALALALAL"
-    exportTimelineVideosWithFfmpeg(command);
+    for (let i = 0; i < clips.length; i++) {
+        let ass = clips[i];
+        let start= ass.trim[0];
+        let end= ass.trim[1];
 
+        if (start == ass.startFrame) {
+          console.log("dont trim left");
+          start = -1;
+        } else {
+          start = framesToTime(start, ass.videoFps);
+        }
 
+        if (end == ass.endFrame) {
+          console.log("dont trim right");
+          end = -1;
+        } else {
+          end = framesToTime(end, ass.videoFps);
+        }
 
+        if (start == -1 && end == -1) {
+          console.log("dont trim");
+          continue;
+        }
 
+        let name = ass.data.name.substr(0, ass.data.name.length - 4) + "_trimmed.mp4"
+        console.log(` Start Trimming. Start=${start}, End=${end}, input_path=${ass.data.path}, output_name=${name}`)
+        trimPromises.push(trimAsset(start, end, ass.data.path, name));
+    }
 
-  };
+    try {
+        let results = await Promise.all(trimPromises);
+        console.log("All clips have been trimmed");
+        console.log(results);
+
+        fetchAssets();
+
+    } catch (e) {
+        console.log(e);
+    }
+};
 
   const renderTransport = () => {
     const playButton = <Button
@@ -553,8 +585,8 @@ const VideoEditor: React.FC = () => {
   const [timelineDurationFrames, setTimelineDurationFrames] = useState(0);
 
   useEffect(() => {
-      const duration = clips.reduce((total, clip) => total + clip.endFrame, 0);
-      setTimelineDurationFrames(duration);
+    const duration = clips.reduce((total, clip) => total + clip.endFrame, 0);
+    setTimelineDurationFrames(duration);
   }, [clips]);
 
 

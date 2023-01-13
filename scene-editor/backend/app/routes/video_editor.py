@@ -30,15 +30,20 @@ import app.util.util as util
 
 import hashlib
 import binascii
-import os
 import uuid
 import datetime
 
 ns = api.namespace("video_editor")
 
 trim_args = reqparse.RequestParser()
-trim_args.add_argument("cmd", required=True, help="The trim command")
+trim_args.add_argument("trim_start", required=True, help="The trim start time.")
+trim_args.add_argument("trim_end", required=True, help="The trim end time.")
+trim_args.add_argument("input_path", type=str,
+                       required=True, help="The input file path.")
+trim_args.add_argument("output_name", type=str,
+                       required=True, help="The output file name.")
 # trim_args.add_argument("name", type=str, required=True, help="Name for the asset")
+
 
 @ns.route("/<string:id>")
 @ns.response(HTTPStatus.NOT_FOUND, "Project not found")
@@ -52,30 +57,61 @@ class TrimAsset(Resource):
 
         return ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
 
-    @user_or_customer_jwt_required
-    # @ns.marshal_with(asset_schema)
+    @user_jwt_required
+    @ns.marshal_with(asset_schema)
     @ns.expect(trim_args)
     def post(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(
             id=id, user_id=claims['id']).first_or_404()
 
+
         args = trim_args.parse_args()
-        trim_start = args["trim_start"]
-        trim_end = args["trim_end"]
-        asset = args["asset"]
-        # TODO find path of assets
+
+        start = args["trim_start"]
+        end = args["trim_end"]
+        input_path = args["input_path"]
+        output_name = args["output_name"]
+
+        filename = util.random_file_name()
+        asset_filename = filename + ".mp4"
+        output_path = os.path.join(os.environ.get('ASSET_DIR'), asset_filename)
+        input_path = os.path.join(os.environ.get('ASSET_DIR'), input_path)
+
+        print(f"Trimming {input_path} to {output_path} from {start} to {end}")
+
+        if ffmpeg_util.ffmpeg_trim_video(str(start), str(end), input_path, output_path):
+
+            # util.write_file(request, path, file)
+            # return "Trimmed", HTTPStatus.OK
+            asset_type = AssetType.video
+
+            meta = util.generate_asset_meta(asset_type, filename, output_path)
+
+            row = AssetModel(
+                name=output_name,
+                user_id=project.user_id, 
+                path=asset_filename, 
+                asset_type=asset_type, 
+                thumbnail_path=meta["thumbnail_path"], 
+                duration=meta["duration"], 
+                file_size=meta["file_size"], 
+                fps=meta["fps"],
+                frames=meta["frames"],
+                projects=[project])
+
+            db.session.add(row)  
+            db.session.commit()
+
+            return row, HTTPStatus.CREATED
+
+
+
 
         # Example command: {trim_start}/{trim_end}/{asset_id}
+        # ffmpeg_util.ffmpeg_trim_video(asset)
 
-
-
-
-        print("this is the command send with the api TESTSTSTSTSTST: " + command)
-        return project.assets
-
-    
-
+        return HTTPStatus.BAD_REQUEST
 
         # _, extension = os.path.splitext(file.filename)
         # asset_type = self.extension_to_type(extension)
@@ -122,4 +158,3 @@ class TrimAsset(Resource):
 #         db.session.commit()
 
 #         return "", HTTPStatus.CREATED
-

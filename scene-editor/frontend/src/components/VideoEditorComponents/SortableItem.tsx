@@ -198,7 +198,7 @@ function SortableItem(props: any) {
 
     const minute = Math.floor(currentFrame / (fps * 60)) % 60;
     const second = Math.floor(currentFrame / fps) % 60;
-    const frame = currentFrame % fps;
+    const frame = Math.round((currentFrame % fps) * 100) / 100;
     return `${minute < 10 ? `0${minute}` : minute}:${second < 10 ? `0${second}` : second}:${frame < 10 ? `0${frame}` : frame}`;
   }
 
@@ -318,7 +318,7 @@ function SortableItem(props: any) {
             "& .MuiSlider-track": {
               backgroundImage: "url(" + thumbnailUrl + ");",
               backgroundPosition:
-                -(thumbValue[0] / props.clip.endFrame) * clipWidth,
+                "-" + (thumbValue[0] / props.clip.endFrame) * clipWidth,
               backgroundSize:
                 clipWidth - thumbValue[0] / clipWidth + "px 100%",
             },
@@ -334,10 +334,10 @@ function SortableItem(props: any) {
           onChange={handleChange}
           onChangeCommitted={handleChangeEnd}
           // defaultValue={60}
-          // step={1} // 1 frame per step
+          step={1} // 1 frame per step
           disableSwap
           min={0}
-          max={props.clip.frameEnd}
+          max={props.clip.endFrame}
           // marks={[{ value: 0, label: "0" }, { value: 100, label: "100" }]}
           valueLabelDisplay="auto"
           valueLabelFormat={formatDuration}

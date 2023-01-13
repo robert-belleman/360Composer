@@ -28,17 +28,30 @@ def get_duration(path):
 
     return int(float(result.stdout))
 
+# '-hide_banner', '-loglevel', 'error', '-stats', '-progress', 'ffmpeg_progress.txt',
+def ffmpeg_trim_video(start_time, end_time, input_file, output_file):
 
-def ffmpeg_trim_video(input_file, start_time, end_time, output_file):
-    command = ['ffmpeg', '-hide_banner', '-loglevel', 'quiet', '-stats', '-progress', 'ffmpeg_progress.txt', '-i', input_file, '-ss', start_time, '-to',
+    if start_time == "-1":
+        command = ['ffmpeg', '-i', input_file, '-ss', 0, '-to',
                end_time, '-y', output_file]
-    process = subprocess.Popen(
-        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    print(stdout)
-    return stdout, stderr
+    elif end_time == "-1":
+        command = ['ffmpeg', '-i', input_file, '-ss', start_time, '-y', output_file]
+    else:
+        command = ['ffmpeg', '-i', input_file, '-ss', start_time, '-to',
+               end_time, '-y', output_file]
 
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+    
+    # If the trimming was successful, return the output file path
+    if result.returncode == 0:
+        return output_file
+
+    print("Error with trimming. result: ", result)
+    # TODO: Add error handling. What if the video is too short? What if the trimming fails?
+    return None
+# asset829e828af28f4839bc507b4b1332587c230113012713.mp4
+# ffprobe -v error -print_format json -show_format -show_streams
 def get_video_metadata(path):
     command = ['ffprobe', '-v', 'error', '-print_format',
                'json', '-show_format', '-show_streams', path]
@@ -54,7 +67,7 @@ def ffmpeg_get_video_duration(video_info):
     return float(video_info['format']['duration'])
 
 
-def __ffmpeg_get_video_resolution(video_info):
+def ffmpeg_get_video_resolution(video_info):
     return video_info['streams'][0]['width'], video_info['streams'][0]['height']
 
 
@@ -64,23 +77,23 @@ def ffmpeg_get_video_fps(video_info):
     return float(fps.split('/')[0]) / float(fps.split('/')[1])
 
 
-def __ffmpeg_get_video_bitrate(video_info):
+def ffmpeg_get_video_bitrate(video_info):
     return video_info['streams'][0]['bit_rate']
 
 
-def __ffmpeg_get_video_codec(video_info):
+def ffmpeg_get_video_codec(video_info):
     return video_info['streams'][0]['codec_name']
 
 
-def __ffmpeg_get_video_format(video_info):
+def ffmpeg_get_video_format(video_info):
     return video_info['format']['format_name']
 
 
-def __ffmpeg_get_video_audio_codec(video_info):
+def ffmpeg_get_video_audio_codec(video_info):
     return video_info['streams'][1]['codec_name']
 
 
-def __ffmpeg_get_video_audio_bitrate(video_info):
+def ffmpeg_get_video_audio_bitrate(video_info):
     return video_info['streams'][1]['bit_rate']
 
 
@@ -92,17 +105,20 @@ def main():
 
     if len(sys.argv) > 1:
         path = sys.argv[1]
-        video_info = get_video_info(path)
+        video_info = get_video_metadata(path)
+        # print(video_info)
 
-        print(f"Duration: {__ffmpeg_get_video_duration(video_info)}")
-        print(f"Resolution: {__ffmpeg_get_video_resolution(video_info)}")
-        print(f"FPS: {__ffmpeg_get_video_fps(video_info)}")
-        print(f"Bitrate: {__ffmpeg_get_video_bitrate(video_info)}")
-        print(f"Codec: {__ffmpeg_get_video_codec(video_info)}")
-        print(f"Format: {__ffmpeg_get_video_format(video_info)}")
-        print(f"Audio Codec: {__ffmpeg_get_video_audio_codec(video_info)}")
-        print(f"Audio Bitrate: {__ffmpeg_get_video_audio_bitrate(video_info)}")
-        print(f"Frame Count: {__ffmpeg_get_video_frame_count(video_info)}")
+        ffmpeg_trim_video(path, str(1.0), str(5.5), 'output1.mp4')
+
+        # print(f"Duration: {__ffmpeg_get_video_duration(video_info)}")
+        # print(f"Resolution: {__ffmpeg_get_video_resolution(video_info)}")
+        # print(f"FPS: {__ffmpeg_get_video_fps(video_info)}")
+        # print(f"Bitrate: {__ffmpeg_get_video_bitrate(video_info)}")
+        # print(f"Codec: {__ffmpeg_get_video_codec(video_info)}")
+        # print(f"Format: {__ffmpeg_get_video_format(video_info)}")
+        # print(f"Audio Codec: {__ffmpeg_get_video_audio_codec(video_info)}")
+        # print(f"Audio Bitrate: {__ffmpeg_get_video_audio_bitrate(video_info)}")
+        # print(f"Frame Count: {__ffmpeg_get_video_frame_count(video_info)}")
 
         # print(ffmpeg_trim_video(path, '00:00:00', '00:00:25', 'test.mp4'))
 
