@@ -62,8 +62,7 @@ def generate_asset_meta(asset_type, filename, path):
         video_metadata = ffmpeg_util.get_video_metadata(path)
 
         # TODO: instead of strings, make it the correct type
-        asset_meta["duration"] = int(
-            ffmpeg_util.ffmpeg_get_video_duration(video_metadata))  # int
+        asset_meta["duration"] = ffmpeg_util.ffmpeg_get_video_duration(video_metadata)
         asset_meta["frames"] = ffmpeg_util.ffmpeg_get_video_frame_count(
             video_metadata)  # int
         asset_meta["fps"] = ffmpeg_util.ffmpeg_get_video_fps(

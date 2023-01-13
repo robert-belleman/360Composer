@@ -28,7 +28,7 @@ class Asset(db.Model):
     frames = db.Column(db.Integer)
     fps = db.Column(db.Float)
 
-    duration = db.Column(db.Integer)
+    duration = db.Column(db.Float)
     file_size = db.Column(db.Integer)
 
     asset_type = db.Column(db.Enum(AssetType), nullable=False)

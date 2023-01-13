@@ -24,7 +24,7 @@ from app.models.scene import Scene as SceneModel
 from app.models.scenario import Scenario as ScenarioModel
 from app.models.timeline import Timeline as TimelineModel, TimelineScenario as TimelineScenarioModel
 
-# from app.util.ffmpeg import create_thumbnail, get_duration
+
 import app.util.ffmpeg as ffmpeg_util
 import app.util.util as util
 

@@ -129,7 +129,7 @@ class SceneMedia(Resource):
         # if existing annotations have a timestamp that does not exist in the video, reset it
         for annotation in annotations:
             if annotation.timestamp > video.duration:
-                annotation.timestamp = video.duration
+                annotation.timestamp = int(video.duration)
 
         db.session.commit()
 

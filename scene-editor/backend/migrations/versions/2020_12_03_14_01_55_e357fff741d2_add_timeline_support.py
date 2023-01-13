@@ -21,7 +21,7 @@ def upgrade():
     op.add_column('scene', sa.Column('video_id', UUID(), nullable=True))
     op.create_foreign_key(constraint_name='scene_video', source_table='scene', referent_table='asset', local_cols=['video_id'], remote_cols=['id'])
 
-    op.add_column('asset', sa.Column('duration', sa.Integer))
+    op.add_column('asset', sa.Column('duration', sa.Float))
     op.add_column('asset', sa.Column('file_size', sa.Integer))
 
     op.create_table('action',
