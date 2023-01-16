@@ -2,3 +2,4 @@ backup.vue
 notes.txt
 server.crt
 server.key
+scene-editor/frontend/public/asset/*
