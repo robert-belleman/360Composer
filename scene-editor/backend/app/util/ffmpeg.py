@@ -50,8 +50,8 @@ def ffmpeg_trim_video(start_time, end_time, input_file, output_file):
     print("Error with trimming. result: ", result)
     # TODO: Add error handling. What if the video is too short? What if the trimming fails?
     return None
-# asset829e828af28f4839bc507b4b1332587c230113012713.mp4
-# ffprobe -v error -print_format json -show_format -show_streams
+    
+
 def get_video_metadata(path):
     command = ['ffprobe', '-v', 'error', '-print_format',
                'json', '-show_format', '-show_streams', path]
@@ -59,12 +59,12 @@ def get_video_metadata(path):
         command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
 
     info = json.loads(result.stdout.decode())
-    # print(json.dumps(info, indent=1))
     return info
 
 
 def ffmpeg_get_video_duration(video_info):
-    return float(video_info['format']['duration'])
+    # Get duration of video stream in seconds.
+    return float(video_info['streams'][0]['duration'])
 
 
 def ffmpeg_get_video_resolution(video_info):

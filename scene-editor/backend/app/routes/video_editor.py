@@ -45,7 +45,7 @@ trim_args.add_argument("output_name", type=str,
 # trim_args.add_argument("name", type=str, required=True, help="Name for the asset")
 
 
-@ns.route("/<string:id>")
+@ns.route("/<string:id>/trim")
 @ns.response(HTTPStatus.NOT_FOUND, "Project not found")
 @ns.param("id", "The project identifier")
 class TrimAsset(Resource):
@@ -82,8 +82,6 @@ class TrimAsset(Resource):
 
         if ffmpeg_util.ffmpeg_trim_video(str(start), str(end), input_path, output_path):
 
-            # util.write_file(request, path, file)
-            # return "Trimmed", HTTPStatus.OK
             asset_type = AssetType.video
 
             meta = util.generate_asset_meta(asset_type, filename, output_path)
@@ -105,56 +103,101 @@ class TrimAsset(Resource):
 
             return row, HTTPStatus.CREATED
 
-
-
-
-        # Example command: {trim_start}/{trim_end}/{asset_id}
-        # ffmpeg_util.ffmpeg_trim_video(asset)
-
         return HTTPStatus.BAD_REQUEST
 
-        # _, extension = os.path.splitext(file.filename)
-        # asset_type = self.extension_to_type(extension)
 
 
-# @ns.route("/<string:trimcmd>")
-# @ns.response(HTTPStatus.NOT_FOUND, "Project not found")
-# @ns.param("trimcmd", "The trim command for ffmpeg")
-# class TrimAssets(Resource):
+join_args = reqparse.RequestParser()
+join_args.add_argument("assets", required=True, help="The assets to join.")
+trim_args.add_argument("output_name", type=str,
+                       required=True, help="The output file name.")
 
-#     @user_jwt_required
-#     @ns.marshal_with(asset_schema)
-#     def get(self, id):
-#         claims = get_jwt()
-#         project = ProjectModel.query.filter_by(
-#             id=id, user_id=claims['id']).first_or_404()
+@ns.route("/<string:id>/join")
+@ns.response(HTTPStatus.NOT_FOUND, "Project not found")
+@ns.param("id", "The project identifier")
+class JoinAsset(Resource):
 
-#         return project.assets
+    @user_jwt_required
+    @ns.marshal_with(project_schema)
+    def get(self, id):
+        claims = get_jwt()
 
-#     @user_jwt_required
-#     @ns.marshal_with(scene_schema)
-#     def get(self, id):
-#         claims = get_jwt()
-#         project = ProjectModel.query.filter_by(
-#             id=id, user_id=claims['id']).first_or_404()
+        return ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
 
-#         return project.scenes
+    @user_jwt_required
+    @ns.marshal_with(asset_schema)
+    @ns.expect(join_args)
+    def post(self, id):
+        claims = get_jwt()
+        project = ProjectModel.query.filter_by(
+            id=id, user_id=claims['id']).first_or_404()
 
-#     @user_jwt_required
-#     @ns.expect(scene_create_schema)
-#     def post(self, id):
-#         claims = get_jwt()
-#         project = ProjectModel.query.filter_by(
-#             id=id, user_id=claims['id']).first_or_404()
 
-#         scene = SceneModel(name=api.payload["name"],
-#                            project_id=project.id,
-#                            user_id=api.payload["user_id"],
-#                            description=api.payload["description"])
+        args = join_args.parse_args()
 
-#         project.scenes.append(scene)
+        clips = args["clips"] # list of asset ids
+        output_name = args["output_name"]
 
-#         db.session.add(scene)
-#         db.session.commit()
+        filename = util.random_file_name()
+        asset_filename = filename + ".mp4"
+        output_path = os.path.join(os.environ.get('ASSET_DIR'), asset_filename)
 
-#         return "", HTTPStatus.CREATED
+        for clipid in clips:
+            clip = AssetModel.query.filter_by(id=clipid, user_id=claims['id']).first_or_404()
+            input_path = os.path.join(os.environ.get('ASSET_DIR'), clip.path)
+
+            if ffmpeg_util.ffmpeg_join_video(input_path, output_path):
+
+                asset_type = AssetType.video
+
+                meta = util.generate_asset_meta(asset_type, filename, output_path)
+
+                row = AssetModel(
+                    name=output_name,
+                    user_id=project.user_id, 
+                    path=asset_filename, 
+                    asset_type=asset_type, 
+                    thumbnail_path=meta["thumbnail_path"], 
+                    duration=meta["duration"], 
+                    file_size=meta["file_size"], 
+                    fps=meta["fps"],
+                    frames=meta["frames"],
+                    projects=[project])
+
+                db.session.add(row)  
+                db.session.commit()
+
+                return row, HTTPStatus.CREATED
+
+            return HTTPStatus.BAD_REQUEST
+
+
+
+        input_path = os.path.join(os.environ.get('ASSET_DIR'), input_path)
+
+        print(f"Trimming {input_path} to {output_path} from {start} to {end}")
+
+        if ffmpeg_util.ffmpeg_trim_video(str(start), str(end), input_path, output_path):
+
+            asset_type = AssetType.video
+
+            meta = util.generate_asset_meta(asset_type, filename, output_path)
+
+            row = AssetModel(
+                name=output_name,
+                user_id=project.user_id, 
+                path=asset_filename, 
+                asset_type=asset_type, 
+                thumbnail_path=meta["thumbnail_path"], 
+                duration=meta["duration"], 
+                file_size=meta["file_size"], 
+                fps=meta["fps"],
+                frames=meta["frames"],
+                projects=[project])
+
+            db.session.add(row)  
+            db.session.commit()
+
+            return row, HTTPStatus.CREATED
+
+        return HTTPStatus.BAD_REQUEST

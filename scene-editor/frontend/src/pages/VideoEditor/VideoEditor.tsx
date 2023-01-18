@@ -64,7 +64,7 @@ import UpdateSceneDialog from "../../components/EditorComponents/UpdateSceneDial
 import { View } from '../../types/views';
 
 // Material UI
-import { DataGrid } from '@mui/x-data-grid';
+// import { DataGrid } from '@mui/x-data-grid';
 import { getValue } from '@mui/system';
 
 
@@ -76,6 +76,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import CommentIcon from '@mui/icons-material/Comment';
+import { DataGrid, GridColDef, GridValueGetterParams, GridToolbar, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridEventListener, GridRowId, GridSelectionModel } from '@mui/x-data-grid';
 
 
 // Drag'n'Drop-kit
@@ -84,6 +85,7 @@ import { useSortable, arrayMove, SortableContext, horizontalListSortingStrategy 
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
 import SortableItem from '../../components/VideoEditorComponents/SortableItem';
+// import DataGridDemo from "./datagrid";
 
 
 
@@ -114,6 +116,21 @@ const useStyles = makeStyles((theme) =>
 // data: asset,
 // start: video
 
+interface Asset {
+  id: string,
+  name: string,
+  path: string,
+  thumbnail_path: string,
+  asset_type: string,
+  view_type: string,
+  file_size: number,
+  duration: number,
+  frames: number,
+  fps: number,
+  created_at: string,
+  updated_at: string,
+}
+
 interface Clip {
   id: UniqueIdentifier,
   videoID: string,
@@ -128,6 +145,19 @@ interface Clip {
   // thumbnail: any,
   // other props
 }
+
+
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbarColumnsButton onResize={undefined} onResizeCapture={undefined} />
+      <GridToolbarFilterButton onResize={undefined} onResizeCapture={undefined} />
+      <GridToolbarDensitySelector onResize={undefined} onResizeCapture={undefined} />
+    </GridToolbarContainer>
+  );
+}
+
 
 const VideoEditor: React.FC = () => {
 
@@ -216,6 +246,85 @@ const VideoEditor: React.FC = () => {
     console.log("newchecked=" + checked)
   };
 
+
+
+
+  const [currentVideo, setCurrentVideo]: any = useState(undefined);
+  const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
+
+  const onAssetSelectionReset = () => {
+    setSelectionModel([]);
+  };
+
+  const assetDataColumns: GridColDef[] = [
+    // {
+    //   field: 'id',
+    //   headerName: 'ID',
+    //   width: 90,
+    //   hideable: false
+    // },
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: 150,
+      editable: false,
+    },
+    {
+      field: 'fps',
+      headerName: 'FPS',
+      width: 50,
+      editable: false,
+    },
+    {
+      field: 'duration',
+      headerName: 'Duration',
+      width: 50,
+      editable: false,
+    },
+    {
+      field: 'created_at',
+      headerName: 'Created at',
+      type: 'string',
+      width: 110,
+      editable: false,
+    },
+    {
+      field: 'play_button',
+      headerName: 'Play',
+      flex: 1,
+      editable: false,
+      sortable: false,
+      renderCell: (cellValues) => {
+        return (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={(event) => {
+              console.log("cellValues")
+              console.log(cellValues)
+              // setSelectionModel(selectionModel)
+              // setCurrentVideo(event, cellValues);
+
+              // Set the selected video as current video
+              // TODO: set the current video as the selected video
+            }}>
+            Play
+          </Button>
+        )
+      }
+    }
+  ];
+
+
+
+
+
+
+
+
+
+
+
   const fetchProject = async () => {
     console.log("fetching project with id: " + projectID + "")
     axios.get(`/api/project/${projectID}`)
@@ -275,18 +384,19 @@ const VideoEditor: React.FC = () => {
   const addVideoToTimeline = () => {
     // getVideoInformation(checked);
 
-    if (checked.length < 1) {
+    let len = selectionModel.length;
+
+    if (selectionModel.length < 1) {
       console.log("no video selected");
       return;
     }
 
-    console.log("addvideototimeline")
+    // console.log("addvideototimeline")
 
-    // let counter = che;
     // Iterate over all selected videos to add them to the timeline
-    checked.forEach((assetid: any, index: number) => {
-
-      const asset = assets.find((asset: any) => asset.id === assetid);
+    selectionModel.forEach((rowid: any, index: number) => {
+      console.log("rowid: " + rowid)
+      const asset = assets.find((asset: any) => asset.id === rowid);
 
       if (asset === undefined) {
         console.log("asset is undefined")
@@ -297,8 +407,6 @@ const VideoEditor: React.FC = () => {
         return
       }
 
-
-      // counter +=1;
       setClips(clips => [...clips, {
         id: uidCounter + index,
         videoID: asset.id,
@@ -309,8 +417,7 @@ const VideoEditor: React.FC = () => {
         startFrame: 0,
         endFrame: asset.frames,
         trim: [0, asset.frames],
-        data: asset,
-        // thumbnail: fetchThumbnail(assetid),
+        data: asset, //json assetdata from database
       }]);
 
       console.log("clips:")
@@ -319,10 +426,10 @@ const VideoEditor: React.FC = () => {
     }
     );
 
-    setUidCounter(uidCounter + checked.length);
+    setUidCounter(uidCounter + len);
 
-    // Empty the checked array
-    setChecked([]);
+    // Reset the checkbox selection.
+    onAssetSelectionReset();
   }
 
   const handleTimeChange = (event: Event, newValue: number | number[], activeThumb: number) => {
@@ -487,45 +594,46 @@ const VideoEditor: React.FC = () => {
     let trimPromises = [];
 
     for (let i = 0; i < clips.length; i++) {
-        let ass = clips[i];
-        let start= ass.trim[0];
-        let end= ass.trim[1];
+      let ass = clips[i];
+      let start = ass.trim[0];
+      let end = ass.trim[1];
 
-        if (start == ass.startFrame) {
-          console.log("dont trim left");
-          start = -1;
-        } else {
-          start = framesToTime(start, ass.videoFps);
-        }
+      // Where there is no trim, we dont want to trim
+      if (start == ass.startFrame) {
+        console.log("dont trim left");
+        start = -1;
+      } else {
+        start = framesToTime(start, ass.videoFps);
+      }
 
-        if (end == ass.endFrame) {
-          console.log("dont trim right");
-          end = -1;
-        } else {
-          end = framesToTime(end, ass.videoFps);
-        }
+      if (end == ass.endFrame) {
+        console.log("dont trim right");
+        end = -1;
+      } else {
+        end = framesToTime(end, ass.videoFps);
+      }
 
-        if (start == -1 && end == -1) {
-          console.log("dont trim");
-          continue;
-        }
+      if (start == -1 && end == -1) {
+        console.log("dont trim");
+        continue;
+      }
 
-        let name = ass.data.name.substr(0, ass.data.name.length - 4) + "_trimmed.mp4"
-        console.log(` Start Trimming. Start=${start}, End=${end}, input_path=${ass.data.path}, output_name=${name}`)
-        trimPromises.push(trimAsset(start, end, ass.data.path, name));
+      let name = ass.data.name.substr(0, ass.data.name.length - 4) + "_trimmed.mp4"
+      console.log(` Start Trimming. Start=${start}, End=${end}, input_path=${ass.data.path}, output_name=${name}`)
+      trimPromises.push(trimAsset(start, end, ass.data.path, name));
     }
 
     try {
-        let results = await Promise.all(trimPromises);
-        console.log("All clips have been trimmed");
-        console.log(results);
+      let results = await Promise.all(trimPromises);
+      console.log("All clips have been trimmed");
+      console.log(results);
 
-        fetchAssets();
+      fetchAssets();
 
     } catch (e) {
-        console.log(e);
+      console.log(e);
     }
-};
+  };
 
   const renderTransport = () => {
     const playButton = <Button
@@ -590,11 +698,33 @@ const VideoEditor: React.FC = () => {
   }, [clips]);
 
 
+  const [selectedRows, setSelectedRows] = useState<GridRowId[]>([]);
+
+
+
+  const assetDataRows = assets.map((asset: Asset, index: number) => {
+    return {
+      id: asset.id,
+      name: asset.name,
+      fps: asset.fps,
+      duration: asset.duration,
+      created_at: asset.created_at
+    }
+  })
+
+  const handleRowClick: GridEventListener<'rowClick'> = (params) => {
+    console.log("row clicked params:")
+    console.log(params)
+  };
+
 
   return (<>
     <TopBar></TopBar>
-    <SideMenu activeView={View.Project} />
-    <div style={{ marginLeft: 240, padding: 24 }}>
+    {/* <SideMenu activeView={View.Project} /> */}
+    <div style={{
+      // marginLeft: 240, 
+      padding: 24
+    }}>
       <Container maxWidth="xl">
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -622,43 +752,33 @@ const VideoEditor: React.FC = () => {
 
           <Grid item xs={5} justifyContent="flex-start">
             {/* AssetViewer Container */}
+            
             <Paper>
-              Assets
+              <div style={{ height: 400, width: '100%' }}>
+                <DataGrid
 
-              <List >
-                {assets.map((asset: any) => {
-                  const labelId = `checkbox-list-label-${asset.id}`;
-
-                  return (
-                    <ListItem
-                      key={asset.id}
-                      secondaryAction={
-                        <IconButton edge="end" aria-label="comments">
-                          <CommentIcon />
-                        </IconButton>
-                      }
-                      disablePadding
-                    >
-                      <ListItemButton role={undefined} onClick={handleToggle(asset.id)} dense>
-                        <ListItemIcon>
-                          <Checkbox
-                            edge="start"
-                            checked={checked.indexOf(asset.id) !== -1}
-                            tabIndex={-1}
-                            disableRipple
-                            inputProps={{ 'aria-labelledby': labelId }}
-                          />
-                        </ListItemIcon>
-                        <ListItemText id={labelId} primary={`${asset.name}`} />
-                      </ListItemButton>
-                    </ListItem>
-                  );
-                })}
-              </List>
+                  rows={assetDataRows}
+                  columns={assetDataColumns}
+                  // pageSize={5}
+                  // rowsPerPageOptions={[5]}
+                  onRowClick={handleRowClick}
+                  // onselectionmodelchange={selectedRows => setSelectedAssets(selectedRows)}
+                  onSelectionModelChange={setSelectionModel}
+                  selectionModel={selectionModel}
+                  checkboxSelection
+                  disableSelectionOnClick
+                  experimentalFeatures={{ newEditingApi: true }}
+                  components={{
+                    Toolbar: CustomToolbar,
+                  }}
+                />
+              </div>
               <Button onClick={addVideoToTimeline}>
                 ADD
               </Button>
             </Paper>
+
+            {/* <DataGridDemo></DataGridDemo> */}
           </Grid>
           <Grid item xs={7} justifyContent="flex-end">
             {/* VideoPlayer Container */}
@@ -680,13 +800,7 @@ const VideoEditor: React.FC = () => {
               width: '90%',
               margin: 'auto',
             }}> */}
-              <Slider
-                value={currentTime}
-                min={0}
-                max={timelineDurationFrames}
-                onChange={handleTimeChange}
-                valueLabelDisplay="auto"
-              />
+
 
               <div style={{
                 marginTop: '10px',
@@ -695,11 +809,18 @@ const VideoEditor: React.FC = () => {
                   style={{
                     backgroundColor: '#f0f0f0',
                     boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.1)',
-
+                    overflowX: 'auto',
                     margin: '0 auto',
                     height: 120,
                   }}
                 >
+                  <Slider
+                    value={currentTime}
+                    min={0}
+                    max={timelineDurationFrames}
+                    onChange={handleTimeChange}
+                    valueLabelDisplay="auto"
+                  />
                   <DndContext
                     // This context is used to define the drag event.
                     sensors={sensors}
