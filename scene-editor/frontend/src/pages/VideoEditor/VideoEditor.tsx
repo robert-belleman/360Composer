@@ -105,16 +105,6 @@ const useStyles = makeStyles((theme) =>
   })
 )
 
-// id: uidCounter,
-// videoID: asset.id,
-// videoName: asset.name,
-// videoDuraton: asset.duration,
-// videoFps: asset.fps,
-// videoFrames: asset.frames,
-// endFrame: asset.frames,
-// trim: [0, asset.frames]
-// data: asset,
-// start: video
 
 interface Asset {
   id: string,
@@ -147,7 +137,7 @@ interface Clip {
 }
 
 
-
+// Generates a custom toolbar for the DataGrid which displays the assets
 function CustomToolbar() {
   return (
     <GridToolbarContainer>
@@ -224,32 +214,21 @@ const VideoEditor: React.FC = () => {
   // Declare a state variable to track the currently selected item
   const [selectedItems, setSelectedItems] = useState<UniqueIdentifier[]>([]);
 
-  const [checked, setChecked]: any = React.useState([]);
+  // const [checked, setChecked]: any = React.useState([]);
 
-  const handleToggle = (id: number) => () => {
-    // const currentIndex = checked.indexOf(value);
-    // const newChecked = [...checked];
+  // const handleToggle = (id: number) => () => {
 
-    // if (currentIndex === -1) {
-    //   newChecked.push(value);
-    // } else {
-    //   newChecked.splice(currentIndex, 1);
-    // }
+  //   if (checked.includes(id)) {
+  //     setChecked(checked.filter((item: any) => item !== id));
+  //   }
+  //   else {
+  //     setChecked([...checked, id]);
+  //   }
 
-    if (checked.includes(id)) {
-      setChecked(checked.filter((item: any) => item !== id));
-    }
-    else {
-      setChecked([...checked, id]);
-    }
+  //   console.log("newchecked=" + checked)
+  // };
 
-    console.log("newchecked=" + checked)
-  };
-
-
-
-
-  const [currentVideo, setCurrentVideo]: any = useState(undefined);
+  const [currentVideo, setCurrentVideo]: any = useState("none");
   const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
 
   const onAssetSelectionReset = () => {
@@ -257,12 +236,6 @@ const VideoEditor: React.FC = () => {
   };
 
   const assetDataColumns: GridColDef[] = [
-    // {
-    //   field: 'id',
-    //   headerName: 'ID',
-    //   width: 90,
-    //   hideable: false
-    // },
     {
       field: 'name',
       headerName: 'Name',
@@ -291,23 +264,16 @@ const VideoEditor: React.FC = () => {
     {
       field: 'play_button',
       headerName: 'Play',
-      flex: 1,
+      flex: 2,
       editable: false,
       sortable: false,
+      // Render fake button to play the video. Click event is handled in handleRowClick.
       renderCell: (cellValues) => {
         return (
           <Button
             variant="contained"
             color="primary"
-            onClick={(event) => {
-              console.log("cellValues")
-              console.log(cellValues)
-              // setSelectionModel(selectionModel)
-              // setCurrentVideo(event, cellValues);
-
-              // Set the selected video as current video
-              // TODO: set the current video as the selected video
-            }}>
+          >
             Play
           </Button>
         )
@@ -391,13 +357,12 @@ const VideoEditor: React.FC = () => {
       return;
     }
 
-    // console.log("addvideototimeline")
-
     // Iterate over all selected videos to add them to the timeline
     selectionModel.forEach((rowid: any, index: number) => {
       console.log("rowid: " + rowid)
       const asset = assets.find((asset: any) => asset.id === rowid);
 
+      // Error handling
       if (asset === undefined) {
         console.log("asset is undefined")
         return
@@ -459,21 +424,27 @@ const VideoEditor: React.FC = () => {
     setSelectedItems([]);
   }
 
-  const loadVideo = () => {
-    if (assets[0] === undefined) {
-      return;
-    }
+
+
+  // Load the video into the Babylon videodome
+  const loadVideo = (video: Asset) => {
+    // if (assets[0] === undefined) {
+    //   return;
+    // }
 
     if (videoDome !== undefined) {
       videoDome.dispose();
     }
 
-    const assetPaths = assets.map((asset: any) => `/asset/${asset.path}`);
+    // const assetPaths = assets.map((asset: any) => `/asset/${asset.path}`);
+    // let videotmp = assets.find((asset: any) => asset.id === currentVideo);
+    // let video = videotmp ? "/asset/" + videotmp.path : "";
+    console.log("currentVideo: " + currentVideo)
 
-    const posterURL = `/api/asset/${assets[0].id}/thumbnail`;
+    const posterURL = `/api/asset/${video.id}/thumbnail`;
     videoDome = new VideoDome(
       "videoDome",
-      assetPaths,
+      "/asset/" + video.path,
       {
         resolution: 32,
         clickToPlay: false,
@@ -505,10 +476,11 @@ const VideoEditor: React.FC = () => {
   };
 
   // loads video when we have fetched the video data
-  useEffect(() => {
-    if (assets[0] !== undefined)
-      loadVideo();
-  }, [assets[0]]);
+  // useEffect(() => {
+  //   if (assets) {
+  //     loadVideo();
+  //   }
+  // }, [assets]);
 
 
 
@@ -698,10 +670,6 @@ const VideoEditor: React.FC = () => {
   }, [clips]);
 
 
-  const [selectedRows, setSelectedRows] = useState<GridRowId[]>([]);
-
-
-
   const assetDataRows = assets.map((asset: Asset, index: number) => {
     return {
       id: asset.id,
@@ -715,6 +683,14 @@ const VideoEditor: React.FC = () => {
   const handleRowClick: GridEventListener<'rowClick'> = (params) => {
     console.log("row clicked params:")
     console.log(params)
+    const video = assets.find((asset: any) => asset.id === params.id);
+    // if (video !== undefined) {
+    //   setCurrentVideo("/asset/" + video.path);
+    // } else {
+    //   console.log("no video found for clicked row in assetList");
+    // }
+    console.log("video clicked:" + video)
+    loadVideo(video);
   };
 
 
@@ -752,7 +728,7 @@ const VideoEditor: React.FC = () => {
 
           <Grid item xs={5} justifyContent="flex-start">
             {/* AssetViewer Container */}
-            
+
             <Paper>
               <div style={{ height: 400, width: '100%' }}>
                 <DataGrid
@@ -803,7 +779,7 @@ const VideoEditor: React.FC = () => {
 
 
               <div style={{
-                marginTop: '10px',
+                // marginTop: '10px',
               }}>
                 <div
                   style={{
@@ -811,7 +787,7 @@ const VideoEditor: React.FC = () => {
                     boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.1)',
                     overflowX: 'auto',
                     margin: '0 auto',
-                    height: 120,
+                    height: '100%',
                   }}
                 >
                   <Slider
@@ -837,7 +813,7 @@ const VideoEditor: React.FC = () => {
                         sx={{
                           display: 'flex',
                           flexDirection: 'row',
-                          height: "100%"
+                          height: "150px"
                         }}>
 
                         {clips.map((clip: Clip) => {
