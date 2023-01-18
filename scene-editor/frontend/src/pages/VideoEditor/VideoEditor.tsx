@@ -824,7 +824,7 @@ const VideoEditor: React.FC = () => {
                               key={clip.id}
                               id={clip.id}
                               clip={clip}
-                              viewZoom={0.5}
+                              viewZoom={1}
                               // setClips={() => setClips(clips)}
                               isSelected={selectedItems.includes(clip.id)}
                               onSelect={() => {

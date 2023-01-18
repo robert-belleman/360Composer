@@ -190,7 +190,8 @@ function SortableItem(props: any) {
   const [thumbValue, setThumbValue] = React.useState([props.clip.trim[0], props.clip.trim[1]]);
 
   
-  const clipWidth = props.clip.endFrame * props.viewZoom;
+  // const clipWidth = props.clip.endFrame * props.viewZoom;
+  const clipWidth = props.clip.endFrame;
 
   function formatDuration(currentFrame: number) {
     // const frames = props.clip.endFrame;
@@ -317,10 +318,10 @@ function SortableItem(props: any) {
 
             "& .MuiSlider-track": {
               backgroundImage: "url(" + thumbnailUrl + ");",
-              backgroundPosition:
-                "-" + (thumbValue[0] / props.clip.endFrame) * clipWidth,
+              backgroundPositionX:
+                `${(thumbValue[0] / props.clip.endFrame) * clipWidth * -1}px`,
               backgroundSize:
-                clipWidth - thumbValue[0] / clipWidth + "px 100%",
+                `${clipWidth - thumbValue[0] / clipWidth}px 100%`,
             },
             "& .MuiSlider-rail": {
               backgroundImage: "url(" + thumbnailUrl + ");",
