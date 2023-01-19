@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, useRef, ReactElement } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { concat, sortBy } from 'lodash';
@@ -206,27 +206,16 @@ const VideoEditor: React.FC = () => {
     }
   }
 
-  //Timeline functions
+  //Timeline variables
   const [clips, setClips] = useState<Clip[]>([]);
   const [uidCounter, setUidCounter] = useState(1);
   const [trimcommand, setTrimcommand] = useState("");
-  const [currentTime, setCurrentTime] = React.useState(0);
+  const [currentTimelineTime, setCurrentTimelineTime] = React.useState(0);
+  const [timelineZoom, setTimelineZoom] = React.useState(1);
+
   // Declare a state variable to track the currently selected item
   const [selectedItems, setSelectedItems] = useState<UniqueIdentifier[]>([]);
 
-  // const [checked, setChecked]: any = React.useState([]);
-
-  // const handleToggle = (id: number) => () => {
-
-  //   if (checked.includes(id)) {
-  //     setChecked(checked.filter((item: any) => item !== id));
-  //   }
-  //   else {
-  //     setChecked([...checked, id]);
-  //   }
-
-  //   console.log("newchecked=" + checked)
-  // };
 
   const [currentVideo, setCurrentVideo]: any = useState("none");
   const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
@@ -264,7 +253,7 @@ const VideoEditor: React.FC = () => {
     {
       field: 'play_button',
       headerName: 'Play',
-      flex: 2,
+      width: 100,
       editable: false,
       sortable: false,
       // Render fake button to play the video. Click event is handled in handleRowClick.
@@ -273,6 +262,7 @@ const VideoEditor: React.FC = () => {
           <Button
             variant="contained"
             color="primary"
+          // onClick={startVideo}
           >
             Play
           </Button>
@@ -331,20 +321,21 @@ const VideoEditor: React.FC = () => {
     console.log("assets:" + assets);
   }, []);
 
-  const fetchThumbnail = (assetid: any) => {
-    axios.get(`/api/asset/${assetid}/thumbnail`)
-      .then((res: any) => {
-        console.log("THUMBNAIL")
-        console.log(res.data)
-        return res.data
-      })
-      .catch((e) => console.log(e))
-  }
+  // const fetchThumbnail = (assetid: any) => {
+  //   axios.get(`/api/asset/${assetid}/thumbnail`)
+  //     .then((res: any) => {
+  //       console.log("THUMBNAIL")
+  //       console.log(res.data)
+  //       return res.data
+  //     })
+  //     .catch((e) => console.log(e))
+  // }
 
-  const getVideoInformation = () => {
-    console.log(assets);
+  // const getVideoInformation = () => {
+  //   console.log(assets);
 
-  };
+  // };
+
 
   // Add a new video to the timeline
   const addVideoToTimeline = () => {
@@ -397,17 +388,10 @@ const VideoEditor: React.FC = () => {
     onAssetSelectionReset();
   }
 
-  const handleTimeChange = (event: Event, newValue: number | number[], activeThumb: number) => {
-    setCurrentTime(newValue as number);
+  const handleTimelineIndicatorChange = (event: Event, newValue: number | number[], activeThumb: number) => {
+    setCurrentTimelineTime(newValue as number);
   };
 
-  const applyVideoEdit = () => {
-    const tmp = clips.map(clip => {
-      return ([`${clip.id}`, clip.trim[0], clip.trim[1], `${clip.id}_trim.mp4`])
-    });
-    setTrimcommand(`${tmp}`);
-
-  }
 
   const handleClipSelect = (id: UniqueIdentifier) => {
     // If the clicked item is already the selected item, deselect it
@@ -423,7 +407,6 @@ const VideoEditor: React.FC = () => {
     setClips(clips => clips.filter(clip => !selectedItems.includes(clip.id)));
     setSelectedItems([]);
   }
-
 
 
   // Load the video into the Babylon videodome
@@ -445,6 +428,7 @@ const VideoEditor: React.FC = () => {
     videoDome = new VideoDome(
       "videoDome",
       "/asset/" + video.path,
+      // VideoPlayer,
       {
         resolution: 32,
         clickToPlay: false,
@@ -470,8 +454,10 @@ const VideoEditor: React.FC = () => {
       setCurrentVideoLength(event.target.duration);
     };
 
-    // // set video to stereoscopic or mono
-    // setStereoscopic(video.view_type);
+    
+    videoDome.videoTexture.video.addEventListener("ended", function () {
+      console.log("Video has ended");
+    });
 
   };
 
@@ -487,7 +473,7 @@ const VideoEditor: React.FC = () => {
 
 
 
-  // runs whenever the seen has been set up
+  // runs whenever the scene has been set up
   const onSceneReady = (scene: any) => {
 
     // keep track of scene to use it later
@@ -509,7 +495,6 @@ const VideoEditor: React.FC = () => {
     // update state
     setSceneLight(light);
 
-
   }
 
   // gets called everytime a frame is rendered
@@ -521,11 +506,15 @@ const VideoEditor: React.FC = () => {
   const stopVideo = () => {
     videoDome.videoTexture.video.pause();
     setPlaying(false);
+
   }
 
   const startVideo = () => {
-    videoDome.videoTexture.video.play();
-    setPlaying(true);
+    videoDome.videoTexture.video.play().then(() => {
+      setPlaying(true);
+    }).catch((error: any) => {
+      console.log(error);
+    });
   }
 
   const updateVideo = (event: any, newValue: number | number[]) => {
@@ -642,7 +631,7 @@ const VideoEditor: React.FC = () => {
             onChange={updateVideo}
             step={0.1}
             marks={videoMarks}
-            valueLabelDisplay="on"
+            valueLabelDisplay="auto"
             style={{ marginTop: 40 }}
           >
 
@@ -694,6 +683,7 @@ const VideoEditor: React.FC = () => {
   };
 
 
+
   return (<>
     <TopBar></TopBar>
     {/* <SideMenu activeView={View.Project} /> */}
@@ -703,13 +693,14 @@ const VideoEditor: React.FC = () => {
     }}>
       <Container maxWidth="xl">
         <Grid container spacing={2}>
+          {/* Title Container */}
           <Grid item xs={12}>
             <Paper elevation={0} variant="outlined">
               <Grid container>
                 <Grid item xs={4} justifyContent="flex-start">
                   <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? navigate(-1) : navigate(`/app/project/${projectID}?activeTab=assets`)}>Back</Button>
                 </Grid>
-                <Grid item xs={4} justifyContent="center">
+                <Grid item xs={4} justifyContent="center" justifyItems="center">
                   <Typography variant="h5" component="h2">
                     Project: {getProjectName()}
                   </Typography>
@@ -725,9 +716,8 @@ const VideoEditor: React.FC = () => {
               </Grid>
             </Paper>
           </Grid>
-
-          <Grid item xs={5} justifyContent="flex-start">
             {/* AssetViewer Container */}
+          <Grid item xs={5} justifyContent="flex-start">
 
             <Paper>
               <div style={{ height: 400, width: '100%' }}>
@@ -749,15 +739,18 @@ const VideoEditor: React.FC = () => {
                   }}
                 />
               </div>
-              <Button onClick={addVideoToTimeline}>
-                ADD
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={addVideoToTimeline}>
+                ADD VIDEOS TO TIMELINE
               </Button>
             </Paper>
 
             {/* <DataGridDemo></DataGridDemo> */}
           </Grid>
-          <Grid item xs={7} justifyContent="flex-end">
             {/* VideoPlayer Container */}
+          <Grid item xs={7} justifyContent="flex-end">
             <Paper style={{ padding: 10 }}>
               <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} id='VideoEditorCanvas' ></SceneComponent>
               {renderTransport()}
@@ -767,8 +760,8 @@ const VideoEditor: React.FC = () => {
               />
             </Paper>
           </Grid>
-          <Grid item xs={12}>
             {/* Timeline Container */}
+          <Grid item xs={12}>
             <Paper sx={{
               width: '100%',
             }}>
@@ -788,14 +781,18 @@ const VideoEditor: React.FC = () => {
                     overflowX: 'auto',
                     margin: '0 auto',
                     height: '100%',
+                    padding: 4,
                   }}
                 >
                   <Slider
-                    value={currentTime}
+                    value={currentTimelineTime}
                     min={0}
                     max={timelineDurationFrames}
-                    onChange={handleTimeChange}
+                    onChange={handleTimelineIndicatorChange}
                     valueLabelDisplay="auto"
+                    sx={{
+                      width: `${timelineDurationFrames * timelineZoom}px}`,
+                    }}
                   />
                   <DndContext
                     // This context is used to define the drag event.
@@ -824,7 +821,7 @@ const VideoEditor: React.FC = () => {
                               key={clip.id}
                               id={clip.id}
                               clip={clip}
-                              viewZoom={1}
+                              viewZoom={timelineZoom}
                               // setClips={() => setClips(clips)}
                               isSelected={selectedItems.includes(clip.id)}
                               onSelect={() => {
@@ -842,20 +839,22 @@ const VideoEditor: React.FC = () => {
                   </DndContext >
                 </div >
 
-                <Box>
+                {/* <Box>
                   {clips.map(clip => {
                     return (
                       <p key={clip.id}>id={clip.id}, trim={clip.trim}</p>
                     )
-                  })}
-                </Box>
+                  })} 
+                </Box> */}
               </div>
               {/* </div> */}
               <p>{selectedItems}</p>
-              <Button onClick={applyVideoEdit}>
+              {/* <Button onClick={applyVideoEdit}>
                 Apply Changes
-              </Button>
-              <Button onClick={deleteSelectedVideos}>
+              </Button> */}
+              <Button
+                disabled={selectedItems.length === 0}
+                onClick={deleteSelectedVideos}>
                 DELETE Selected Clips {selectedItems}
               </Button>
               <p>{trimcommand}</p>

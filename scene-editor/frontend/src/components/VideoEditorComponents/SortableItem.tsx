@@ -190,8 +190,8 @@ function SortableItem(props: any) {
   const [thumbValue, setThumbValue] = React.useState([props.clip.trim[0], props.clip.trim[1]]);
 
   
-  // const clipWidth = props.clip.endFrame * props.viewZoom;
-  const clipWidth = props.clip.endFrame;
+  const clipWidth = props.clip.endFrame * props.viewZoom;
+  // const clipWidth = props.clip.endFrame;
 
   function formatDuration(currentFrame: number) {
     // const frames = props.clip.endFrame;
@@ -270,7 +270,7 @@ function SortableItem(props: any) {
     transform: CSS.Transform.toString(CustomTransform),
     transition,
     // transition: CSS.Transition.toString(CustomTransition),
-    padding: 4,
+    // padding: 4,
 
 
   };
