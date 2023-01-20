@@ -253,25 +253,6 @@ const VideoEditor: React.FC = () => {
       width: 110,
       editable: false,
     },
-    {
-      field: 'play_button',
-      headerName: 'Play',
-      width: 100,
-      editable: false,
-      sortable: false,
-      // Render fake button to play the video. Click event is handled in handleRowClick.
-      renderCell: (cellValues) => {
-        return (
-          <Button
-            variant="contained"
-            color="primary"
-          // onClick={startVideo}
-          >
-            Play
-          </Button>
-        )
-      }
-    }
   ];
 
   const [exportFps, setExportFps] = React.useState('30');
