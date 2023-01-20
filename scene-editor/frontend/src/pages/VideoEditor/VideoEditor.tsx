@@ -243,7 +243,7 @@ const VideoEditor: React.FC = () => {
     {
       field: 'duration',
       headerName: 'Duration',
-      width: 50,
+      width: 100,
       editable: false,
     },
     {
@@ -770,47 +770,21 @@ const VideoEditor: React.FC = () => {
         {/* Title Container */}
         <Grid item xs={12}>
           <Paper elevation={0} variant="outlined">
-            <Grid container>
-              <Grid item xs={4} justifyContent="flex-start">
+            <Grid container justifyContent="space-between">
+              {/* Back button */}
+              <Grid item xs={4}>
                 <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => goBack ? navigate(-1) : navigate(`/app/project/${projectID}?activeTab=assets`)}>Back</Button>
               </Grid>
-              <Grid item xs={4} justifyContent="center" justifyItems="center">
-                <Typography variant="h5" component="h2">
+              {/* Project Title */}
+              <Grid item xs={4}>
+                <Typography variant="h5" component="h2" align="center">
                   Project: {getProjectName()}
                 </Typography>
               </Grid>
-              <Grid item xs={4} justifyContent="flex-end">
+              {/* Export video button */}
+              <Grid item xs={4}>
                 {/* Export settings Container */}
                 <Grid container>
-                  <Grid item xs={4}>
-                    <FormControl size="small">
-                      <Select
-                        value={exportFps}
-                        onChange={handleExportFpsChange}
-
-                      // inputProps={{ 'aria-label': 'Without label' }}
-                      >
-                        <MenuItem value={30}>30</MenuItem>
-                        <MenuItem value={60}>60</MenuItem>
-                      </Select>
-                      <FormHelperText>Frame Rate</FormHelperText>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <FormControl size="small">
-                      <Select
-                        value={exportResolution}
-                        onChange={handleExportResolutionChange}
-
-                      // inputProps={{ 'aria-label': 'Without label' }}
-                      >
-                        <MenuItem value={1080}>1080</MenuItem>
-                        <MenuItem value={2160}>2160</MenuItem>
-                        <MenuItem value={4320}>4320</MenuItem>
-                      </Select>
-                      <FormHelperText>Resolution</FormHelperText>
-                    </FormControl>
-                  </Grid>
                   <Grid item xs={4}>
                     <Button color="primary" onClick={() => exportTimelineVideo()} sx={{
                       marginRight: 0,
