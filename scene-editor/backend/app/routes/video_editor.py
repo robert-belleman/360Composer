@@ -146,7 +146,7 @@ class JoinAsset(Resource):
             clip = AssetModel.query.filter_by(id=clipid, user_id=claims['id']).first_or_404()
             input_path = os.path.join(os.environ.get('ASSET_DIR'), clip.path)
 
-            if ffmpeg_util.ffmpeg_join_video(input_path, output_path):
+            if ffmpeg_util.ffmpeg_join_videos(input_path, output_path):
 
                 asset_type = AssetType.video
 

@@ -50,6 +50,22 @@ def ffmpeg_trim_video(start_time, end_time, input_file, output_file):
     print("Error with trimming. result: ", result)
     # TODO: Add error handling. What if the video is too short? What if the trimming fails?
     return None
+
+
+def ffmpeg_join_videos(start_time, end_time, input_file, output_file):
+
+    command = ['ffmpeg', '-i', input_file, output_file]
+
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    
+    # If the trimming was successful, return the output file path
+    if result.returncode == 0:
+        return output_file
+
+    print("Error with trimming. result: ", result)
+    # TODO: Add error handling. What if the video is too short? What if the trimming fails?
+    return None
     
 
 def get_video_metadata(path):
