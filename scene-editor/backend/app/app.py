@@ -28,6 +28,8 @@ CORS(app, supports_credentials=True)
 database.init_app(app)
 migrate.init_app(app, database.db)
 
+print("Database URL: ")	
+
 jwt = JWTManager(app)
 
 @jwt.additional_claims_loader

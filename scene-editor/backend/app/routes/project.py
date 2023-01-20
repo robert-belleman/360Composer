@@ -26,6 +26,7 @@ from app.models.timeline import Timeline as TimelineModel, TimelineScenario as T
 
 # from app.util.ffmpeg import create_thumbnail, get_duration
 import app.util.util as util
+import app.config as config
 
 import hashlib
 import binascii
@@ -138,7 +139,7 @@ class ProjectAssets(Resource):
 
         filename = util.random_file_name()
         asset_filename = filename + extension
-        path = os.path.join(os.environ.get('ASSET_DIR'), asset_filename)
+        path = os.path.join((config.ASSET_DIR), asset_filename)
         util.write_file(request, path, file)
 
         meta = util.generate_asset_meta(asset_type, filename, path)

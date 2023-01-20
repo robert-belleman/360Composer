@@ -3,6 +3,7 @@ import datetime
 import uuid
 from app.models.asset import AssetType
 import app.util.ffmpeg as ffmpeg_util
+import app.config as config
 
 
 def random_file_name():
@@ -53,7 +54,7 @@ def generate_asset_meta(asset_type, filename, path):
     # only get duration and thumbnail if it is a video
     if asset_type == AssetType.video:
         thumbnail_path = os.path.join(
-            os.environ.get('ASSET_DIR'), filename + '.png')
+            config.ASSET_DIR, filename + '.png')
         if not ffmpeg_util.create_thumbnail(path, thumbnail_path):
             thumbnail_path = None
 

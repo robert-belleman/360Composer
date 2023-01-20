@@ -737,6 +737,7 @@ const VideoEditor: React.FC = () => {
     if (clips.length == 0) {
       return;
     }
+    console.log("whatClip: " + frame)
 
     const frameCounts = clips.map((clip) => clip.videoFrames);
     let currentClip = 0;
@@ -932,14 +933,9 @@ const VideoEditor: React.FC = () => {
               </Box>
               <p>
                 currenttimelinetime={currentTimelineTime}
-                {/* currentclip={whatClip(currentTimelineTimeUpdate)} */}
+                currentclip={whatClip(currentTimelineTimeUpdate)}
               </p>
             </div>
-            {/* </div> */}
-            {/* <p>{selectedItems}</p> */}
-            {/* <Button onClick={applyVideoEdit}>
-                Apply Changes
-              </Button> */}
             <Button
               disabled={selectedItems.length === 0}
               onClick={deleteSelectedVideos}>

@@ -27,6 +27,7 @@ from app.models.timeline import Timeline as TimelineModel, TimelineScenario as T
 
 import app.util.ffmpeg as ffmpeg_util
 import app.util.util as util
+import app.config as config
 
 import hashlib
 import binascii
@@ -75,8 +76,8 @@ class TrimAsset(Resource):
 
         filename = util.random_file_name()
         asset_filename = filename + ".mp4"
-        output_path = os.path.join(os.environ.get('ASSET_DIR'), asset_filename)
-        input_path = os.path.join(os.environ.get('ASSET_DIR'), input_path)
+        output_path = os.path.join(config.ASSET_DIR, asset_filename)
+        input_path = os.path.join(config.ASSET_DIR, input_path)
 
         print(f"Trimming {input_path} to {output_path} from {start} to {end}")
 
@@ -140,11 +141,11 @@ class JoinAsset(Resource):
 
         filename = util.random_file_name()
         asset_filename = filename + ".mp4"
-        output_path = os.path.join(os.environ.get('ASSET_DIR'), asset_filename)
+        output_path = os.path.join(config.ASSET_DIR, asset_filename)
 
         for clipid in clips:
             clip = AssetModel.query.filter_by(id=clipid, user_id=claims['id']).first_or_404()
-            input_path = os.path.join(os.environ.get('ASSET_DIR'), clip.path)
+            input_path = os.path.join(config.ASSET_DIR, clip.path)
 
             if ffmpeg_util.ffmpeg_join_videos(input_path, output_path):
 
@@ -173,7 +174,7 @@ class JoinAsset(Resource):
 
 
 
-        input_path = os.path.join(os.environ.get('ASSET_DIR'), input_path)
+        input_path = os.path.join(config.ASSET_DIR, input_path)
 
         print(f"Trimming {input_path} to {output_path} from {start} to {end}")
 
