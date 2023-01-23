@@ -18,7 +18,6 @@ import TimelineEditor from "./pages/TimelineEditor/TimelineEditor"
 import ScenePlayer from "./pages/ScenePlayer/ScenePlayer";
 import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
-import UserTest from "./pages/UserTest/UserTest";
 import VideoEditor from "./pages/VideoEditor/VideoEditor";
 
 const AppRouter: React.FC = () => {
@@ -47,7 +46,6 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/analytics" element={<Dashboard view={View.Analytics}/>}></Route>
                 <Route path="/app/users" element={<Dashboard view={View.Users}/>}></Route>
                 <Route path="/app/settings" element={<Settings/>}></Route>
-                <Route path="/app/test" element={<UserTest/>}/>
                 <Route path="/app/video-editor/:projectID" element={<VideoEditor/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
             </Routes>
@@ -58,7 +56,6 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/register" element={<Register/>}></Route>
                 <Route path="/app/register-done" element={<RegisterDone/>}></Route>
                 <Route path="/app/*" element={<Login/>} />
-                <Route path="/app/test" element={<UserTest/>}/>
             </Routes>
         </BrowserRouter>
     );
