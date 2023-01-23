@@ -798,8 +798,9 @@ const VideoEditor: React.FC = () => {
             </Grid>
           </Paper>
         </Grid>
+
         {/* AssetViewer Container */}
-        <Grid item xs={5} justifyContent="flex-start">
+        <Grid item xs={5}>
 
           <Paper sx={{ height: 400, padding: 1 }}>
             <div style={{ height: 350, width: '100%' }}>
@@ -831,8 +832,12 @@ const VideoEditor: React.FC = () => {
           </Paper>
 
         </Grid>
+        {/* <Grid item xs>
+          item
+        </Grid> */}
+
         {/* VideoPlayer Container */}
-        <Grid item xs={7} justifyContent="flex-end">
+        <Grid item xs={4}>
           <Paper sx={{ height: 400, padding: 1 }}>
             <Container sx={{ height: 300 }}>
               <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} id='VideoEditorCanvas' ></SceneComponent>
@@ -844,6 +849,8 @@ const VideoEditor: React.FC = () => {
               /> */}
           </Paper>
         </Grid>
+
+
         {/* Timeline Container */}
         <Grid item xs={12}>
           <Paper sx={{

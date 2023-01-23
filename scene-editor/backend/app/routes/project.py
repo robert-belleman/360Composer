@@ -147,7 +147,7 @@ class ProjectAssets(Resource):
         row = AssetModel(
             name=asset_name,
             user_id=project.user_id, 
-            path=asset_filename, 
+            path=path, 
             asset_type=asset_type, 
             thumbnail_path=meta["thumbnail_path"], 
             duration=meta["duration"], 
