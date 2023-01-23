@@ -21,6 +21,7 @@ import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
 // import UserTest from "./pages/UserTest/UserTest";
 import Player from "./pages/Player/Player";
 import ViewingAppTest from "./pages/ViewingAppTest/ViewingAppTest";
+import UserTest from "./pages/UserTest/UserTest";
 
 const AppRouter: React.FC = () => {
     // TODO: routes should be protected in the future
@@ -51,6 +52,7 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
                 <Route path="/player/:timelineID/:uuID" element={<Player/>}/>
+                <Route path="/app/usertest" element={<UserTest/>}/>
             </Routes>
         </BrowserRouter>:
         <BrowserRouter basename={process.env.BASEPATH}>
@@ -61,6 +63,7 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/*" element={<Login/>} />
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
                 <Route path="/player/:timelineID/:uuID" element={<Player/>}/>
+                <Route path="/app/usertest" element={<UserTest/>}/>
             </Routes>
         </BrowserRouter>
     );

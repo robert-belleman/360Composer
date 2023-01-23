@@ -1,20 +1,13 @@
 import React from "react";
+import ViewingAppController from "../ViewingAppComponents/ViewingAppController";
 import { UserTestComponentProps } from "./ComponentProps";
-import ScenarioPlayerAframe from "../../components/ScenarioPlayerAframe";
 
-const AframeTest: React.FC<UserTestComponentProps> = ({onFinish, userInput, setUserInput}) => {
-    const scenarioId = "007dd947-8c99-42ca-ac63-59573c4238f5"
+const AframeTest: React.FC<UserTestComponentProps> = ({onFinish, active=false}) => {
+    const scenarioId = "f92411cb-9f6a-4014-a0cb-079fcfbad17a"
     const endTest = async () => {
         onFinish();
     };
-
-    function onStart() {
-
-    }
-
-    return (
-        <ScenarioPlayerAframe  scenarioID={scenarioId!} onFinish={endTest} onStart={onStart}/>
-    );
+    return active ? <ViewingAppController sceneId="" scenarioId={scenarioId!} onFinish={endTest} /> : null;
 };
 
 export default AframeTest;

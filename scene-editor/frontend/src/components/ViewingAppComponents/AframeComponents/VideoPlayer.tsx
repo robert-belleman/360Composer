@@ -45,7 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, stereo, paused, onTimeU
             <video
                 ref={videoAsset}
                 id="aframevideo"
-                src={`/asset/${video.path}`}
+                src={`asset/${video.path}`} //DEVSRC
                 controls
                 autoPlay={false}
                 crossOrigin="crossorigin"

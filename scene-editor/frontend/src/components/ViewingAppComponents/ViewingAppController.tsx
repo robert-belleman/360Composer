@@ -3,11 +3,12 @@ import React, { useEffect, useState } from "react";
 import ViewingAppAframe from "./ViewingAppAframe";
 
 interface ViewingAppControllerProps {
-    sceneId: string
-    scenarioId: string
+    sceneId: string,
+    scenarioId: string,
+    onFinish: Function
 }
 
-const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId, scenarioId}: ViewingAppControllerProps) => {
+const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId, scenarioId, onFinish=()=>{}}: ViewingAppControllerProps) => {
     const [ready, setReady] = useState<boolean>(false);
     const [scene, setScene]: any  = useState(undefined);
     const [scenario, setScenario]: any  = useState(undefined);
@@ -32,19 +33,33 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId, sce
         if (actionId) {
             var sceneLinks = scenario.scenes.find((targetScene: any) => targetScene.id === currentSceneId).links;
             if(sceneLinks.length) {
-                var newScene = sceneLinks.find((link:any) => link.action_id === actionId).target_id;
-                setCurrentSceneId(newScene);
-                var newSceneId = scenario.scenes.find((targetScene: any) => targetScene.id === newScene).scene_id;
-                fetchSceneData(newSceneId);
-                return true;
+                var action = sceneLinks.find((link:any) => link.action_id === actionId);
+                console.log(action);
+                if (action.targetId !== "") {
+                    setCurrentSceneId(action.target_id);
+                    var newSceneId = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id).scene_id;
+                    fetchSceneData(newSceneId);
+                    return 'resume';
+                } else {
+                    if (!onFinish()) {
+                        return 'end';
+                    } 
+                    return;
+                }
             } else {
-                setCurrentSceneId(scenario.start_scene);
-                fetchSceneData(scenario.scenes[0].scene_id);
-                return false;
+                if (!onFinish()) {
+                    setCurrentSceneId(scenario.start_scene);
+                    fetchSceneData(scenario.scenes[0].scene_id);
+                    return 'end';
+                } 
+                return;
             }
         } else {
-            fetchSceneData(sceneId);
-            return false;
+            if (!onFinish()) {
+                fetchSceneData(sceneId);
+                return 'end';
+            }
+            return;
         }
     };
 

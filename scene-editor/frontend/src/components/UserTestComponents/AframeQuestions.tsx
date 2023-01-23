@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import { Button, TextField, Select, MenuItem } from '@mui/material';
 import { UserTestComponentProps } from "./ComponentProps";
 
-const BabylonQuestions: React.FC<UserTestComponentProps> = ({onFinish, userInput, submit}) => {
+const AframeQuestions: React.FC<UserTestComponentProps> = ({onFinish, userInput, submit}) => {
 
     const [workedBool, setWorkedBool] = useState(userInput['workedbaby']);
     const [commentsText, setCommentsText] = useState(userInput['commentsbaby']);
@@ -19,8 +19,11 @@ const BabylonQuestions: React.FC<UserTestComponentProps> = ({onFinish, userInput
         setCommentsText(event.target.value);
     };
 
-    const startTest = async () => {
-        submit({workedbaby: workedBool, commentsbaby: commentsText, ...userInput});
+    const submitInput = async () => {
+        var newInput = userInput;
+        newInput.workedAframe = workedBool;
+        newInput.commentsAframe = commentsText;
+        submit(newInput);
         onFinish();
     };
 
@@ -45,11 +48,11 @@ const BabylonQuestions: React.FC<UserTestComponentProps> = ({onFinish, userInput
                 value={commentsText}
                 onChange={handleCommentsChange} 
             />
-            <Button onClick={() => { startTest(); } } color="primary">
+            <Button onClick={() => { submitInput(); } } color="primary">
                 Submit
             </Button>
         </>
     );
 };
 
-export default BabylonQuestions;
+export default AframeQuestions;

@@ -10,7 +10,6 @@ import VideoPlayer from "./AframeComponents/VideoPlayer";
 import axios from "axios";
 import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
-import { timeStamp } from "console";
 
 interface ViewingAppAframeProps {
     scene: any
@@ -60,11 +59,20 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({scene, onFinish}: Vi
     const chosenMenuOption = (id: string) => {
         setMenuEnabled(false);
         var actiondId = annotations.options.find((option: any) => option.id === id).action.id;
-        if(onFinish(actiondId)) {
-            setResumeWhenLoaded(true);
-        } else {
-            setEnded(true);
-        }
+        var response = onFinish(actiondId)
+        switch(response) {
+            case 'resume': {
+                setResumeWhenLoaded(true);
+                break;
+            }
+            case 'end': {
+                setEnded(true);
+                break;
+            }
+            default: {
+                break;
+            }
+        };
     };
 
     const onTimeUpdate = (time: number) => {

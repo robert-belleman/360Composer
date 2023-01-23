@@ -1,7 +1,8 @@
 type UserTestComponentProps = {
+    active: boolean
     onFinish: any,
     userInput: any,
-    setUserInput: any
+    submit: Function
 };
 
 export type {UserTestComponentProps};
