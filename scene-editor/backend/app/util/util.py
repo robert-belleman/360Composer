@@ -72,3 +72,9 @@ def generate_asset_meta(asset_type, filename, path):
         return asset_meta
 
     return asset_meta
+
+def print_log(msg):
+    if msg:
+        print("[360-LOGGING]", msg)
+    else: 
+        print("[360-LOGGING]")

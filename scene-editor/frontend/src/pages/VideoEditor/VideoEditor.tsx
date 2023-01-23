@@ -838,7 +838,7 @@ const VideoEditor: React.FC = () => {
 
         {/* VideoPlayer Container */}
         <Grid item xs={4}>
-          <Paper sx={{ height: 400, padding: 1 }}>
+          <Paper sx={{ height: 400, width: 600, padding: 1 }}>
             <Container sx={{ height: 300 }}>
               <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} id='VideoEditorCanvas' ></SceneComponent>
             </Container>

@@ -20,8 +20,10 @@ JWT_TOKEN_LOCATION = "cookies"
 
 if environ.get("LOCAL_DEV") == "true":
     print("Development mode environment")
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:test@localhost/postgres_pcitvr"
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@localhost/postgres_pcitvr"
     JWT_SECRET_KEY = "7fd07066-9fc3-11ec-ad70-6758ebe6e7c4"
-    ASSET_DIR = "/home/ricoround/afstudeerproject/360Composer/scene-editor/backend/assets"
+    # ASSET_DIR = "/home/ricoround/afstudeerproject/360Composer/scene-editor/backend/assets" # laptop env 
+    # ASSET_DIR = "/home/rico/afstudeerproject/360Composer/scene-editor/frontend/src/static/assets" # desktop env
+    ASSET_DIR = "/assets" # desktop env
     REDIS_URL = "redis://redis:6379/0"
     QUEUES = "high,default,low"
