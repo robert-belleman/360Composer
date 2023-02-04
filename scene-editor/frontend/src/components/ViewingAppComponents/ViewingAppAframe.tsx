@@ -12,6 +12,7 @@ import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 
 interface ViewingAppAframeProps {
+    
     scene: any
     onFinish: Function
 }
