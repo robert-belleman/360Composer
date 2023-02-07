@@ -22,16 +22,17 @@ const Menu: React.FC<MenuProps> = ({annotations, enabled, onOption}: MenuProps) 
         const handleClick = (e: any) => {
             onOption(e.target.id);
         }
-
-        annotations.options.forEach((option: any) => {
-            document.getElementById(option.id)?.addEventListener("click", handleClick);
-        });
-
-        return () => {
+        if (annotations && enabled) {
             annotations.options.forEach((option: any) => {
-                document.getElementById(option.id)?.removeEventListener("click", handleClick);
+                document.getElementById(option.id)?.addEventListener("click", handleClick);
             });
-        };
+    
+            return () => {
+                annotations.options.forEach((option: any) => {
+                    document.getElementById(option.id)?.removeEventListener("click", handleClick);
+                });
+            };
+        }
     }, [enabled, annotations]);
 
     useEffect(() => {

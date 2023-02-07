@@ -7,7 +7,6 @@ import {
 } from '@belivvr/aframe-react';
 import Menu from "./AframeComponents/Menu";
 import VideoPlayer from "./AframeComponents/VideoPlayer";
-import axios from "axios";
 import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 
@@ -100,7 +99,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             {video ? 
                 <VideoPlayer
                     video={video}
-                    stereo={!(video.view_type === "ViewType.mono")}
                     paused={!videoPlaying}
                     onTimeUpdate={onTimeUpdate}
                     onEnded={end} /> 

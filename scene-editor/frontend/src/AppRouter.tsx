@@ -56,6 +56,7 @@ const AppRouter: React.FC = () => {
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
                     <Route path="/app/usertest" element={<UserTest/>}/>
+                    <Route path="/app/*" element={<Login/>} />
                 </Routes>
             </BrowserRouter>
             :

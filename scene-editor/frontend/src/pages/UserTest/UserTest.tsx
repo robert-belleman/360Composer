@@ -26,10 +26,10 @@ const UserTest: React.FC = () => {
 
     const testComponents: React.FC<UserTestComponentProps>[] = [
         HomePage,
-        BabylonTest,
-        BabylonQuestions,
         AframeTest,
         AframeQuestions,
+        BabylonTest,
+        BabylonQuestions,
         EndPage
     ];
     
@@ -49,7 +49,7 @@ const UserTest: React.FC = () => {
 
     useEffect(() => {
         if (!(token.id !== "" && token.id !== null && token.role === 'customer')) {
-            dispatch(logInCustomer('df30a624-093c-4b29-8509-abd5b2dd9dfb', 'test'));
+            dispatch(logInCustomer('a6d28bb2-78dd-4482-8373-6507d6f5734f', 'test'));
         }
     }, [token, dispatch])
 

@@ -18,6 +18,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     const [timeline, setTimeline]: any  = useState(undefined);
     const [currentSceneId, setCurrentSceneId] = useState<string>("");
 
+    let index = 0;
+
     const fetchSceneData = async (id: string) => {
         axios
           .get(`/api/scenes/${id}/`)
@@ -27,26 +29,35 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
           })
     };
 
-    const fetchVideo = async () => {
-        await axios.get(`/api/asset/${scene.video_id}`)
+    const fetchVideo = async (id: string) => {
+        await axios.get(`/api/asset/${id}`)
              .then((res: any) => {setCurrentVideo(res.data)})
-    };
-    
-    const fetchAnnotations = async () => {
-        await axios.get(`/api/scenes/${scene.id}/annotations`)
-             .then((res:any) => setCurrentAnnotations(res.data[0]))
+             .catch((e:any) => console.log('Something went wrong while fetching video:', e));
     };
 
-    const fetchScenarioData = async () => {
-        await axios.get(`/api/scenario/${scenarioId}/`)
+    const handleAnnotationData = (data: any) => {
+        if (data.length) {
+            setCurrentAnnotations(data)
+        } else {
+            setCurrentAnnotations([]);
+        }
+    };
+    
+    const fetchAnnotations = async (id: string) => {
+        await axios.get(`/api/scenes/${id}/annotations`)
+             .then((res:any) => handleAnnotationData(res.data))
+             .catch((e:any) => console.log('Something went wrong while fetching annotations:', e));
+    };
+
+    const fetchScenarioData = async (id: string) => {
+        await axios.get(`/api/scenario/${id}/`)
              .then((res:any) => setScenario(res.data))
              .catch((e:any) => console.log('Something went wrong while fetching scenario:', e));
     };
 
-    const fetchTimelineData = async () => {
-        await axios.get(`/api/timeline/${timelineId}/`)
-             .then((res:any) => setScenario(res.data))
-             .then((res:any) => console.log(res.data))
+    const fetchTimelineData = async (id: string) => {
+        await axios.get(`/api/timeline/${id}/export`)
+             .then((res:any) => setTimeline(res.data[0]))
              .catch((e:any) => console.log('Something went wrong while fetching timeline:', e));
     };
 
@@ -92,24 +103,58 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     useEffect(() => {
         if(scenarioId) {
-            fetchScenarioData();
+            fetchScenarioData(scenarioId);
         }
     }, [scenarioId]);
 
     useEffect(() => {
         if(timelineId) {
-            fetchTimelineData();
+            fetchTimelineData(timelineId);
         }
     }, [timelineId]);
 
     useEffect(() => {
+        if (timeline) {
+            let firstScenario = timeline.scenarios.find((scenario: any) => {return scenario.uuid === timeline.start});
+            setScenario(firstScenario);
+        }
+    }, [timeline]);
+
+    useEffect(() => {
+        if(timelineId && scenario) {
+            let firstScene = scenario.segments.find((scene: any) => {return scene.uuid === scenario.start_scene});
+            setScene(firstScene)
+            return;
+        }
         if(scenario) {
-            setCurrentSceneId(scenario.start_scene);
-            fetchSceneData(scenario.scenes[0].scene_id);
+            let firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
+            fetchSceneData(firstScene.scene_id);
+            return;
         }
     }, [scenario]);
 
-    return scene ? <ViewingAppAframe video={currentVideo} annotations={currentAnnotations} onFinish={onFinishScene}/> : <></>;
+    useEffect(() => {
+        if (timelineId && scene) {
+            setCurrentAnnotations(scene.annotations);
+            fetchVideo(scene.video);
+            return;
+        }
+        if (scene) {
+            fetchAnnotations(scene.id)
+            fetchVideo(scene.video_id);
+            return;
+        }
+    }, [scene]);
+
+    useEffect(() => {
+        // console.log(currentVideo);
+    }, [currentVideo]);
+
+    useEffect(() => {
+        console.log(currentAnnotations);
+    }, [currentAnnotations]);
+
+    return (currentVideo && currentAnnotations) ? <ViewingAppAframe video={currentVideo} annotations={currentAnnotations} onFinish={onFinishScene}/> : <>LOADING</>;
 };
 
 export default ViewingAppController;

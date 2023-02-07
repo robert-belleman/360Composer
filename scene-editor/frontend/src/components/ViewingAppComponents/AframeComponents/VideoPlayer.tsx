@@ -8,24 +8,21 @@ import {
     VideoSphere
 } from '@belivvr/aframe-react';
 
-import {
-    stereoscopic,
-    StereoscopicVideo,
-} from '@belivvr/aframe-react-stereoscopic';
-import MyStereoscopicCamera from "./MyStereoscopicCamera";
+import { stereoscopic } from './Stereoscopic';
+import MyStereoscopicCamera from "./Stereoscopic/components/MyStereoscopicCamera";
+import MyStereoscopicVideo from "./Stereoscopic/components/MyStereoscopicVideo";
 
 stereoscopic(AFRAME);
 
 interface VideoPlayerProps {
-    video: any,
-    stereo: boolean
+    video: any
     paused: boolean
     onTimeUpdate: Function
     onEnded: Function
 }
 const gazeTime : number = 2000
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({video, stereo, paused, onTimeUpdate, onEnded}: VideoPlayerProps) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, onEnded}: VideoPlayerProps) => {
     const videoAsset : any = useRef(undefined);
 
     useEffect(() => {
@@ -33,6 +30,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, stereo, paused, onTimeU
     }, [paused, videoAsset]);
 
     useEffect(() => {
+        console.log(video)
         videoAsset.current.currentTime = 0;
         videoAsset.current.ontimeupdate = (event: any) => {
             onTimeUpdate(event.target.currentTime);
@@ -74,7 +72,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, stereo, paused, onTimeU
     );
 
     return ( 
-        !stereo ? 
+        video.view_type === 'ViewType.mono' ? 
             <>
             {assets}
             <Entity position={{x: 0, y:0, z: 0}}>
@@ -98,9 +96,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, stereo, paused, onTimeU
             >
                 {paused ? cursor : null}
             </MyStereoscopicCamera>
-            <StereoscopicVideo
+            <MyStereoscopicVideo
                 src="#aframevideo"
                 mode="full"
+                split={(video.view_type === 'ViewType.sidetoside')? 'vertical': 'horizontal'}
             />
             </>
       );
