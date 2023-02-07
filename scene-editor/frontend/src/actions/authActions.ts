@@ -1,5 +1,6 @@
 import { SET_TOKEN, SET_LOADING } from '../types/actions';
 import { logIn as loginAPI, 
+         logInCustomer as loginCustomerAPI,
          logOut as logOutAPI,  
          fetchToken } from '../util/api';
 
@@ -15,6 +16,17 @@ export const setLoading = (loading:any) => ({
 
 export const logIn = (username:string, password:string) => (dispatch:any) => {
   loginAPI(username, password).then((res) => {
+      const token = res.data;
+      dispatch(setToken({id: token.id, role: token.role}))
+    })
+    .catch((e) => {
+      console.log(e);
+      console.error("Error in login");
+  });
+}
+
+export const logInCustomer = (id:string, access_code:string) => (dispatch:any) => {
+  loginCustomerAPI(id, access_code).then((res) => {
       const token = res.data;
       dispatch(setToken({id: token.id, role: token.role}))
     })

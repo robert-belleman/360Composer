@@ -12,15 +12,13 @@ import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 
 interface ViewingAppAframeProps {
-    
-    scene: any
+    video: any,
+    annotations: any,
     onFinish: Function
 }
 
-const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({scene, onFinish}: ViewingAppAframeProps) => {
+const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, onFinish}: ViewingAppAframeProps) => {
     const [menuEnabled, setMenuEnabled] = useState<boolean>(true);
-    const [video, setVideo]: any = useState(undefined);
-    const [annotations, setAnnotations]: any = useState(undefined);
     const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
     const [started, setStarted] = useState<boolean>(false);
     const [ended, setEnded] = useState<boolean>(false);
@@ -47,15 +45,15 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({scene, onFinish}: Vi
         setEnded(true);
     };
 
-    const fetchVideo = async () => {
-        await axios.get(`/api/asset/${scene.video_id}`)
-             .then((res: any) => {setVideo(res.data)})
-    };
+    // const fetchVideo = async () => {
+    //     await axios.get(`/api/asset/${scene.video_id}`)
+    //          .then((res: any) => {setVideo(res.data)})
+    // };
     
-    const fetchAnnotations = async () => {
-        await axios.get(`/api/scenes/${scene.id}/annotations`)
-             .then((res:any) => setAnnotations(res.data[0]))
-    };
+    // const fetchAnnotations = async () => {
+    //     await axios.get(`/api/scenes/${scene.id}/annotations`)
+    //          .then((res:any) => setAnnotations(res.data[0]))
+    // };
 
     const chosenMenuOption = (id: string) => {
         setMenuEnabled(false);
@@ -84,10 +82,10 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({scene, onFinish}: Vi
         }
     };
 
-    useEffect(() => {
-        fetchAnnotations()
-        fetchVideo()
-    }, [scene]);
+    // useEffect(() => {
+    //     fetchAnnotations()
+    //     fetchVideo()
+    // }, [scene]);
 
     useEffect(() => {        
         if (resumeWhenLoaded) {

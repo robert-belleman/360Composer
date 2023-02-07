@@ -20,11 +20,11 @@ from app.schemas.scene_media import scene_add_media_schema, scene_media_schema
 from app.schemas.scene_annotation import get_scene_annotation_schema, add_scene_annotation_schema, scene_annotation_schema
 from app.schemas.action import action_schema
 
+from app.models.action import Action as ActionModel
 from app.models.scene import Scene as SceneModel
 from app.models.asset import Asset as AssetModel, AssetType
 from app.models.scene_object import SceneObject as SceneObjectModel
 from app.models.annotation import Annotation as AnnotationModel
-from app.models.action import Action as ActionModel
 from app.models.project import Project as ProjectModel
 
 import hashlib, binascii, os

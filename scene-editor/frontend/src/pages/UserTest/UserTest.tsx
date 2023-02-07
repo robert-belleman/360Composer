@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import axios from 'axios';
 
 import HomePage from "../../components/UserTestComponents/HomePage";
@@ -8,8 +8,13 @@ import AframeTest from "../../components/UserTestComponents/AframeTest";
 import BabylonTest from "../../components/UserTestComponents/BabylonTest";
 import BabylonQuestions from "../../components/UserTestComponents/BabylonQuestions";
 import AframeQuestions from "../../components/UserTestComponents/AframeQuestions";
+import { useDispatch, useSelector } from "react-redux";
+import { logInCustomer } from "../../actions/authActions";
 
 const UserTest: React.FC = () => {
+    const token = useSelector((state:any) => state.token);
+    const dispatch = useDispatch()
+
     interface UserInput {
         device: string,
         os: string,
@@ -41,6 +46,16 @@ const UserTest: React.FC = () => {
     const handleSubmit = (input : UserInput) => {
         setUserInput(input);
     }
+
+    useEffect(() => {
+        if (!(token.id !== "" && token.id !== null && token.role === 'customer')) {
+            dispatch(logInCustomer('df30a624-093c-4b29-8509-abd5b2dd9dfb', 'test'));
+        }
+    }, [token, dispatch])
+
+    useEffect(() => {
+        console.log(token);
+    }, [token])
     
     let CurrentPage: React.FC<UserTestComponentProps> = testComponents[index];
     const toNextPage = () => {

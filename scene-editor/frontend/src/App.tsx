@@ -5,8 +5,6 @@ import { initInterceptor } from './util/interceptor'
 
 import { ThemeProvider, Theme, StyledEngineProvider, createTheme } from '@mui/material/styles';
 
-import makeStyles from '@mui/styles/makeStyles';
-
 import "./App.scss";
 import AppRouter from "./AppRouter";
 import { store } from "./Store"

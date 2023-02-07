@@ -1,9 +1,6 @@
 import React, {useState} from "react";
-import { Card, 
-         CardContent,
-         TextField,
-         Button, 
-         Typography } from '@mui/material';
+import { TextField,
+         Button } from '@mui/material';
 import { register } from '../../util/api';
 import { useNavigate } from 'react-router-dom'
 
@@ -19,7 +16,7 @@ const RegisterForm: React.FC = () => {
 
     setUserConflict(false)
 
-    if(password != passwordConfirm){
+    if(password !== passwordConfirm){
       setPasswordNoMatch(true) 
     }
     else{
@@ -28,7 +25,7 @@ const RegisterForm: React.FC = () => {
           navigate('/app/register-done', { replace: true })
         })
         .catch((e) => {
-          if(e.response.status == 409){
+          if(e.response.status === 409){
             setUserConflict(true)
           }        
         });

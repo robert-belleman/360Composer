@@ -30,13 +30,13 @@ export const initInterceptor = (dispatch:any) => {
         return reject_()
       }
 
-      if ([MUST_BE_USER, NOT_EXISTS, NO_ACCESS_PROJECT, UNAUTHORIZED_FOR_USER].includes(error.response.data.msg) || error.config.url == '/api/token/refresh') {
+      if ([MUST_BE_USER, NOT_EXISTS, NO_ACCESS_PROJECT, UNAUTHORIZED_FOR_USER].includes(error.response.data.msg) || error.config.url === '/api/token/refresh') {
         dispatch(logOut())
         return reject_();
       }
 
       /* prevent interceptor from looping. */
-      if (error.config.url == prevURL) {
+      if (error.config.url === prevURL) {
         prevURL = null;
         return reject_();
       }

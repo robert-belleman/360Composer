@@ -6,7 +6,6 @@ import { retrieveToken } from './actions/authActions'
 
 import { View } from './types/views';
 
-import PageNotFound from "./pages/PageNotFound/PageNotFound";
 import Settings from "./pages/Settings/Settings";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
@@ -18,25 +17,24 @@ import TimelineEditor from "./pages/TimelineEditor/TimelineEditor"
 import ScenePlayer from "./pages/ScenePlayer/ScenePlayer";
 import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
-// import UserTest from "./pages/UserTest/UserTest";
-import Player from "./pages/Player/Player";
 import ViewingAppTest from "./pages/ViewingAppTest/ViewingAppTest";
 import UserTest from "./pages/UserTest/UserTest";
 
 const AppRouter: React.FC = () => {
     // TODO: routes should be protected in the future
     const token = useSelector((state:any) => state.token)
-    const hasToken = () => token.id !== "" && token.id !== null;
+    const hasUserToken = () => token.id !== "" && token.id !== null && token.role === 'user';
+    const hasCustomerToken = () => token.id !== "" && token.id !== null && token.role === 'customer';
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (!hasToken()) {
+        if (!hasUserToken() && !hasCustomerToken()) {
             dispatch(retrieveToken())
         }
     }, [])
 
     return (
-        hasToken() ?
+        hasUserToken() ?
         <BrowserRouter basename={process.env.BASEPATH}>
             <Routes>
                 <Route path="/app/scenario-editor/:projectID/:scenarioID" element={<ScenarioEditor/>}></Route>
@@ -51,21 +49,24 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/settings" element={<Settings/>}></Route>
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
-                <Route path="/player/:timelineID/:uuID" element={<Player/>}/>
                 <Route path="/app/usertest" element={<UserTest/>}/>
             </Routes>
-        </BrowserRouter>:
-        <BrowserRouter basename={process.env.BASEPATH}>
-            <Routes>
-                <Route path="/app/scene-player/:scene_id" element={<ScenePlayer/>}></Route>
-                <Route path="/app/register" element={<Register/>}></Route>
-                <Route path="/app/register-done" element={<RegisterDone/>}></Route>
-                <Route path="/app/*" element={<Login/>} />
-                <Route path="/app/test" element={<ViewingAppTest/>}/>
-                <Route path="/player/:timelineID/:uuID" element={<Player/>}/>
-                <Route path="/app/usertest" element={<UserTest/>}/>
-            </Routes>
-        </BrowserRouter>
+        </BrowserRouter>: 
+            hasCustomerToken() ?
+            <BrowserRouter basename={process.env.BASEPATH}>
+                <Routes>
+                    <Route path="/app/usertest" element={<UserTest/>}/>
+                </Routes>
+            </BrowserRouter>
+            :
+            <BrowserRouter basename={process.env.BASEPATH}>
+                <Routes>
+                    <Route path="/app/register" element={<Register/>}></Route>
+                    <Route path="/app/register-done" element={<RegisterDone/>}></Route>
+                    <Route path="/app/*" element={<Login/>} />
+                    <Route path="/app/usertest" element={<UserTest/>}/>
+                </Routes>
+            </BrowserRouter>
     );
 };
 

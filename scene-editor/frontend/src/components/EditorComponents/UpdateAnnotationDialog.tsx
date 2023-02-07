@@ -170,14 +170,14 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
         handleDeleteOptions(null, ids)
       }
     }
-  }, [annotation.type])
+  }, [annotation.type, annotation.options])
 
   const fetchAnnotation = () => {
     axios.get(`/api/scenes/${sceneID}/annotation?id=${annotationID}`)
       .then((res) => res.data)
       .then((data) => {
         setAnnotation(data)
-        if (data.type == 1 || data.type == 2) {
+        if (data.type === 1 || data.type === 2) {
           setDefaultOptions(true)
         }
 

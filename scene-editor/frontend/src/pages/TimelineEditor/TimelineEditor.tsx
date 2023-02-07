@@ -22,7 +22,6 @@ import Paper from '@mui/material/Paper';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
 import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
 
 const INITIAL_TIMELINE = {
   id: "",
@@ -35,7 +34,6 @@ const INITIAL_TIMELINE = {
   updated_at: ""
 }
 
-const theme = createTheme();
 const useStyles = makeStyles((theme) =>
   createStyles({
     root: {

@@ -7,7 +7,7 @@ const AframeTest: React.FC<UserTestComponentProps> = ({onFinish, active=false}) 
     const endTest = async () => {
         onFinish();
     };
-    return active ? <ViewingAppController sceneId="" scenarioId={scenarioId!} onFinish={endTest} /> : null;
+    return active ? <ViewingAppController sceneId="" scenarioId={scenarioId!} timelineId=""onFinish={endTest} /> : null;
 };
 
 export default AframeTest;

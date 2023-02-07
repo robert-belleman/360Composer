@@ -1,8 +1,6 @@
-import React, {useEffect, useState} from 'react'
-import axios from 'axios'
+import React, {useState} from 'react'
 
 import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
 
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -10,7 +8,6 @@ import Grid from '@mui/material/Grid'
 
 import GetAppIcon from '@mui/icons-material/GetApp';
 
-const theme = createTheme();
 const useStyles = makeStyles((theme) =>
   createStyles({
     root: {

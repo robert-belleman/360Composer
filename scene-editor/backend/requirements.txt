@@ -1,6 +1,7 @@
+flask==2.1.3
 flask-restx
-flask
-flask_sqlalchemy
+SQLALchemy==1.4.46 
+flask_sqlalchemy==2.5.1
 flask-migrate
 flask_jwt_extended
 flask-cors

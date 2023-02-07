@@ -1,6 +1,6 @@
 import { SET_TOKEN, SET_LOADING } from "../types/actions"
 
-export default (state: any = { id: "", role: "",  loading: true }, action: any) => {
+const tokenReducer = (state: any = { id: "", role: "",  loading: true }, action: any) => {
   switch (action.type) {
     case SET_TOKEN:
       return { id: action.payload.id, role: action.payload.role, loading: false};
@@ -9,4 +9,6 @@ export default (state: any = { id: "", role: "",  loading: true }, action: any) 
     default:
       return state;
   }
-}
+};
+
+export default tokenReducer;

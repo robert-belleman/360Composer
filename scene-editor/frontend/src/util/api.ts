@@ -10,6 +10,10 @@ export const logOut = async () => {
     .catch((e:any) => console.log('error while logging out: ', e))
 }
 
+export const logInCustomer = async (id:string, access_code:string) => {
+  return await axios.post(`/api/user/customer-login`, {"id":id, "access_code": access_code} )
+}
+
 export const register = async (username:string, password:string) => {
   return await axios.post(`/api/user/register`, {"username":username, "password": password} )
 }

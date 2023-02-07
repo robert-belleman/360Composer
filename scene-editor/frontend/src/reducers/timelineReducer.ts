@@ -37,7 +37,7 @@ const addScene = (state: State, timelineID: number, sceneID: number): State => {
   return {nextID: state.nextID, timelines: _.merge(updatedTimeline, state.timelines)};
 }
 
-export default (state: State = {nextID: 0, timelines: {}}, action: any): State => {
+const timelineReducer = (state: State = {nextID: 0, timelines: {}}, action: any): State => {
   switch(action.type) {
     case TIMELINE_ADD:
       return addTimeline(state, action.payload);
@@ -49,3 +49,5 @@ export default (state: State = {nextID: 0, timelines: {}}, action: any): State =
       return state;
   }
 }
+
+export default timelineReducer;

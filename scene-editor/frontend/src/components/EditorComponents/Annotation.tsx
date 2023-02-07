@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 
 import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
 
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -35,7 +34,6 @@ const valueLabelFormat = (value:number) => {
   return `${minutesLabel}:${secondsLabel}`
 }
 
-const theme = createTheme();
 const useStyles = makeStyles((theme) =>
   createStyles({
     root: {
@@ -79,8 +77,6 @@ type AnnotationComponentProps = {
 }
 
 const Annotation: React.FC<AnnotationComponentProps> = ({sceneID, annotationID, videoLength, num, onDelete, update, annotation, options}: AnnotationComponentProps):React.ReactElement => {
-  const initialList:Array<any> = []
-
   const classes = useStyles();
 
   const [alertState, setAlertState] = useState({show: false, message:"", severity: ""})
@@ -134,13 +130,9 @@ const Annotation: React.FC<AnnotationComponentProps> = ({sceneID, annotationID, 
 
   const annotationCard = () => {
     // @ts-ignore
-    const id = annotation_.id;
-    // @ts-ignore
     const text = annotation_.text;
     // @ts-ignore
     const timestamp = annotation_.timestamp;
-    // @ts-ignore
-    const type = annotation_.type;
 
     return (
       <Accordion square>

@@ -167,12 +167,6 @@ const useStyles = makeStyles((theme) =>
     setChecked(newChecked);
   };
 
-  const updateViewType = (value: string, id: string) => {
-    const newAssets = checked;
-    newAssets[assets.indexOf(id)].view_type = value;
-    setAssets(newAssets);
-  }
-
   const handleSelect = async (value: string, id: string) => {
     console.log(value, id);
     await axios.post(`/api/asset/${id}/setview/${value}`)
