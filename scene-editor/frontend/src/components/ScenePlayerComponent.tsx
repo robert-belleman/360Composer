@@ -512,7 +512,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       vrHelper.position = new Vector3(0,0,0);
 
       vrHelper.onEnteringVRObservable.add( () => {
-        videoDome.current?.videoTexture.video.play();
+        // videoDome.current?.videoTexture.video.play();
         videoDome.current?.videoTexture.video.pause();
       })
 

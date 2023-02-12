@@ -13,10 +13,11 @@ import EndMenu from "./AframeComponents/EndMenu";
 interface ViewingAppAframeProps {
     video: any,
     annotations: any,
-    onFinish: Function
+    onFinish: Function,
+    enabled: boolean
 }
 
-const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, onFinish}: ViewingAppAframeProps) => {
+const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, onFinish, enabled}: ViewingAppAframeProps) => {
     const [menuEnabled, setMenuEnabled] = useState<boolean>(true);
     const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
     const [started, setStarted] = useState<boolean>(false);
@@ -43,16 +44,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         setVideoPlaying(false);
         setEnded(true);
     };
-
-    // const fetchVideo = async () => {
-    //     await axios.get(`/api/asset/${scene.video_id}`)
-    //          .then((res: any) => {setVideo(res.data)})
-    // };
-    
-    // const fetchAnnotations = async () => {
-    //     await axios.get(`/api/scenes/${scene.id}/annotations`)
-    //          .then((res:any) => setAnnotations(res.data[0]))
-    // };
 
     const chosenMenuOption = (id: string) => {
         setMenuEnabled(false);
@@ -81,11 +72,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
     };
 
-    // useEffect(() => {
-    //     fetchAnnotations()
-    //     fetchVideo()
-    // }, [scene]);
-
     useEffect(() => {        
         if (resumeWhenLoaded) {
             setResumeWhenLoaded(false);
@@ -93,7 +79,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
     }, [annotations, video]);
 
-    return (
+    return enabled ? (
         <Scene vrModeUI={{enabled: true}}>
             <Sky color="#ECECEC" />
             {video ? 
@@ -120,7 +106,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                     <></>
             }
         </Scene>
-      );
+      ) : <></>
 };
 
 export default ViewingAppAframe;

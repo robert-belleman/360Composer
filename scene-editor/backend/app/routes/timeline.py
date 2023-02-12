@@ -14,6 +14,8 @@ from app.routes.api import api
 from app.models.database import db
 
 from app.schemas.timeline import timeline_schema, timeline_update_schema, timeline_scenario_schema, timeline_scenario_add_schema, timeline_scenario_delete_schema, timeline_customer_schema, timeline_customer_add_schema, timeline_customer_delete_schema, timeline_scenario_order_schema, timeline_randomize_schema
+from app.schemas.scene_annotation import scene_annotation_schema
+from app.schemas.scenario import scenario_scenes_link_schema
 
 from app.models.timeline import Timeline as TimelineModel, TimelineScenario as TimelineScenarioModel, CustomerTimeline as CustomerTimelineModel
 from app.models.scenario import Scenario as ScenarioModel, ScenarioScene as ScenarioSceneModel, ScenarioSceneLink as ScenarioSceneLinkModel
@@ -278,28 +280,15 @@ class TimelineCustomersDelete(Resource):
 @ns.response(HTTPStatus.NOT_FOUND, "Timeline not found")
 @ns.param("id", "The timeline identifier")
 class TimelineExport(Resource):
+    @ns.marshal_with(scenario_scenes_link_schema)
+    def links(self, scene_id, scenario_id):
+        scenarios = ScenarioSceneModel.query.filter_by(scenario_id=scenario_id, scene_id=scene_id).first_or_404()
+        return scenarios.links
+
+
+    @ns.marshal_with(scene_annotation_schema)
     def annotations(self, scene_id, scenario_scene_id):
-        annotations = AnnotationModel.query.filter_by(scene_id=scene_id).all()
-        annotations_ = []
-
-        for annotation in annotations:
-            options = (
-                db.session.query(ActionModel, OptionModel)\
-                    .filter(OptionModel.annotation_id == annotation.id)\
-                    .filter(OptionModel.action_id == ActionModel.id)\
-                    .all()
-            )
-
-            options_ = []
-
-            for (action, option) in options:
-                link = ScenarioSceneLinkModel.query.filter_by(source_id=scenario_scene_id, action_id=action.id).first()
-                next_scene = link.target_id if link is not None else None
-                options_.append({"id": option.id, "option": option.text, "feedback": option.feedback, "next_segment_id": next_scene})
-
-            annotations_.append({"id": annotation.id, "annotation": annotation.text, "timestamp": annotation.timestamp * 1000000, "type": annotation.type, "options": options_})
-
-        return annotations_
+        return AnnotationModel.query.filter_by(scene_id=scene_id).all()
 
     @user_or_customer_jwt_required
     @timeline_access_required
@@ -326,19 +315,20 @@ class TimelineExport(Resource):
                     .all()
             )
 
-            segments = []
+            scenes_ = []
 
             for (_, _, scenario_scene, scene) in scenes:
                 o = {
-                    "uuid": scenario_scene.id,
+                    "id": scenario_scene.id,
                     "scene_id": scene.id,
                     "video": scene.video_id,
-                    "annotations": self.annotations(scene.id, scenario_scene.id)
+                    "annotations": self.annotations(scene.id, scenario_scene.id),
+                    "links": self.links(scene.id, scenario.id)
                 }
 
-                segments.append(o)
+                scenes_.append(o)
 
-            scenarios_.append({"uuid": timeline_scenario.id, "scenario_id": scenario.id, "start_scene": scenario.start_scene, "segments": segments, "name": scenario.name, "next_scenario": timeline_scenario.next_scenario})
+            scenarios_.append({"uuid": timeline_scenario.id, "scenario_id": scenario.id, "start_scene": scenario.start_scene, "scenes": scenes_, "name": scenario.name, "next_scenario": timeline_scenario.next_scenario})
 
         r = {
             "name": timeline.name,

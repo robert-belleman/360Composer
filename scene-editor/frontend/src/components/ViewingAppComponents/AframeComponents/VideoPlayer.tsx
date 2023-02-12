@@ -30,7 +30,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
     }, [paused, videoAsset]);
 
     useEffect(() => {
-        console.log(video)
         videoAsset.current.currentTime = 0;
         videoAsset.current.ontimeupdate = (event: any) => {
             onTimeUpdate(event.target.currentTime);
@@ -43,7 +42,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
             <video
                 ref={videoAsset}
                 id="aframevideo"
-                src={`asset/${video.path}`} //DEVSRC
+                src={`/asset/${video.path}`} //DEVSRC
                 controls
                 autoPlay={false}
                 crossOrigin="crossorigin"

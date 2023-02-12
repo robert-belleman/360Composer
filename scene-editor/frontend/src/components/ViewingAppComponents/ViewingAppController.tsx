@@ -1,24 +1,34 @@
 import axios from "axios";
+import { set } from "lodash";
 import React, { useEffect, useState } from "react";
 import ViewingAppAframe from "./ViewingAppAframe";
 
 interface ViewingAppControllerProps {
-    sceneId: string,
-    scenarioId: string,
-    timelineId: string,
+    sceneId?: string,
+    scenarioId?: string,
+    timelineId?: string,
     onFinish: Function
 }
 
 const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", onFinish=()=>{}}: ViewingAppControllerProps) => {
-    const [ready, setReady] = useState<boolean>(false);
     const [scene, setScene]: any  = useState(undefined);
     const [currentVideo, setCurrentVideo]: any = useState(undefined);
     const [currentAnnotations, setCurrentAnnotations]: any = useState(undefined);
+    const [videoReady, setVideoReady] = useState(false);
+    const [annotationsReady, setAnnotationsReady] = useState(false);
     const [scenario, setScenario]: any  = useState(undefined);
     const [timeline, setTimeline]: any  = useState(undefined);
-    const [currentSceneId, setCurrentSceneId] = useState<string>("");
 
-    let index = 0;
+    const setLoading = () => {
+        setVideoReady(false);
+        setAnnotationsReady(false);
+    }
+
+    const removeScene = () => {
+        setCurrentAnnotations(undefined);
+        setCurrentVideo(undefined);
+        setScene(undefined);
+    }
 
     const fetchSceneData = async (id: string) => {
         axios
@@ -37,7 +47,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     const handleAnnotationData = (data: any) => {
         if (data.length) {
-            setCurrentAnnotations(data)
+            setCurrentAnnotations(data[0])
         } else {
             setCurrentAnnotations([]);
         }
@@ -61,16 +71,26 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
              .catch((e:any) => console.log('Something went wrong while fetching timeline:', e));
     };
 
+    const setNewScene = (id: string) => {
+        setLoading();
+        removeScene();
+        if (timelineId) {
+            const newScene = scenario.scenes.find((scene: any) => {return scene.scene_id === id});
+            setScene(newScene);
+        } else {
+            fetchSceneData(id);
+        }
+    };
+
     const onFinishScene = (actionId: string = "") => {
         if (actionId) {
-            var sceneLinks = scenario.scenes.find((targetScene: any) => targetScene.id === currentSceneId).links;
+            const sceneLinks: any = timelineId ? scene.links : scenario.scenes.find((targetScene: any) => targetScene.scene_id === scene.id).links;
+            
             if(sceneLinks.length) {
-                var action = sceneLinks.find((link:any) => link.action_id === actionId);
-                console.log(action);
+                const action = sceneLinks.find((link:any) => link.action_id === actionId);
                 if (action.targetId !== "") {
-                    setCurrentSceneId(action.target_id);
-                    var newSceneId = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id).scene_id;
-                    fetchSceneData(newSceneId);
+                    const newSceneId = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id).scene_id;
+                    setNewScene(newSceneId);
                     return 'resume';
                 } else {
                     if (!onFinish()) {
@@ -80,15 +100,14 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
                 }
             } else {
                 if (!onFinish()) {
-                    setCurrentSceneId(scenario.start_scene);
-                    fetchSceneData(scenario.scenes[0].scene_id);
+                    setNewScene(scenario.scenes[0].scene_id);
                     return 'end';
                 } 
                 return;
             }
         } else {
             if (!onFinish()) {
-                fetchSceneData(sceneId);
+                setNewScene(scene.id);
                 return 'end';
             }
             return;
@@ -111,7 +130,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         if(timelineId) {
             fetchTimelineData(timelineId);
         }
-    }, [timelineId]);
+    }, [timelineId ]);
 
     useEffect(() => {
         if (timeline) {
@@ -121,9 +140,9 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     }, [timeline]);
 
     useEffect(() => {
-        if(timelineId && scenario) {
-            let firstScene = scenario.segments.find((scene: any) => {return scene.uuid === scenario.start_scene});
-            setScene(firstScene)
+        if(scenario) {
+            let firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
+            setNewScene(firstScene.scene_id);
             return;
         }
         if(scenario) {
@@ -135,7 +154,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     useEffect(() => {
         if (timelineId && scene) {
-            setCurrentAnnotations(scene.annotations);
+            handleAnnotationData(scene.annotations);
             fetchVideo(scene.video);
             return;
         }
@@ -147,14 +166,22 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     }, [scene]);
 
     useEffect(() => {
-        // console.log(currentVideo);
+        if (currentVideo && !videoReady) {
+            setVideoReady(true);
+        }
     }, [currentVideo]);
 
     useEffect(() => {
-        console.log(currentAnnotations);
+        if (currentAnnotations && !annotationsReady) {
+            setAnnotationsReady(true);
+        }
     }, [currentAnnotations]);
 
-    return (currentVideo && currentAnnotations) ? <ViewingAppAframe video={currentVideo} annotations={currentAnnotations} onFinish={onFinishScene}/> : <>LOADING</>;
+    return <ViewingAppAframe 
+                            video={currentVideo} 
+                            annotations={currentAnnotations} 
+                            onFinish={onFinishScene}
+                            enabled={videoReady && annotationsReady}/>;
 };
 
 export default ViewingAppController;

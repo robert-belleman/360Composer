@@ -19,6 +19,7 @@ import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
 import ViewingAppTest from "./pages/ViewingAppTest/ViewingAppTest";
 import UserTest from "./pages/UserTest/UserTest";
+import Player from "./pages/Player/Player";
 
 const AppRouter: React.FC = () => {
     // TODO: routes should be protected in the future
@@ -50,12 +51,14 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
                 <Route path="/app/usertest" element={<UserTest/>}/>
+                <Route path="/player/:timelineID/:uuID" element={<Player/>} />
             </Routes>
         </BrowserRouter>: 
             hasCustomerToken() ?
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
                     <Route path="/app/usertest" element={<UserTest/>}/>
+                    <Route path="/player/:timelineID/:uuID" element={<Player/>} />
                     <Route path="/app/*" element={<Login/>} />
                 </Routes>
             </BrowserRouter>
@@ -66,6 +69,7 @@ const AppRouter: React.FC = () => {
                     <Route path="/app/register-done" element={<RegisterDone/>}></Route>
                     <Route path="/app/*" element={<Login/>} />
                     <Route path="/app/usertest" element={<UserTest/>}/>
+                    <Route path="/player/:timelineID/:uuID" element={<Player/>} />
                 </Routes>
             </BrowserRouter>
     );
