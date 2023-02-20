@@ -384,15 +384,58 @@ const VideoEditor: React.FC = () => {
     onAssetSelectionReset();
   }
 
+  function checkClip(newValue: any) {
+    let clipIndex = 0;
+    let durationSum = 0;
+    for (let i = 0; i < clips.length; i++) {
+      console.log("check clip " + i);
+      if (newValue < clips[i].videoFrames + durationSum) {
+        console.log("current clip = " + i);
+        clipIndex = i;
+
+        // If current clip is not the same as the current video, 
+        // set the current video to the new clip.
+        if (clips[i].data !== currentVideo) {
+          setCurrentVideo(clips[i].data);   
+        }
+
+        break;
+      }
+      durationSum += clips[i].videoFrames;
+    }
+
+    // if (clips. !== currentVideo) {
+    //   console.log("what")
+    //   setCurrentClip(clipIndex);
+    //   setCurrentVideo(clips[currentClip].url);
+    // }
+
+    return {clipIndex, durationSum};
+
+  }
+
   const handleTimelineIndicatorChange = (event: Event, newValue: number | number[], activeThumb: number) => {
-    setCurrentTimelineTime(newValue as number);
+
+    
+    // currentVideo?.seekTo(newValue as number / 1000);
+
+
+
+
+    setTimelineIndicator(newValue as number);
   };
+
   const handleTimelineIndicatorChangeCommitted = (event: Event | React.SyntheticEvent<Element, Event>, newValue: number | number[]) => {
     setCurrentTimelineTimeUpdate(newValue as number);
     console.log("handleTimelineIndicatorChangeCommitted:" + newValue)
   };
 
-
+  const setTimelineIndicator = (frame: number) => {
+    setCurrentTimelineTime(frame);
+    let {clipIndex, durationSum} = checkClip(frame);
+    let cliptime = (frame - durationSum) / clips[clipIndex].videoFps;
+    updateVideoTime(cliptime);
+  }
 
 
   const handleClipSelect = (id: UniqueIdentifier) => {
@@ -523,9 +566,13 @@ const VideoEditor: React.FC = () => {
     });
   }
 
+  const updateVideoTime = (value: number) => {
+    setCurrentVideoTime(value);
+    videoDome.videoTexture.video.currentTime = value;
+  }
+
   const updateVideo = (event: any, newValue: number | number[]) => {
-    setCurrentVideoTime(newValue);
-    videoDome.videoTexture.video.currentTime = newValue;
+    updateVideoTime(newValue as number);
   };
 
 
@@ -640,7 +687,7 @@ const VideoEditor: React.FC = () => {
 
     return (
       <Grid container>
-        <Grid item xs={2} style={{ marginTop: 30, textAlign: 'center' }}>
+        <Grid item xs={2} style={{textAlign: 'center' }}>
           <p>Start: 00:00</p>
         </Grid>
         <Grid item xs={8}>
@@ -654,12 +701,11 @@ const VideoEditor: React.FC = () => {
             step={0.1}
             marks={videoMarks}
             valueLabelDisplay="auto"
-            style={{ marginTop: 40 }}
           >
 
           </Slider>
         </Grid>
-        <Grid item xs={2} style={{ marginTop: 30, textAlign: 'center' }}>
+        <Grid item xs={2} style={{textAlign: 'center' }}>
           <p>End: {valueLabelFormat(currentVideoLength)}</p>
         </Grid>
         <Grid item xs={12} style={{ textAlign: 'center' }}>
@@ -720,44 +766,47 @@ const VideoEditor: React.FC = () => {
   // }
   // console.log("Current clip: " + currentClip + " Current frame: " + (currentTimelineTime - (totalFrames - frameCounts[currentClip])));
 
-  const setClipToVideoContainer = (clipindex: number, frame: number) => {
-    try {
-      let video = clips[clipindex].data;
-      setCurrentVideo(video);
-      let videoTime = framesToTimeRounded(frame, video.fps); //fps van project of video gebruiken?
-      setCurrentVideoTime(videoTime);
-      videoDome.videoTexture.video.currentTime = videoTime;
-    }
-    catch (e) {
-      console.log(e);
-    };
-  };
+  // const setClipToVideoContainer = (clipindex: number, frame: number) => {
+  //   try {
+  //     let video = clips[clipindex].data;
+  //     setCurrentVideo(video);
+  //     let videoTime = framesToTimeRounded(frame, video.fps); //fps van project of video gebruiken?
+  //     setCurrentVideoTime(videoTime);
+  //     videoDome.videoTexture.video.currentTime = videoTime;
+  //   }
+  //   catch (e) {
+  //     console.log(e);
+  //   };
+  // };
 
-  const whatClip = (frame: number) => {
-    if (clips.length == 0) {
-      return;
-    }
+  // const whatClip = (frame: number) => {
+  //   if (clips.length == 0) {
+  //     return;
+  //   }
 
-    const frameCounts = clips.map((clip) => clip.videoFrames);
-    let currentClip = 0;
-    let totalFrames = 0;
+  //   const frameCounts = clips.map((clip) => clip.videoFrames);
+  //   let currentClip = 0;
+  //   let totalFrames = 0;
 
-    for (let i = 0; i < frameCounts.length; i++) {
-      totalFrames += frameCounts[i];
-      if (frame < totalFrames) {
-        currentClip = i;
-        break;
-      }
-    }
+  //   for (let i = 0; i < frameCounts.length; i++) {
+  //     totalFrames += frameCounts[i];
+  //     if (frame < totalFrames) {
+  //       currentClip = i;
+  //       break;
+  //     }
+  //   }
 
-    let currentFrame = frame - (totalFrames - frameCounts[currentClip]);
+  //   let currentFrame = frame - (totalFrames - frameCounts[currentClip]);
 
-    setClipToVideoContainer(currentClip, currentFrame)
-    return [
-      currentClip,
-      currentFrame
-    ];
-  };
+  //   setClipToVideoContainer(currentClip, currentFrame)
+  //   return [
+  //     currentClip,
+  //     currentFrame
+  //   ];
+  // };
+
+  
+
 
   return (<>
     <TopBar></TopBar>
@@ -784,7 +833,7 @@ const VideoEditor: React.FC = () => {
               {/* Export video button */}
               <Grid item xs={4}>
                 {/* Export settings Container */}
-                <Grid container>
+                <Grid container justifyContent="flex-end">
                   <Grid item xs={4}>
                     <Button color="primary" onClick={() => exportTimelineVideo()} sx={{
                       marginRight: 0,
@@ -837,10 +886,6 @@ const VideoEditor: React.FC = () => {
               <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} id='VideoEditorCanvas' ></SceneComponent>
             </Container>
             {renderTransport()}
-            {/* <Slider
-                min={0}
-                max={100}
-              /> */}
           </Paper>
         </Grid>
         {/* Timeline Container */}
@@ -870,7 +915,7 @@ const VideoEditor: React.FC = () => {
                 <Slider
                   value={currentTimelineTime}
                   min={0}
-                  max={timelineDurationFrames}
+                  max={timelineDurationFrames} // Total number of frames of all clips in the timeline
                   onChange={handleTimelineIndicatorChange}
                   onChangeCommitted={handleTimelineIndicatorChangeCommitted}
                   valueLabelDisplay="auto"
@@ -908,11 +953,12 @@ const VideoEditor: React.FC = () => {
                             viewZoom={timelineZoom}
                             // setClips={() => setClips(clips)}
                             isSelected={selectedItems.includes(clip.id)}
-                            onSelect={() => {
-                              console.log(`Select Clip #${clip.id}`)
-                              handleClipSelect(clip.id)
+                              onSelect={() => {
+                                console.log(`Select Clip #${clip.id}`)
+                                handleClipSelect(clip.id)
+                              }
                             }
-                            }
+                            setTimelineIndicator = {setTimelineIndicator}
                           >
                           </SortableItem>
                         )
@@ -922,28 +968,11 @@ const VideoEditor: React.FC = () => {
                   </SortableContext>
                 </DndContext >
               </div >
-
-              <Box>
-                {clips.map(clip => {
-                  return (
-                    <p key={clip.id}>id={clip.id}, trim={clip.trim}</p>
-                  )
-                })}
-              </Box>
-              <p>
-                currenttimelinetime={currentTimelineTime}
-                {/* currentclip={whatClip(currentTimelineTimeUpdate)} */}
-              </p>
             </div>
-            {/* </div> */}
-            {/* <p>{selectedItems}</p> */}
-            {/* <Button onClick={applyVideoEdit}>
-                Apply Changes
-              </Button> */}
             <Button
               disabled={selectedItems.length === 0}
               onClick={deleteSelectedVideos}>
-              DELETE Selected Clips {selectedItems}
+              DELETE Selected Clips
             </Button>
             <p>{trimcommand}</p>
 

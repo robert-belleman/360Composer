@@ -109,15 +109,6 @@ const CustomSlider = styled(SliderUnstyled)(
     background-color: #fff;
   }
 
-  // & .${sliderUnstyledClasses.valueLabel} {
-  //   font-family: IBM Plex Sans;
-  //   font-size: 14px;
-  //   display: block;
-  //   position: relative;
-  //   top: -1.6em;
-  //   text-align: center;
-  //   transform: translateX(-50%);
-  // }
 
   & .${sliderUnstyledClasses.markLabel} {
     font-family: IBM Plex Sans;
@@ -205,8 +196,18 @@ function SortableItem(props: any) {
 
   // Set handles at the correct position when the thumbhandle is moved.
   const handleChange = (event: Event, newValue: number | number[]) => {
-    setThumbValue(newValue as number[]);
 
+    const [leftValue, rightValue] = newValue as number[];
+    if (leftValue !== thumbValue[0]) {
+      console.log("Left handle moved")
+      props.setTimelineIndicator(leftValue);
+    } else if (rightValue !== thumbValue[1]) {
+      console.log("Right handle moved")
+      props.setTimelineIndicator(rightValue);
+    }
+
+    
+    setThumbValue(newValue as number[]);
   };
 
 
@@ -340,7 +341,7 @@ function SortableItem(props: any) {
           min={0}
           max={props.clip.endFrame}
           // marks={[{ value: 0, label: "0" }, { value: 100, label: "100" }]}
-          valueLabelDisplay="auto"
+          // valueLabelDisplay="auto"
           valueLabelFormat={formatDuration}
         />
 

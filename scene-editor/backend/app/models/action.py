@@ -14,4 +14,4 @@ class Action(db.Model):
     type = db.Column(db.Enum(ActionType), nullable=False)
     payload = db.Column(db.String(128), nullable=True)
     label = db.Column(db.Text, nullable=True)
-    scenario_scene_link = db.relation('ScenarioSceneLink', primaryjoin="ScenarioSceneLink.action_id == Action.id", cascade="delete, all", lazy=True)
+    scenario_scene_link = db.relationship('ScenarioSceneLink', primaryjoin="ScenarioSceneLink.action_id == Action.id", cascade="delete, all", lazy=True)
