@@ -243,7 +243,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       const posterURL = `/api/asset/${video.id}/thumbnail`;
       videoDome.current = new VideoDome(
         "videoDome", 
-        [`asset/${video.path}`], //DEVSRC
+        [`http://localhost:8080/asset/${video.path}`], //#DEV
         {
           resolution: 32,
           clickToPlay: false,
@@ -262,30 +262,11 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       videoDome.current.videoTexture.video.ontimeupdate = (event: any) => {
         setCurrentVideoTime(event.target.currentTime);
       };
-
-      // set video to stereoscopic or mono
       
       videoDome.current.videoTexture.video.onloadedmetadata = (event: any) => {
-        setCurrentVideoLength(event.target.duration);
-        setStereoscopic(video.view_type);
+        setCurrentVideoLength(event.target.duration)
       };
-
-      videoDome.current.videomode = VideoDome.MODE_SIDEBYSIDE;
     };
-
-    function setStereoscopic(mode: string) {
-      switch (mode) {
-        case "ViewType.toptobottom":
-          videoDome.current.videomode = VideoDome.MODE_TOPBOTTOM;
-          break;
-        case "ViewType.sidetoside":
-          videoDome.current.videomode = VideoDome.MODE_SIDEBYSIDE;
-          break;
-        case "ViewType.mono":
-          videoDome.current.videomode = VideoDome.MODE_MONOSCOPIC;
-          break;
-      }
-    }
 
     function renderStartButton(scene: any) {
       const manager = new GUI3DManager(scene);
@@ -512,7 +493,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       vrHelper.position = new Vector3(0,0,0);
 
       vrHelper.onEnteringVRObservable.add( () => {
-        // videoDome.current?.videoTexture.video.play();
+        videoDome.current?.videoTexture.video.play();
         videoDome.current?.videoTexture.video.pause();
       })
 

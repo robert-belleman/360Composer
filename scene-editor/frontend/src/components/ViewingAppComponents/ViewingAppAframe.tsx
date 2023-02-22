@@ -9,6 +9,9 @@ import Menu from "./AframeComponents/Menu";
 import VideoPlayer from "./AframeComponents/VideoPlayer";
 import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
+import { stereoscopic } from './AframeComponents/Stereoscopic';
+
+stereoscopic(AFRAME);
 
 interface ViewingAppAframeProps {
     video: any,
@@ -30,9 +33,9 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     };
 
     const startVideo = () => {
+        setStarted(true);
         setMenuEnabled(false);
         setVideoPlaying(true);
-        setStarted(true);
     };
 
     const pauseVideo = () => {
@@ -47,8 +50,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
     const chosenMenuOption = (id: string) => {
         setMenuEnabled(false);
-        var actiondId = annotations.options.find((option: any) => option.id === id).action.id;
-        var response = onFinish(actiondId)
+        const actionId = annotations.options.find((option: any) => option.id === id).action.id;
+        const response = onFinish(actionId)
         switch(response) {
             case 'resume': {
                 setResumeWhenLoaded(true);
@@ -79,34 +82,24 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
     }, [annotations, video]);
 
-    return enabled ? (
+    return (
         <Scene vrModeUI={{enabled: true}}>
-            <Sky color="#ECECEC" />
-            {video ? 
-                <VideoPlayer
+            <Sky color="black" />
+            <VideoPlayer
                     video={video}
                     paused={!videoPlaying}
                     onTimeUpdate={onTimeUpdate}
                     onEnded={end} /> 
-            : 
-                <></>
-            }
-            {!started || ended ? 
-                ended ?
-                    <EndMenu onEnd={replay} activated={ended}/>
-                :
-                    <StartMenu onStart={startVideo} activated={!started} /> 
-            :
-                annotations ? 
-                    <Menu 
-                        annotations={annotations}
-                        enabled={menuEnabled}
-                        onOption={chosenMenuOption}/>
-                : 
-                    <></>
-            }
+            {!started ? <StartMenu onStart={startVideo} /> : null}
+            {ended ? <EndMenu onEnd={replay}/> : null}
+            {menuEnabled && started ? 
+                <Menu 
+                            annotations={annotations}
+                            enabled={menuEnabled && started && !ended}
+                            onOption={chosenMenuOption}/>
+            : null}
         </Scene>
-      ) : <></>
+    );
 };
 
 export default ViewingAppAframe;

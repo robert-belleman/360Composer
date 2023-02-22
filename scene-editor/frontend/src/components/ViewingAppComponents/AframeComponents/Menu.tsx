@@ -8,6 +8,7 @@ import {
     Text
 } from '@belivvr/aframe-react';
 import degToRad from "./DegToRad";
+import Feedback from "./FeedBack";
 
 interface MenuProps {
     annotations: any
@@ -17,9 +18,20 @@ interface MenuProps {
 
 const Menu: React.FC<MenuProps> = ({annotations, enabled, onOption}: MenuProps) => {
     const [rotation, setRotation] = useState<{x: number, y:number, z:number}>({x:0, y:0, z:0})
+    const [feedback, setFeedback] = useState({id: "", text: ""});
+
+    const handleContinue = (id: string) => {
+        setFeedback({id: "", text: ""});
+        onOption(id);
+    }
 
     useEffect(() => {
         const handleClick = (e: any) => {
+            const targetOption = annotations.options.find((option: any) => {return option.id === e.target.id});
+            if (targetOption.feedback) {
+                setFeedback({id: targetOption.id, text: targetOption.feedback}); 
+                return;
+            }
             onOption(e.target.id);
         }
         if (annotations && enabled) {
@@ -40,32 +52,37 @@ const Menu: React.FC<MenuProps> = ({annotations, enabled, onOption}: MenuProps) 
         setRotation(camera.getAttribute('rotation'));
     }, [enabled]);
 
-    return (enabled && annotations) ? 
+    return annotations ? 
             <Entity
                 id="menuEntity"
                 position={{ x: -2 * Math.sin(degToRad(rotation.y)), y: 1.6, z: -2 * Math.cos(degToRad(rotation.y)) }}
                 rotation={{ x: 0, y: rotation.y, z: 0 }}
+                visible={enabled}
             >
                 <Entity position={{x: 0, y: 1/4+(annotations.options.length-2)/2/4, z: 0}}>
                     <Text value={annotations.text} align={"center"} color={"white"} width={2.5}/>
                 </Entity>
-                {annotations.options.map((option: any, index: number) => {
-                    return (
-                        <Plane 
-                            position={{ x: 0, y: -index/4 + ((annotations.options.length-2)/2/4), z: 0}}
-                            height={0.2}
-                            key={index}
-                            id={option.id}
-                            class={"intersectable"}
-                            animation__fusing={{property: "components.material.material.color", type: "color",
-                                                startEvents: ["fusing"], from: "white", to: "grey", dur: 50}}
-                            animation__mouseleave={{property: "components.material.material.color", type: "color",
-                                                    startEvents: ["mouseleave"], to: "white", dur: 150}}
-                        >
-                            <Text value={option.text} align={"center"} color={"black"} width={2} />
-                        </Plane>
-                    );
-                })}
+                { annotations.options.map((option: any, index: number) => {
+                        return (
+                            <Plane 
+                                position={{ x: 0, y: -index/4 + ((annotations.options.length-2)/2/4), z: 0}}
+                                height={0.2}
+                                key={index}
+                                id={option.id}
+                                class={"intersectable"}
+                                animation__fusing={{property: "components.material.material.color", type: "color",
+                                                    startEvents: ["fusing"], from: "white", to: "grey", dur: 50}}
+                                animation__mouseleave={{property: "components.material.material.color", type: "color",
+                                                        startEvents: ["mouseleave"], to: "white", dur: 150}}
+                                visible={!feedback.text ? true : false}
+                            >
+                                <Text value={option.text} align={"center"} color={"black"} width={2} />
+                            </Plane>
+                        );
+                    })
+                }
+                {feedback.text ? <Feedback id={feedback.id} text={feedback.text} onContinue={handleContinue} />: null}
+
             </Entity>
         : 
             null;

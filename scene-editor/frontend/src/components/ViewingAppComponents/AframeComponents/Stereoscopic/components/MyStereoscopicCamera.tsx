@@ -9,12 +9,12 @@ interface Props {
   near?: number;
   reverseMouseDrag?: boolean;
   wasdControlsEnabled?: boolean;
+  id?: string;
 }
 
 export default function MyStereoscopicCamera(props: Props & EntityProps): JSX.Element {
   return (
     <Camera
-        id="mainCamera"
         stereoscopic-camera="eye: left;"
         position={{ x: 0, y: 0, z: 10 }}
         {...props}

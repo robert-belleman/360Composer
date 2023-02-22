@@ -3,16 +3,10 @@ import AFRAME from 'aframe';
 
 import {
     Assets,
-    Camera,
     Entity,
-    VideoSphere
 } from '@belivvr/aframe-react';
-
-import { stereoscopic } from './Stereoscopic';
 import MyStereoscopicCamera from "./Stereoscopic/components/MyStereoscopicCamera";
-import MyStereoscopicVideo from "./Stereoscopic/components/MyStereoscopicVideo";
-
-stereoscopic(AFRAME);
+import StereoVideo from "./Stereoscopic/components/StereoVideo";
 
 interface VideoPlayerProps {
     video: any
@@ -24,31 +18,24 @@ const gazeTime : number = 2000
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, onEnded}: VideoPlayerProps) => {
     const videoAsset : any = useRef(undefined);
+    const [oldVideo, setOldVideo] = useState({id: "", src: ""});
 
     useEffect(() => {
-        paused ? videoAsset.current?.pause() : videoAsset.current?.play()
-    }, [paused, videoAsset]);
-
-    useEffect(() => {
+        if (!video) {return}
         videoAsset.current.currentTime = 0;
-        videoAsset.current.ontimeupdate = (event: any) => {
-            onTimeUpdate(event.target.currentTime);
-        };
-        videoAsset.current.addEventListener('ended', onEnded, false);
-    }, [video]);
+        setOldVideo({id: `video${video.id}`, src: `http://localhost:8080/asset/${video.path}`});
+    }, [video, videoAsset]);
 
-    var assets = (
-        <Assets>
-            <video
-                ref={videoAsset}
-                id="aframevideo"
-                src={`/asset/${video.path}`} //DEVSRC
-                controls
-                autoPlay={false}
-                crossOrigin="crossorigin"
-            />
-        </Assets>
-    );
+    useEffect(() => {
+        videoAsset.current.addEventListener('ended', onEnded, false);
+        return () => videoAsset.current.removeEventListener("ended", onEnded, false);
+    }, []);
+
+    useEffect(() => {
+        if (!video) {return}
+        paused ? videoAsset.current?.pause() : videoAsset.current?.play()
+    }, [video, paused, videoAsset]);
+
     
     const cursor = (
         <Entity 
@@ -70,38 +57,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
         />
     );
 
-    return ( 
-        video.view_type === 'ViewType.mono' ? 
-            <>
-            {assets}
-            <Entity position={{x: 0, y:0, z: 0}}>
-                <Camera id="mainCamera" wasdControlsEnabled={false}>
-                    {paused ? cursor : null}
-                </Camera>
-            </Entity>
-            <VideoSphere
-                id ="videosphere"
-                src="#aframevideo"
-                autoplay
-            />
-            </>
-        :
-            <>
-            {assets}
-            <MyStereoscopicCamera
-                wasdControlsEnabled={false}
-                prop
-                position={{x: 0, y:1.6, z: 0}}
-            >
-                {paused ? cursor : null}
-            </MyStereoscopicCamera>
-            <MyStereoscopicVideo
-                src="#aframevideo"
-                mode="full"
-                split={(video.view_type === 'ViewType.sidetoside')? 'vertical': 'horizontal'}
-            />
-            </>
-      );
+    return (
+        <>
+        <Assets>
+            <video
+                ref={videoAsset}
+                // id="aframeVideo"
+                id={video ? `video${video.id}` : oldVideo.id}
+                controls
+                autoPlay={false}
+                src={video ? `http://localhost:8080/asset/${video.path}`: oldVideo.src} //DEVSRC
+                crossOrigin="crossorigin"
+                onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
+            /> 
+        </Assets>
+        <MyStereoscopicCamera
+                    id="mainCamera"
+                    wasdControlsEnabled={false}
+                    position={{x: 0, y:1.6, z: 0}}
+        >
+            {paused ? cursor : null}
+        </MyStereoscopicCamera>
+        <StereoVideo
+            src={video ? `#video${video.id}` : `#${oldVideo.id}`}
+            mode="full"
+            split= {(video && video.view_type === 'ViewType.sidetoside') ? 'vertical': 'horizontal'}
+            stereo= {(video && video.view_type !== 'ViewType.mono')}
+        />
+        </>
+    );
 };
 
 export default VideoPlayer;

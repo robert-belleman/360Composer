@@ -23,7 +23,7 @@ const Player: React.FC = () => {
         }
     };
 
-    return loggedIn ? <ViewingAppController timelineId={timelineID} onFinish={() => console.log("FINISHED")}/> :
+    return loggedIn ? <ViewingAppController timelineId={timelineID}/> :
      (
         <Container>
             <Grid container spacing={2}>

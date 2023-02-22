@@ -1,25 +1,27 @@
 import React  from 'react';
 import { VideoSphere } from '@belivvr/aframe-react';
 
-interface MyStereoscopicVideoProps {
+interface StereoVideoProps {
   src: string;
   mode?: 'full' | 'half';
+  stereo?: boolean;
   split?: 'horizontal' | 'vertical'
 }
 
-export default function MyStereoscopicVideo ({
+export default function StereoVideo ({
   src,
   mode = 'full',
+  stereo = false,
   split = 'horizontal'
-}: MyStereoscopicVideoProps) : JSX.Element {
+}: StereoVideoProps) : JSX.Element {
   return <>
       <VideoSphere
         src={src}
-        stereoscopic-video={`eye: left; mode: ${mode}; split: ${split};`}
+        my-stereoscopic-video={{eye: 'left', mode: mode, stereo: stereo, split: split}}
       />
       <VideoSphere
         src={src}
-        stereoscopic-video={`eye: right; mode: ${mode}; split: ${split};`}
+        my-stereoscopic-video={{eye: 'right', mode: mode, stereo: stereo, split: split}}
       />
     </>
 }

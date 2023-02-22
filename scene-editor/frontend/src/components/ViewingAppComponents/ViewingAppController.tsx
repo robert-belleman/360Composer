@@ -1,4 +1,5 @@
 import axios from "axios";
+import { time } from "console";
 import { set } from "lodash";
 import React, { useEffect, useState } from "react";
 import ViewingAppAframe from "./ViewingAppAframe";
@@ -7,10 +8,10 @@ interface ViewingAppControllerProps {
     sceneId?: string,
     scenarioId?: string,
     timelineId?: string,
-    onFinish: Function
+    onFinish?: Function
 }
 
-const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", onFinish=()=>{}}: ViewingAppControllerProps) => {
+const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", onFinish}: ViewingAppControllerProps) => {
     const [scene, setScene]: any  = useState(undefined);
     const [currentVideo, setCurrentVideo]: any = useState(undefined);
     const [currentAnnotations, setCurrentAnnotations]: any = useState(undefined);
@@ -74,44 +75,63 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     const setNewScene = (id: string) => {
         setLoading();
         removeScene();
+
         if (timelineId) {
-            const newScene = scenario.scenes.find((scene: any) => {return scene.scene_id === id});
+            const newScene = scenario.scenes.find((scene: any) => {return scene.id === id});
             setScene(newScene);
         } else {
             fetchSceneData(id);
         }
     };
 
-    const onFinishScene = (actionId: string = "") => {
-        if (actionId) {
-            const sceneLinks: any = timelineId ? scene.links : scenario.scenes.find((targetScene: any) => targetScene.scene_id === scene.id).links;
-            
-            if(sceneLinks.length) {
-                const action = sceneLinks.find((link:any) => link.action_id === actionId);
-                if (action.targetId !== "") {
-                    const newSceneId = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id).scene_id;
-                    setNewScene(newSceneId);
-                    return 'resume';
-                } else {
-                    if (!onFinish()) {
-                        return 'end';
-                    } 
-                    return;
-                }
-            } else {
-                if (!onFinish()) {
-                    setNewScene(scenario.scenes[0].scene_id);
-                    return 'end';
-                } 
-                return;
-            }
-        } else {
-            if (!onFinish()) {
-                setNewScene(scene.id);
-                return 'end';
-            }
+    const setNewScenario = () => {
+        if (timeline.randomized) {
+            setScenario(timeline.scenarios[Math.floor(Math.random() * timeline.scenarios.length)])
             return;
         }
+        const firstScenario = timeline.scenarios.find((scenario: any) => {return scenario.uuid === timeline.start});
+        setScenario(firstScenario);
+    }
+
+    const onFinishScenario = () => {
+        console.log("new scenario")
+        if (scenarioId) {
+            setNewScene(scenario.start_scene);
+            return;
+        }
+        setNewScenario();
+    }
+
+    const onFinishScene = (actionId: string = "") => {
+        // Call onFinish when scene is ended
+        if (!actionId && onFinish) { onFinish(); return; }
+
+        // If only playing scene reload scene
+        if (!actionId && !onFinish && sceneId) { 
+            setNewScene(scene.id);
+            return 'end';
+        }
+
+        // Find all links of current scene
+        const sceneLinks: any = timelineId ? scene.links : scenario.scenes.find((targetScene: any) => targetScene.scene_id === scene.id).links;
+        
+        // If no action id load first scene
+        if (!actionId && !onFinish && !sceneId) { 
+            onFinishScenario();
+            return 'end';
+        }
+
+        if (!sceneLinks.length && onFinish) { onFinish(); return 'end' }
+        if (!sceneLinks.length) { return 'end' }
+
+        const action = sceneLinks.find((link:any) => link.action_id === actionId);
+        if (!action.target_id && onFinish) { onFinish(); return 'end' }
+        if (!action.target_id) { onFinishScenario(); return 'end' }
+
+        const newSceneId = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id).id;
+
+        setNewScene(newSceneId);
+        return 'resume';
     };
 
     useEffect(() => {
@@ -134,20 +154,14 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     useEffect(() => {
         if (timeline) {
-            let firstScenario = timeline.scenarios.find((scenario: any) => {return scenario.uuid === timeline.start});
-            setScenario(firstScenario);
+            setNewScenario()
         }
     }, [timeline]);
 
     useEffect(() => {
         if(scenario) {
             let firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
-            setNewScene(firstScene.scene_id);
-            return;
-        }
-        if(scenario) {
-            let firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
-            fetchSceneData(firstScene.scene_id);
+            setNewScene(firstScene.id);
             return;
         }
     }, [scenario]);
