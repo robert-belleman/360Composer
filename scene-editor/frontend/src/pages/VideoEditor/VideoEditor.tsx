@@ -138,6 +138,10 @@ interface Clip {
   data: Asset, // asset data from database
 }
 
+interface CurVideo {
+  clipid: number,
+  asset: Asset,
+}
 
 // Generates a custom toolbar for the DataGrid which displays the assets
 function CustomToolbar() {
@@ -206,6 +210,9 @@ const VideoEditor: React.FC = () => {
       const newItemsArray = arrayMove(clips, oldIndex, newIndex);
       setClips(newItemsArray);
     }
+
+    console.log("Drag ended");	
+    console.log(clips);	
   }
 
   //Timeline variables
@@ -220,7 +227,7 @@ const VideoEditor: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<UniqueIdentifier[]>([]);
 
 
-  const [currentVideo, setCurrentVideo] = useState<Asset>();
+  const [currentVideo, setCurrentVideo] = useState<CurVideo>();
   const [selectionModel, setSelectionModel] = React.useState<GridSelectionModel>([]);
 
   const onAssetSelectionReset = () => {
@@ -389,14 +396,17 @@ const VideoEditor: React.FC = () => {
     let durationSum = 0;
     for (let i = 0; i < clips.length; i++) {
       console.log("check clip " + i);
-      if (newValue < clips[i].videoFrames + durationSum) {
+      if (newValue <= clips[i].videoFrames + durationSum) {
         console.log("current clip = " + i);
         clipIndex = i;
 
         // If current clip is not the same as the current video, 
         // set the current video to the new clip.
-        if (clips[i].data !== currentVideo) {
-          setCurrentVideo(clips[i].data);   
+        if (currentVideo && (clips[i].id !== currentVideo.clipid)) {
+          setCurrentVideo({
+            clipid: clips[i].id as number, 
+            asset: clips[i].data
+          });   
         }
 
         break;
@@ -425,15 +435,17 @@ const VideoEditor: React.FC = () => {
     setTimelineIndicator(newValue as number);
   };
 
+  // Does nothing yet
   const handleTimelineIndicatorChangeCommitted = (event: Event | React.SyntheticEvent<Element, Event>, newValue: number | number[]) => {
-    setCurrentTimelineTimeUpdate(newValue as number);
+    // setCurrentTimelineTimeUpdate(newValue as number);
     console.log("handleTimelineIndicatorChangeCommitted:" + newValue)
   };
 
   const setTimelineIndicator = (frame: number) => {
     setCurrentTimelineTime(frame);
     let {clipIndex, durationSum} = checkClip(frame);
-    let cliptime = (frame - durationSum) / clips[clipIndex].videoFps;
+    // let cliptime = (frame - durationSum) / clips[clipIndex].videoFps;
+    let cliptime = framesToTimeRounded(frame - durationSum, clips[clipIndex].videoFps);
     updateVideoTime(cliptime);
   }
 
@@ -465,7 +477,7 @@ const VideoEditor: React.FC = () => {
       {
         resolution: 32,
         clickToPlay: false,
-        autoPlay: false,
+        autoPlay: true,
         loop: false,
         poster: posterURL,
 
@@ -475,6 +487,12 @@ const VideoEditor: React.FC = () => {
     setVideoDome(videoDome);
   };
 
+
+  const cliptimeToTimelinetime = (time: number) => {
+    // Check which clip is currently playing
+
+
+  }
 
   // Load the video into the Babylon videodome
   const loadVideo = () => {
@@ -487,16 +505,19 @@ const VideoEditor: React.FC = () => {
     // const assetPaths = assets.map((asset: any) => `/asset/${asset.path}`);
     // let videotmp = assets.find((asset: any) => asset.id === currentVideo);
     // let video = videotmp ? "/asset/" + videotmp.path : "";
-    console.log("currentVideo: " + currentVideo.path)
-    makeVideoDome(currentVideo)
+    console.log("currentVideo: " + currentVideo.asset.path)
+    makeVideoDome(currentVideo.asset)
 
     // reset video transport
-    setCurrentVideoLength(videoDome.videoTexture.video.duration)  //TODO make duration work
-    setCurrentVideoTime(0);
+    videoDome.videoTexture.video.currentTime = 0;
+    videoDome.videoTexture.video.pause();
+    // setCurrentVideoLength(videoDome.videoTexture.video.duration)  //TODO make duration work
+    // setCurrentVideoTime(0);
 
     // make sure playback is updated
     videoDome.videoTexture.video.ontimeupdate = (event: any) => {
       setCurrentVideoTime(event.target.currentTime);
+      // TODO: update the timeline indicator to the correct position.
     };
 
     videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
@@ -506,6 +527,21 @@ const VideoEditor: React.FC = () => {
 
     videoDome.videoTexture.video.addEventListener("ended", function () {
       console.log("Video has ended");
+      // Go to next clip if the timeline is playing
+      if (currentVideo !== undefined && currentVideo.clipid > 0) {
+        // Go to next clip if there is one
+        
+        let index = clips.findIndex((clip: any) => clip.id === currentVideo.clipid);
+        // let newIndex = index + 1 > clips.length - 1 ? 0 : 
+        // index + 1
+        if (index + 1 > clips.length - 1) {
+          let newIndex = index + 1;
+          setCurrentVideo({
+            clipid: clips[newIndex].id as number,
+            asset: clips[newIndex].data
+          });
+        }
+      }
     });
 
   };
@@ -514,6 +550,20 @@ const VideoEditor: React.FC = () => {
   useEffect(() => {
     if (currentVideo) {
       loadVideo();
+    } else {
+      videoDome = new VideoDome(
+        "videoDome",
+        "/asset/" + "undefined.mp4",
+        {
+          resolution: 32,
+          clickToPlay: false,
+          autoPlay: true,
+          loop: false,
+  
+        },
+        babylonScene
+      );
+      setVideoDome(videoDome);
     }
   }, [currentVideo]);
 
@@ -747,7 +797,11 @@ const VideoEditor: React.FC = () => {
     //   console.log("no video found for clicked row in assetList");
     // }
     console.log("video clicked:" + video)
-    setCurrentVideo(video);
+    setCurrentVideo({
+      clipid: -1,
+      asset: video,
+    });
+    
     loadVideo()
 
   };
