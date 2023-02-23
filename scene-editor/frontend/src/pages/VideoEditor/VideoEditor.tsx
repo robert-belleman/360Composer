@@ -134,7 +134,8 @@ interface Clip {
   videoFrames: number,
   startFrame: number,
   endFrame: number,
-  trim: [number, number]
+  trim: [number, number],
+  relStartFrame: number,
   data: Asset, // asset data from database
 }
 
@@ -197,6 +198,22 @@ const VideoEditor: React.FC = () => {
     })
   );
 
+  function updateRelStartFrames() {
+    // let rel = 0;
+    // clips.forEach((clip: Clip, index: number) => {
+    //   console.log("updateRelStartFrames. clip= " + index + ", " + rel);
+    //   clips[index].relStartFrame = rel;
+    //   rel += clip.endFrame;
+    // });
+
+    let rel = 0;
+    for (let i = 0; i < clips.length; i++) {
+      console.log("updateRelStartFrames. clip= " + i + ", " + rel);
+      clips[i].relStartFrame = rel;
+      rel += clips[i].endFrame;
+    }
+  }
+
   // Define the handleDragEnd function
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -209,6 +226,8 @@ const VideoEditor: React.FC = () => {
       const newIndex = clips.findIndex(item => item.id === over.id);
       const newItemsArray = arrayMove(clips, oldIndex, newIndex);
       setClips(newItemsArray);
+
+      updateRelStartFrames();
     }
 
     console.log("Drag ended");	
@@ -376,8 +395,11 @@ const VideoEditor: React.FC = () => {
         startFrame: 0,
         endFrame: asset.frames,
         trim: [0, asset.frames],
+        relStartFrame: 0, // Update later       
         data: asset, //json assetdata from database
       }]);
+
+      
 
       console.log("clips:")
       console.log(clips)
@@ -387,8 +409,11 @@ const VideoEditor: React.FC = () => {
 
     setUidCounter(uidCounter + len);
 
+    updateRelStartFrames();
+
     // Reset the checkbox selection.
     onAssetSelectionReset();
+
   }
 
   function checkClip(newValue: any) {
@@ -403,6 +428,7 @@ const VideoEditor: React.FC = () => {
         // If current clip is not the same as the current video, 
         // set the current video to the new clip.
         if (currentVideo && (clips[i].id !== currentVideo.clipid)) {
+          console.log("set current video to clip " + i)
           setCurrentVideo({
             clipid: clips[i].id as number, 
             asset: clips[i].data
@@ -432,7 +458,7 @@ const VideoEditor: React.FC = () => {
 
 
 
-    setTimelineIndicator(newValue as number);
+    updateTimelineIndicator(newValue as number);
   };
 
   // Does nothing yet
@@ -441,11 +467,17 @@ const VideoEditor: React.FC = () => {
     console.log("handleTimelineIndicatorChangeCommitted:" + newValue)
   };
 
-  const setTimelineIndicator = (frame: number) => {
+  const setTimelineIndicatorFromClip = (frame: number, clipid: number) => {
+    let currentTimelineFrame = frame + clips[clipid].relStartFrame;
+    setCurrentTimelineTime(currentTimelineFrame);
+  }
+
+  const updateTimelineIndicator = (frame: number) => {
     setCurrentTimelineTime(frame);
     let {clipIndex, durationSum} = checkClip(frame);
     // let cliptime = (frame - durationSum) / clips[clipIndex].videoFps;
     let cliptime = framesToTimeRounded(frame - durationSum, clips[clipIndex].videoFps);
+    console.log("cliptime: " + cliptime)
     updateVideoTime(cliptime);
   }
 
@@ -477,7 +509,7 @@ const VideoEditor: React.FC = () => {
       {
         resolution: 32,
         clickToPlay: false,
-        autoPlay: true,
+        autoPlay: false,
         loop: false,
         poster: posterURL,
 
@@ -510,14 +542,22 @@ const VideoEditor: React.FC = () => {
 
     // reset video transport
     videoDome.videoTexture.video.currentTime = 0;
-    videoDome.videoTexture.video.pause();
+    setCurrentVideoTime(0);
+    
     // setCurrentVideoLength(videoDome.videoTexture.video.duration)  //TODO make duration work
-    // setCurrentVideoTime(0);
 
     // make sure playback is updated
     videoDome.videoTexture.video.ontimeupdate = (event: any) => {
       setCurrentVideoTime(event.target.currentTime);
+      // setCurrentTimelineTime(event.target.currentTime);
+      // playing ?  : null ;
+      if (playing) {
+        setTimelineIndicatorFromClip(event.target.currentTime * currentVideo.asset.fps, currentVideo.clipid)
+      }
       // TODO: update the timeline indicator to the correct position.
+
+
+
     };
 
     videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
@@ -527,14 +567,20 @@ const VideoEditor: React.FC = () => {
 
     videoDome.videoTexture.video.addEventListener("ended", function () {
       console.log("Video has ended");
+      console.log(currentVideo)
+      console.log("clipid of currentvideo=" + currentVideo.clipid)
       // Go to next clip if the timeline is playing
       if (currentVideo !== undefined && currentVideo.clipid > 0) {
         // Go to next clip if there is one
+        console.log("clip playing in timeline. Checking the position of the current clip.")
         
-        let index = clips.findIndex((clip: any) => clip.id === currentVideo.clipid);
-        // let newIndex = index + 1 > clips.length - 1 ? 0 : 
-        // index + 1
-        if (index + 1 > clips.length - 1) {
+        // Use (+ 1) because the clipid is 1-indexed
+        let index = clips.findIndex((clip: any) => clip.id == currentVideo.clipid);
+        console.log("position of current clip: " + index)
+
+        // Find next clip
+        if (index + 1 < clips.length) {
+          console.log("next clip found. Setting current video to next clip.")
           let newIndex = index + 1;
           setCurrentVideo({
             clipid: clips[newIndex].id as number,
@@ -619,6 +665,9 @@ const VideoEditor: React.FC = () => {
   const updateVideoTime = (value: number) => {
     setCurrentVideoTime(value);
     videoDome.videoTexture.video.currentTime = value;
+    // if (currentVideo) {
+    //   setTimelineIndicatorFromClip(value * currentVideo.asset.fps, currentVideo.clipid)
+    // }
   }
 
   const updateVideo = (event: any, newValue: number | number[]) => {
@@ -1012,7 +1061,7 @@ const VideoEditor: React.FC = () => {
                                 handleClipSelect(clip.id)
                               }
                             }
-                            setTimelineIndicator = {setTimelineIndicator}
+                            setTimelineIndicator = {updateTimelineIndicator}
                           >
                           </SortableItem>
                         )

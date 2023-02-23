@@ -179,7 +179,8 @@ function SortableItem(props: any) {
 
 
   const [thumbValue, setThumbValue] = React.useState([props.clip.trim[0], props.clip.trim[1]]);
-
+  const [endThumbValue, setEndThumbValue] = React.useState([props.clip.trim[0], props.clip.trim[1]]);
+  
   
   const clipWidth = props.clip.endFrame * props.viewZoom;
   // const clipWidth = props.clip.endFrame;
@@ -197,14 +198,14 @@ function SortableItem(props: any) {
   // Set handles at the correct position when the thumbhandle is moved.
   const handleChange = (event: Event, newValue: number | number[]) => {
 
-    const [leftValue, rightValue] = newValue as number[];
-    if (leftValue !== thumbValue[0]) {
-      console.log("Left handle moved")
-      props.setTimelineIndicator(leftValue);
-    } else if (rightValue !== thumbValue[1]) {
-      console.log("Right handle moved")
-      props.setTimelineIndicator(rightValue);
-    }
+    // const [leftValue, rightValue] = newValue as number[];
+    // if (leftValue !== thumbValue[0]) {
+    //   console.log("Left handle moved")
+    //   props.setTimelineIndicator(leftValue);
+    // } else if (rightValue !== thumbValue[1]) {
+    //   console.log("Right handle moved")
+    //   props.setTimelineIndicator(rightValue);
+    // }
 
     
     setThumbValue(newValue as number[]);
@@ -212,13 +213,25 @@ function SortableItem(props: any) {
 
 
   const handleChangeEnd = (event: React.SyntheticEvent | Event, newValue: number | number[]) => {
-    // clip.trim = thumbValue;
     // TODO: Css trimmed part delete.
 
     if (!(Array.isArray(newValue) && newValue.length === 2)) {
       console.log("Error: new trimvalue is not an array of length 2.")
       return;
     }
+
+    console.log("New trim value: ", newValue)
+
+    const [leftValue, rightValue] = newValue as number[];
+    if (leftValue !== endThumbValue[0]) {
+      console.log("Left handle moved")
+      props.setTimelineIndicator(leftValue);
+    } else if (rightValue !== endThumbValue[1]) {
+      console.log("Right handle moved")
+      props.setTimelineIndicator(rightValue);
+    }
+
+    setEndThumbValue(newValue as number[]);
 
     props.clip.trim = [...newValue] as [number, number];
   };
