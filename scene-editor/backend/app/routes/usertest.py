@@ -24,7 +24,7 @@ ns = api.namespace("usertest")
 @ns.response(HTTPStatus.NOT_FOUND, "Usertest not found")
 class GetUserTest(Resource):
 
-    @user_or_customer_jwt_required
+    @user_jwt_required
     @ns.marshal_with(usertest_schema)
     def get(self):
         """
@@ -47,10 +47,18 @@ class PostUserTest(Resource):
         row = UserTestModel(
             device = api.payload['device'],
             os = api.payload['os'],
-            workedbaby = api.payload['workedbaby'],
-            commentsbaby = api.payload['commentsbaby'],
-            workedaframe = api.payload['workedAframe'],
-            commentsaframe = api.payload['commentsAframe']
+            browser = api.payload['browser'],
+            hmd = api.payload['hmd'],
+            workedbaboon = api.payload['workedBaboonAframe'],
+            workedtopbottom = api.payload['workedTopBottom'],
+            workedsidebyside = api.payload['workedSideBySide'],
+            commentsaframe = api.payload['commentsAframe'],
+            detectedbrowsername = api.payload['detectedBrowserName'],
+            detectedbrowserversion = api.payload['detectedBrowserVersion'],
+            detectedosname = api.payload['detectedOsVersion'],
+            detectedosversion = api.payload['detectedOsVersion'],
+            detectedmobilevendor = api.payload['detectedMobileVendor'],
+            detectedmobilemodel = api.payload['detectedMobileModel'],
         )
 
         db.session.add(row)

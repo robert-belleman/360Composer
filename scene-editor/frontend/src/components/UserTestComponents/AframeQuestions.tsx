@@ -1,19 +1,13 @@
 import React, {useState} from "react";
-import { Button, TextField, Select, MenuItem } from '@mui/material';
+import { Button, TextField, Select, MenuItem, Container, Grid, Checkbox } from '@mui/material';
 import { UserTestComponentProps } from "./ComponentProps";
 
 const AframeQuestions: React.FC<UserTestComponentProps> = ({onFinish, userInput, submit}) => {
 
-    const [workedBool, setWorkedBool] = useState(userInput['workedbaby']);
-    const [commentsText, setCommentsText] = useState(userInput['commentsbaby']);
-    
-    const handleWorkedChange = (event: any) => {
-        if (event.target.value === 1) {
-            setWorkedBool(true);
-        } else {
-            setWorkedBool(false);
-        }
-    };
+    const [workedBaboon, setWorkedBaboon] = useState(userInput['workedBaboonAframe']);
+    const [workedTopBottom, setWorkedTopBottom] = useState(userInput['workedTopBottom']);
+    const [workedSideBySide, setWorkedSideBySide] = useState(userInput['workedSideBySide']);
+    const [commentsText, setCommentsText] = useState(userInput['commentsAframe']);
 
     const handleCommentsChange = (event: any) => {
         setCommentsText(event.target.value);
@@ -21,37 +15,67 @@ const AframeQuestions: React.FC<UserTestComponentProps> = ({onFinish, userInput,
 
     const submitInput = async () => {
         var newInput = userInput;
-        newInput.workedAframe = workedBool;
+        newInput.workedBaboonAframe = workedBaboon;
+        newInput.workedTopBottom = workedTopBottom;
+        newInput.workedSideBySide = workedSideBySide;
         newInput.commentsAframe = commentsText;
         submit(newInput);
         onFinish();
     };
 
     return (
-        <>
-            <Select
-                id="worked-baby-select"
-                value={workedBool}
-                label="Worked"
-                onChange={handleWorkedChange}
-            >
-                <MenuItem value={1}>Yes</MenuItem>
-                <MenuItem value={0}>No</MenuItem>
-            </Select>
-            <TextField
-                autoFocus
-                margin="dense"
-                id="device"
-                label="Device name"
-                type="text"
-                fullWidth
-                value={commentsText}
-                onChange={handleCommentsChange} 
-            />
-            <Button onClick={() => { submitInput(); } } color="primary">
-                Submit
-            </Button>
-        </>
+        <Container>
+            <Grid container spacing={2}>
+                <Grid xs={12} item={true}>
+                    <h2>Thank you for playing</h2>
+                </Grid>
+                <Grid xs={12} item={true}>
+                    Please answer some of the following questions regarding the experiment:
+                </Grid>
+                <Grid xs={6} item={true}>
+                    Did you see the baboon in scene 1?
+                </Grid>
+                <Grid xs={6} item={true}>
+                    <Checkbox checked={workedBaboon} onChange={(e) => setWorkedBaboon(e.target.checked)} />
+                </Grid>
+                <Grid xs={6} item={true}>
+                    Was the whole screen orange in scene 2?
+                </Grid>
+                <Grid xs={6} item={true}>
+                    <Checkbox checked={workedTopBottom} onChange={(e) => setWorkedTopBottom(e.target.checked)} />
+                </Grid>
+                <Grid xs={6} item={true}>
+                    Was the whole screen orange in scene 3?
+                </Grid>
+                <Grid xs={6} item={true}>
+                    <Checkbox checked={workedSideBySide} onChange={(e) => setWorkedSideBySide(e.target.checked)} />
+                </Grid>
+                <Grid xs={12} item={true}>
+                    If one of the questions above was not marked. Please comment below on what happened.
+                </Grid>
+                <Grid xs={6} item={true}>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="comments"
+                        label="Comments"
+                        type="text"
+                        fullWidth
+                        value={commentsText}
+                        maxRows={5}
+                        minRows={5}
+                        multiline
+                        onChange={(e) => setCommentsText(e.target.value)}
+                    />
+                </Grid>
+                <Grid xs={12} item={true}>
+                    <Button onClick={() => { submitInput(); } } color="primary">
+                        Submit
+                    </Button>
+                </Grid>
+
+            </Grid>
+        </Container>
     );
 };
 

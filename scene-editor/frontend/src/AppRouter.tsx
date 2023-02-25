@@ -58,6 +58,7 @@ const AppRouter: React.FC = () => {
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
                     <Route path="/app/usertest" element={<UserTest/>}/>
+                    <Route path="/app/usertest/:pageID" element={<UserTest/>}/>
                     <Route path="/player/:timelineID/:uuID" element={<Player/>} />
                     <Route path="/app/*" element={<Login/>} />
                 </Routes>
@@ -69,6 +70,7 @@ const AppRouter: React.FC = () => {
                     <Route path="/app/register-done" element={<RegisterDone/>}></Route>
                     <Route path="/app/*" element={<Login/>} />
                     <Route path="/app/usertest" element={<UserTest/>}/>
+                    <Route path="/app/usertest/:pageID" element={<UserTest/>}/>
                     <Route path="/player/:timelineID/:uuID" element={<Player/>} />
                 </Routes>
             </BrowserRouter>

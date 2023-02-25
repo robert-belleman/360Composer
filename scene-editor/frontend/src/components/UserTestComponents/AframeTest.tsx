@@ -3,11 +3,11 @@ import ViewingAppController from "../ViewingAppComponents/ViewingAppController";
 import { UserTestComponentProps } from "./ComponentProps";
 
 const AframeTest: React.FC<UserTestComponentProps> = ({onFinish, active=false}) => {
-    const timelineId = "caf55a86-8a2b-4483-a936-1660373bff4b"
+    const timelineId = "f010c252-6921-48f2-8c5d-a418477df268"
     const endTest = async () => {
         onFinish();
     };
-    return active ? <ViewingAppController sceneId="" scenarioId="" timelineId={timelineId} onFinish={endTest} /> : null;
+    return active ? <ViewingAppController timelineId={timelineId} onFinish={endTest} /> : null;
 };
 
 export default AframeTest;

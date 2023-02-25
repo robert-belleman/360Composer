@@ -3,6 +3,7 @@ type UserTestComponentProps = {
     onFinish: any,
     userInput: any,
     submit: Function
+    skip?: Function
 };
 
 export type {UserTestComponentProps};

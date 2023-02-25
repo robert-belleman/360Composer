@@ -28,7 +28,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
 
     useEffect(() => {
         videoAsset.current.addEventListener('ended', onEnded, false);
-        return () => videoAsset.current.removeEventListener("ended", onEnded, false);
     }, []);
 
     useEffect(() => {

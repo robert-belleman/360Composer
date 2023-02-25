@@ -11415,14 +11415,14 @@ react-dev-utils@^11.0.3:
     strip-ansi "6.0.0"
     text-table "0.2.0"
 
-react-device-detect@^2.1.2:
-  version "2.1.2"
-  resolved "https://registry.npmjs.org/react-device-detect/-/react-device-detect-2.1.2.tgz"
-  integrity sha512-N42xttwez3ECgu4KpOL2ICesdfoz8NCBfmc1rH9FRYSjH7NmMyANPSrQ3EvAtJyj/6TzJNhrANSO38iXjCB2Ug==
+react-device-detect@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.npmjs.org/react-device-detect/-/react-device-detect-2.2.3.tgz"
+  integrity sha512-buYY3qrCnQVlIFHrC5UcUoAj7iANs/+srdkwsnNjI7anr3Tt7UY6MqNxtMLlr0tMBied0O49UZVK8XKs3ZIiPw==
   dependencies:
-    ua-parser-js "^0.7.30"
+    ua-parser-js "^1.0.33"
 
-react-dom@*, "react-dom@^16.8.0 || ^17.0.0", react-dom@^17.0.2, "react-dom@>= 0.14.0 < 18.0.0", "react-dom@>= 16.3.0", "react-dom@>= 16.8.0", react-dom@>=16.13, react-dom@>=16.6.0, react-dom@>=16.8, react-dom@>=17, react-dom@>=17.0, "react-dom@16 || 17":
+react-dom@*, "react-dom@^16.8.0 || ^17.0.0", react-dom@^17.0.2, "react-dom@>= 0.14.0", "react-dom@>= 16.3.0", "react-dom@>= 16.8.0", react-dom@>=16.13, react-dom@>=16.6.0, react-dom@>=16.8, react-dom@>=17, react-dom@>=17.0, "react-dom@16 || 17":
   version "17.0.2"
   resolved "https://registry.npmjs.org/react-dom/-/react-dom-17.0.2.tgz"
   integrity sha512-s4h96KtLDUQlsENhMn1ar8t2bEa+q/YAtj8pPPdIjPDGBDIVNsrD9aXNWqspUe6AzKCIG0C1HZZLqLV7qpOBGA==
@@ -11630,7 +11630,7 @@ react-use-measure@^2.1.1:
   dependencies:
     debounce "^1.2.1"
 
-react@*, "react@^16.14.0 || ^17.0.0", "react@^16.8.0 || ^17.0.0", "react@^16.8.3 || ^17", react@^17.0.2, "react@>= 0.14.0 < 18.0.0", "react@>= 16", "react@>= 16.3.0", "react@>= 16.8", "react@>= 16.8.0", react@>=16.13, react@>=16.6.0, react@>=16.8, react@>=16.8.0, react@>=17, react@>=17.0, "react@16 || 17", react@17.0.2:
+react@*, "react@^16.14.0 || ^17.0.0", "react@^16.8.0 || ^17.0.0", "react@^16.8.3 || ^17", react@^17.0.2, "react@>= 0.14.0", "react@>= 16", "react@>= 16.3.0", "react@>= 16.8", "react@>= 16.8.0", react@>=16.13, react@>=16.6.0, react@>=16.8, react@>=16.8.0, react@>=17, react@>=17.0, "react@16 || 17", react@17.0.2:
   version "17.0.2"
   resolved "https://registry.npmjs.org/react/-/react-17.0.2.tgz"
   integrity sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==
@@ -13571,10 +13571,10 @@ types-aframe-react@^1.0.2:
   resolved "https://registry.npmjs.org/typescript/-/typescript-4.5.2.tgz"
   integrity sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==
 
-ua-parser-js@^0.7.30:
-  version "0.7.31"
-  resolved "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.31.tgz"
-  integrity sha512-qLK/Xe9E2uzmYI3qLeOmI0tEOt+TBBQyUIAh4aAgU05FVYzeZrKUdkAZfBNVGRaHVgV0TDkdEngJSw/SyQchkQ==
+ua-parser-js@^1.0.33:
+  version "1.0.33"
+  resolved "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-1.0.33.tgz"
+  integrity sha512-RqshF7TPTE0XLYAqmjlu5cLLuGdKrNu9O1KLA/qp39QtbZwuzwv1dT46DZSopoUMsYgXpB3Cv8a03FI8b74oFQ==
 
 unbox-primitive@^1.0.1:
   version "1.0.1"

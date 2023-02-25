@@ -9,9 +9,19 @@ class UserTest(db.Model):
     
     device = db.Column(db.String(128))
     os = db.Column(db.String(128))
-    workedbaby = db.Column(db.Boolean)
-    commentsbaby = db.Column(db.String(1024))
-    workedaframe = db.Column(db.Boolean)
+    browser = db.Column(db.String(128))
+    hmd = db.Column(db.String(128))
+    
+    workedbaboon = db.Column(db.Boolean)
+    workedtopbottom = db.Column(db.Boolean)
+    workedsidebyside = db.Column(db.Boolean)
     commentsaframe = db.Column(db.String(1024))
+
+    detectedbrowsername = db.Column(db.String(128))
+    detectedbrowserversion = db.Column(db.String(128))
+    detectedosname = db.Column(db.String(128))
+    detectedosversion = db.Column(db.String(128))
+    detectedmobilevendor = db.Column(db.String(128))
+    detectedmobilemodel = db.Column(db.String(128))
 
     submitted_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
