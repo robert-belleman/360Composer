@@ -72,7 +72,7 @@ const UserTest: React.FC = () => {
 
     useEffect(() => {
         if (!(token.id !== "" && token.id !== null && token.role === 'customer')) {
-            dispatch(logInCustomer('a6d28bb2-78dd-4482-8373-6507d6f5734f', 'test'));
+            dispatch(logInCustomer('a0ba5d4b-3dc9-4d85-8171-b391fb2990d4', 'test'));
         }
     }, [token, dispatch])
 
@@ -82,7 +82,7 @@ const UserTest: React.FC = () => {
     }, [pageID])
 
     useEffect(() => {
-        navigate(`/app/usertest/${index}`)
+        navigate(`/usertest/${index}`)
         CurrentPage = testComponents[index];
     }, [index])
 
@@ -101,7 +101,7 @@ const UserTest: React.FC = () => {
         }
         if(index + 1 < testComponents.length) {
             setIndex(index + 1);
-            navigate(`/app/usertest/${index + 1}`)
+            navigate(`/usertest/${index + 1}`)
             return true;
         }
     }
@@ -110,7 +110,7 @@ const UserTest: React.FC = () => {
         if(index + 2 < testComponents.length) {
             console.log("SKIP PAGE")
             setIndex(index + 2);
-            navigate(`/app/usertest/${index+2}`)
+            navigate(`/usertest/${index+2}`)
             return true;
         }
     }

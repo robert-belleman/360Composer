@@ -1,8 +1,9 @@
 version: '3'
+name: vr_app
 services:
   backend:
     build:
-        context: .
+        context: ./scene-editor/backend
         dockerfile: ops/Dockerfile
     image: backend
     container_name: backend
@@ -14,19 +15,20 @@ services:
         FLASK_APP: app.app
         PYTHONUNBUFFERED: 1
     volumes:
-        - ./:/app
-        - ./assets/:/app/app/static/assets/
+        - ./scene-editor/backend/:/app
+        - ./scene-editor/backend/assets/:/app/app/static/assets/
 
     command: bash -c "/entrypoint.sh"
-    depends_on:
+    depends_on: 
         - postgres
         - redis
-
+  
   worker:
     image: backend
+    container_name: redis-worker
     command: python app/worker.py
     volumes:
-      - ./:/app
+      - ./scene-editor/backend/:/app
     environment:
       REDIS_URL: "redis://redis:6379/0"
       QUEUES: "high,default,low"
@@ -36,11 +38,13 @@ services:
 
   redis:
     image: redis:alpine
+    container_name: redis
+
 
   redis-dashboard:
     build: ./ops/dashboard
-    image: dashboard
-    container_name: dashboard
+    image: redis-dashboard
+    container_name: redis-dashboard
     ports:
       - 9181:9181
     command: rq-dashboard -H redis
@@ -49,6 +53,7 @@ services:
 
   postgres:
     image: postgres:12
+    container_name: postgres-db
     volumes:
       - postgres:/var/lib/postgresql/data
     environment:
@@ -57,20 +62,43 @@ services:
         - POSTGRES_DB=postgres_pcitvr
     restart: unless-stopped
 
+# Geen idee waar deze voor is dus nu even gecomment - 18nov22_rico
+  # adminer:
+  #   image: adminer
+  #   restart: unless-stopped
+  #   depends_on: 
+  #     - postgres
+  #   ports:
+  #     - 8081:8081
+
   nginx:
     image: nginx
+    container_name: nginx-server
     restart: unless-stopped
     build:
       context: .
-      dockerfile: ./ops/Dockerfile.prod.nginx
+      dockerfile: ./ops/Dockerfile.nginx
+      args:
+        BASEPATH: "/app"
     depends_on:
       - backend
     volumes:
       - ./ops/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./assets/:/static/:ro
-      - ../frontend/build:/frontend/build
+      - ./ops/ssl/server.key:/etc/nginx/ssl/server.key:ro
+      - ./ops/ssl/server.crt:/etc/nginx/ssl/server.crt:ro
+      - ./scene-editor/backend/assets/:/static/:ro
     ports:
-      - 8080:8080
+      - 80:80
+      - 443:443
 
+  # player:
+  #   container_name: player
+  #   build:
+  #     context: ./pcit-vr-player
+  #     dockerfile: ./Dockerfile
+  #   restart: unless-stopped
+  #   ports:
+  #     - 3002:3002
+      
 volumes:
   postgres:

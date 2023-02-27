@@ -243,7 +243,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       const posterURL = `/api/asset/${video.id}/thumbnail`;
       videoDome.current = new VideoDome(
         "videoDome", 
-        [`http://localhost:8080/asset/${video.path}`], //#DEV
+        [`/asset/${video.path}`], //#DEV
         {
           resolution: 32,
           clickToPlay: false,

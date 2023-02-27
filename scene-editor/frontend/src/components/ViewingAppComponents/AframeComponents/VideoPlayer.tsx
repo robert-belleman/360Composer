@@ -23,7 +23,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
     useEffect(() => {
         if (!video) {return}
         videoAsset.current.currentTime = 0;
-        setOldVideo({id: `video${video.id}`, src: `http://localhost:8080/asset/${video.path}`});
+        setOldVideo({id: `video${video.id}`, src: `/asset/${video.path}`});
     }, [video, videoAsset]);
 
     useEffect(() => {
@@ -65,7 +65,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
                 id={video ? `video${video.id}` : oldVideo.id}
                 controls
                 autoPlay={false}
-                src={video ? `http://localhost:8080/asset/${video.path}`: oldVideo.src} //DEVSRC
+                src={video ? `/asset/${video.path}`: oldVideo.src} //DEVSRC
                 crossOrigin="crossorigin"
                 onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
             /> 

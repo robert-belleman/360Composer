@@ -50,15 +50,15 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/settings" element={<Settings/>}></Route>
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
-                <Route path="/app/usertest" element={<UserTest/>}/>
+                <Route path="/usertest" element={<UserTest/>}/>
                 <Route path="/player/:timelineID/:uuID" element={<Player/>} />
             </Routes>
         </BrowserRouter>: 
             hasCustomerToken() ?
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
-                    <Route path="/app/usertest" element={<UserTest/>}/>
-                    <Route path="/app/usertest/:pageID" element={<UserTest/>}/>
+                    <Route path="/usertest" element={<UserTest/>}/>
+                    <Route path="/usertest/:pageID" element={<UserTest/>}/>
                     <Route path="/player/:timelineID/:uuID" element={<Player/>} />
                     <Route path="/app/*" element={<Login/>} />
                 </Routes>
@@ -66,11 +66,11 @@ const AppRouter: React.FC = () => {
             :
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
-                    <Route path="/app/register" element={<Register/>}></Route>
-                    <Route path="/app/register-done" element={<RegisterDone/>}></Route>
+                    {/* <Route path="/app/register" element={<Register/>}></Route> */}
+                    {/* <Route path="/app/register-done" element={<RegisterDone/>}></Route> */}
                     <Route path="/app/*" element={<Login/>} />
-                    <Route path="/app/usertest" element={<UserTest/>}/>
-                    <Route path="/app/usertest/:pageID" element={<UserTest/>}/>
+                    <Route path="/usertest" element={<UserTest/>}/>
+                    <Route path="/usertest/:pageID" element={<UserTest/>}/>
                     <Route path="/player/:timelineID/:uuID" element={<Player/>} />
                 </Routes>
             </BrowserRouter>

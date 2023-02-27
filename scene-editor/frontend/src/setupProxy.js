@@ -13,10 +13,19 @@ module.exports = function(app) {
   app.use(
     '/asset/*.mp4',
     createProxyMiddleware({
-      target: 'http://localhost',
+      target: 'http://localhost:5000/api',
       changeOrigin: true,
     })
   );
+
+  // // bit hacky but it works
+  // app.use(
+  //   '/asset/*.mp4',
+  //   createProxyMiddleware({
+  //     target: 'http://localhost',
+  //     changeOrigin: true,
+  //   })
+  // );
 
   app.use(
     '/asset/*.glb',
