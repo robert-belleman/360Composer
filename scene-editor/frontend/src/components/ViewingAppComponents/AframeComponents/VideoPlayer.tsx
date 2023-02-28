@@ -68,6 +68,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
                 src={video ? `/asset/${video.path}`: oldVideo.src} //DEVSRC
                 crossOrigin="crossorigin"
                 onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
+                webkit-playsinline
             /> 
         </Assets>
         <MyStereoscopicCamera
