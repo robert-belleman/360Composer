@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import 'aframe';
-import THREE from 'three';
 
 import {
     Plane,
@@ -9,6 +8,7 @@ import {
 } from '@belivvr/aframe-react';
 import degToRad from "./DegToRad";
 import Feedback from "./FeedBack";
+import { Matrix4, Vector3 } from "three";
 
 interface MenuProps {
     annotations: any
@@ -52,10 +52,13 @@ const Menu: React.FC<MenuProps> = ({annotations, enabled, onOption}: MenuProps) 
         setRotation(camera.getAttribute('rotation'));
     }, [enabled]);
 
-    return annotations ? 
+    const m = new Matrix4().makeTranslation(0,0,0);
+    let position = new Vector3(-2 * Math.sin(degToRad(rotation.y)), 1.6, -2 * Math.cos(degToRad(rotation.y))).applyMatrix4(m);
+    
+    return (
             <Entity
                 id="menuEntity"
-                position={{ x: -2 * Math.sin(degToRad(rotation.y)), y: 1.6, z: -2 * Math.cos(degToRad(rotation.y)) }}
+                position={{ x: position.x, y: position.y, z: position.z }}
                 rotation={{ x: 0, y: rotation.y, z: 0 }}
                 visible={enabled}
             >
@@ -84,8 +87,7 @@ const Menu: React.FC<MenuProps> = ({annotations, enabled, onOption}: MenuProps) 
                 {feedback.text ? <Feedback id={feedback.id} text={feedback.text} onContinue={handleContinue} />: null}
 
             </Entity>
-        : 
-            null;
+    );
 };
 
 export default Menu;

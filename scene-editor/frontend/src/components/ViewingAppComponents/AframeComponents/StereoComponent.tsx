@@ -8,34 +8,16 @@ import {
 import MyStereoscopicCamera from "./Stereoscopic/components/MyStereoscopicCamera";
 import StereoVideo from "./Stereoscopic/components/StereoVideo";
 
-interface VideoPlayerProps {
-    video: any
+interface StereoComponentProps {
+    videoId: string
+    stereoMode: any
     paused: boolean
-    onTimeUpdate: Function
-    onEnded: Function
+    loading: boolean
 }
 const gazeTime : number = 2000
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, onEnded}: VideoPlayerProps) => {
-    const videoAsset : any = useRef(undefined);
-    const [oldVideo, setOldVideo] = useState({id: "", src: ""});
+const StereoComponent: React.FC<StereoComponentProps> = ({videoId, stereoMode, paused, loading}: StereoComponentProps) => {    
 
-    useEffect(() => {
-        if (!video) {return}
-        videoAsset.current.currentTime = 0;
-        setOldVideo({id: `video${video.id}`, src: `/asset/${video.path}`});
-    }, [video, videoAsset]);
-
-    useEffect(() => {
-        videoAsset.current.addEventListener('ended', onEnded, false);
-    }, []);
-
-    useEffect(() => {
-        if (!video) {return}
-        paused ? videoAsset.current?.pause() : videoAsset.current?.play()
-    }, [video, paused, videoAsset]);
-
-    
     const cursor = (
         <Entity 
             raycaster={{far: 30, objects: ".intersectable"}}
@@ -58,19 +40,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
 
     return (
         <>
-        <Assets>
-            <video
-                ref={videoAsset}
-                // id="aframeVideo"
-                id={video ? `video${video.id}` : oldVideo.id}
-                controls
-                autoPlay={false}
-                src={video ? `/asset/${video.path}`: oldVideo.src} //DEVSRC
-                crossOrigin="crossorigin"
-                onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
-                webkit-playsinline
-            /> 
-        </Assets>
         <MyStereoscopicCamera
                     id="mainCamera"
                     wasdControlsEnabled={false}
@@ -79,13 +48,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({video, paused, onTimeUpdate, o
             {paused ? cursor : null}
         </MyStereoscopicCamera>
         <StereoVideo
-            src={video ? `#video${video.id}` : `#${oldVideo.id}`}
+            src={`#${videoId}`}
             mode="full"
-            split= {(video && video.view_type === 'ViewType.sidetoside') ? 'vertical': 'horizontal'}
-            stereo= {(video && video.view_type !== 'ViewType.mono')}
+            split= {(stereoMode === 'ViewType.sidetoside') ? 'vertical': 'horizontal'}
+            stereo= {(stereoMode !== 'ViewType.mono')}
+            visible={!loading}
         />
         </>
     );
 };
 
-export default VideoPlayer;
+export default StereoComponent;

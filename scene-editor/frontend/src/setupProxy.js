@@ -9,14 +9,14 @@ module.exports = function(app) {
     })
   );
 
-  // bit hacky but it works
-  app.use(
-    '/asset/*.mp4',
-    createProxyMiddleware({
-      target: 'http://localhost',
-      changeOrigin: true,
-    })
-  );
+  // // bit hacky but it works
+  // app.use(
+  //   '/asset/*.mp4',
+  //   createProxyMiddleware({
+  //     target: 'http://localhost',
+  //     changeOrigin: true,
+  //   })
+  // );
 
   app.use(
     '/asset/*.glb',

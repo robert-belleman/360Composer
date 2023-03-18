@@ -7,6 +7,7 @@ import {
     Text
 } from '@belivvr/aframe-react';
 import degToRad from "./DegToRad";
+import {Matrix4, Vector3} from'three';
 
 interface StartMenuProps {
     onStart: Function
@@ -35,8 +36,12 @@ const StartMenu: React.FC<StartMenuProps> = ({onStart}: StartMenuProps) => {
         setRotation(camera.getAttribute('rotation'));
     }, []);
 
-    return <Entity
-                position={{ x: -2 * Math.sin(degToRad(rotation.y)), y: 1.6, z: -2 * Math.cos(degToRad(rotation.y)) }}
+    const m = new Matrix4().makeTranslation(0,0,0);
+    let position = new Vector3(-2 * Math.sin(degToRad(rotation.y)), 1.6, -2 * Math.cos(degToRad(rotation.y))).applyMatrix4(m);
+
+    return (
+        <Entity
+                position={{ x: position.x, y: position.y, z: position.z }}
                 rotation={{ x: 0, y: rotation.y, z: 0 }}
         >
             <Entity position={{x: 0, y: 1/4+(-1)/2/4, z: 0}}>
@@ -55,6 +60,7 @@ const StartMenu: React.FC<StartMenuProps> = ({onStart}: StartMenuProps) => {
                 <Text value={startOption} align={"center"} color={"black"} width={2} />
             </Plane>
         </Entity>
+    );
 };
 
 export default StartMenu;

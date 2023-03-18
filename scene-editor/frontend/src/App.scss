@@ -1,0 +1,22 @@
+body {
+    background: lightblue;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+.box {
+    padding: 20px;
+    margin-bottom: 10px;
+}
+
+.gridBlock {
+    border-style: solid;
+    border-color: lightgray;
+    background-color: azure;
+    margin-bottom: 10px;
+    justify-content: center;
+    border-radius: 1ch;
+}

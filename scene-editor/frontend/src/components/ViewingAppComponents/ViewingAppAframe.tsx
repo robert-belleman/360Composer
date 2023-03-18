@@ -2,72 +2,83 @@ import React, { useEffect, useRef, useState } from "react";
 import 'aframe';
 
 import {
+    Assets,
     Scene,
     Sky
 } from '@belivvr/aframe-react';
 import Menu from "./AframeComponents/Menu";
-import VideoPlayer from "./AframeComponents/VideoPlayer";
+import StereoComponent from "./AframeComponents/StereoComponent";
 import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 import { stereoscopic } from './AframeComponents/Stereoscopic';
 import { Button } from "@mui/material";
+
 stereoscopic(AFRAME);
 
 interface ViewingAppAframeProps {
     video: any,
     annotations: any,
-    onFinish: Function,
-    enabled: boolean
+    onFinish: Function
 }
 
-const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, onFinish, enabled}: ViewingAppAframeProps) => {
-    const [menuEnabled, setMenuEnabled] = useState<boolean>(true);
-    const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
-    const [started, setStarted] = useState<boolean>(false);
-    const [ended, setEnded] = useState<boolean>(false);
-    const [EnteredVR, setEnteredVR] = useState<boolean>(false);
-    const [resumeWhenLoaded, setResumeWhenLoaded] = useState<boolean>(false);
+const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, onFinish}: ViewingAppAframeProps) => {
+    const [appState, setAppState] = useState({
+        started: false,
+        menuEnabled: true,
+        videoPlaying: false,
+        ended: false,
+        videoLoaded: false
+    });
+    const videoAsset : any = useRef(undefined);
 
-    const replay = () => {
-        setEnded(false);
-        setStarted(false);
+    const playVideo: Function = () => {
+        if (!videoAsset) { return };
+        videoAsset.current.play();
     };
 
-    const mobileAutoPlay = () => {
-        let scene: any = document.getElementById('aframescene');
-        console.log(scene.enterVR())
-        let audioPlayer: any = document.getElementById(`video${video.id}`);
-        audioPlayer.play();  
-        setEnteredVR(true);
+    const pauseVideo: Function = () => {
+        if (!videoAsset.current) { return };
+        videoAsset.current.pause();
+    };
+
+    const replay = () => {
+        setAppState({
+            started: false,
+            menuEnabled: true,
+            videoPlaying: false,
+            ended: false,
+            videoLoaded: false
+        });
+    };
+
+    const enterVR = () => {
+        const scene: any = document.getElementById('aframescene');
+        scene.enterVR();
     };
 
     const startVideo = () => {
-        setStarted(true);
-        setMenuEnabled(false);
-        setVideoPlaying(true);
-    };
-
-    const pauseVideo = () => {
-        setMenuEnabled(true);
-        setVideoPlaying(false);
-    };
-
-    const end = () => {
-        setVideoPlaying(false);
-        setEnded(true);
+        setAppState({
+            ...appState,
+            started:true,
+            videoPlaying:true,
+            menuEnabled:false
+        });
+        playVideo();
     };
 
     const chosenMenuOption = (id: string) => {
-        setMenuEnabled(false);
+        setAppState({
+            ...appState,
+            menuEnabled:false
+        });
         const actionId = annotations.options.find((option: any) => option.id === id).action.id;
         const response = onFinish(actionId)
         switch(response) {
-            case 'resume': {
-                setResumeWhenLoaded(true);
-                break;
-            }
             case 'end': {
-                setEnded(true);
+                setAppState({
+                    ...appState,
+                    ended:true
+                });
                 break;
             }
             default: {
@@ -80,32 +91,66 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         if (annotations) {
             if (time >= annotations.timestamp) {
                 pauseVideo();
+                setAppState({
+                    ...appState,
+                    videoPlaying:false,
+                    menuEnabled:true
+                });
             }
         }
     };
 
-    useEffect(() => {        
-        if (resumeWhenLoaded) {
-            setResumeWhenLoaded(false);
-            startVideo();
-        }
-    }, [annotations, video]);
+    const videoLoaded = () => {
+        if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
+        playVideo();
+        setAppState({
+            ...appState,
+            videoPlaying:true,
+            menuEnabled:false,
+            videoLoaded:true
+        });
+    }
+
+    useEffect(() => {
+        setAppState({
+            ...appState,
+            videoLoaded:false
+        });
+    }, [video]);
+
+    useEffect(() => {
+        pauseVideo();
+    }, []);
 
     return (
-        <><Scene id="aframescene" 
+        <>
+        <Scene id="aframescene" 
             vrModeUI={{enabled: false, enterVRButton: "#entervrbutton", }}
             background={{color: "black"}}>
-            <VideoPlayer
-                    video={video}
-                    paused={!videoPlaying}
-                    onTimeUpdate={onTimeUpdate}
-                    onEnded={end} /> 
-            {!started ? <StartMenu onStart={startVideo} /> : null}
-            {ended ? <EndMenu onEnd={replay}/> : null}
-            {menuEnabled && started ? 
+            <Assets>
+                <video
+                    ref={videoAsset}
+                    id={`video${video.id}`}
+                    controls
+                    autoPlay={true}
+                    src={`${process.env.PUBLIC_URL}/asset/${video.path}`} //DEVSRC
+                    crossOrigin="crossorigin"
+                    onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
+                    webkit-playsinline="true"
+                    onLoadedData={videoLoaded}
+                />
+            </Assets>
+            <StereoComponent
+                    videoId={`video${video.id}`}
+                    stereoMode={video.view_type}
+                    paused={!appState.videoPlaying}
+                    loading={!appState.videoPlaying && !appState.menuEnabled}/>
+            {!appState.started ? <StartMenu onStart={startVideo} /> : null}
+            {appState.ended ? <EndMenu onEnd={replay}/> : null}
+            {appState.menuEnabled && appState.started && !appState.ended ? 
                 <Menu 
                             annotations={annotations}
-                            enabled={menuEnabled && started && !ended}
+                            enabled={appState.menuEnabled && appState.started && !appState.ended}
                             onOption={chosenMenuOption}/>
             : null}
         </Scene>
@@ -121,7 +166,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 fontSize:'2em',
                 backgroundColor: 'white'
                 }}
-        onClick={mobileAutoPlay}
+        onClick={enterVR}
         >
             ENTER VR
         </Button>

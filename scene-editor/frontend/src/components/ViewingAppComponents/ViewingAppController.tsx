@@ -15,21 +15,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     const [scene, setScene]: any  = useState(undefined);
     const [currentVideo, setCurrentVideo]: any = useState(undefined);
     const [currentAnnotations, setCurrentAnnotations]: any = useState(undefined);
-    const [videoReady, setVideoReady] = useState(false);
-    const [annotationsReady, setAnnotationsReady] = useState(false);
     const [scenario, setScenario]: any  = useState(undefined);
     const [timeline, setTimeline]: any  = useState(undefined);
-
-    const setLoading = () => {
-        setVideoReady(false);
-        setAnnotationsReady(false);
-    }
-
-    const removeScene = () => {
-        setCurrentAnnotations(undefined);
-        setCurrentVideo(undefined);
-        setScene(undefined);
-    }
 
     const fetchSceneData = async (id: string) => {
         axios
@@ -73,9 +60,6 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     };
 
     const setNewScene = (id: string) => {
-        setLoading();
-        removeScene();
-
         if (timelineId) {
             const newScene = scenario.scenes.find((scene: any) => {return scene.id === id});
             setScene(newScene);
@@ -179,23 +163,12 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         }
     }, [scene]);
 
-    useEffect(() => {
-        if (currentVideo && !videoReady) {
-            setVideoReady(true);
-        }
-    }, [currentVideo]);
-
-    useEffect(() => {
-        if (currentAnnotations && !annotationsReady) {
-            setAnnotationsReady(true);
-        }
-    }, [currentAnnotations]);
-
-    return <ViewingAppAframe 
-                            video={currentVideo} 
-                            annotations={currentAnnotations} 
-                            onFinish={onFinishScene}
-                            enabled={videoReady && annotationsReady}/>;
+    return (currentVideo && currentAnnotations) ?
+        <ViewingAppAframe 
+        video={currentVideo} 
+        annotations={currentAnnotations} 
+        onFinish={onFinishScene}/>
+        : null
 };
 
 export default ViewingAppController;

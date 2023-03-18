@@ -27,11 +27,8 @@ const Player: React.FC = () => {
      (
         <Container>
             <Grid container spacing={2}>
-                <Grid xs={8} item={true}>
+                <Grid className='player-title' xs={8} item={true} >
                     <h1>360 COMPOSER</h1>
-                </Grid>
-                <Grid xs={4} item={true}>
-                    {uuID}
                 </Grid>
                 <Grid xs={12} item={true}>
                     <h2>Welcome to 360 Composer. Please enter your user code to start.</h2>
