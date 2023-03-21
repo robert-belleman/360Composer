@@ -124,7 +124,7 @@ const SceneTile: React.FC<SceneTileProps> = ({ name, id, activeProject, descript
             <IconButton
               aria-label="Open in player"
               onClick={() => {
-                  navigate("/app/scene-player/" + id);
+                  navigate(`/preview-player/scene/${id}`);
                 }}
               size="large">
             <PlayArrowIcon />

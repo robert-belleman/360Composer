@@ -50,9 +50,10 @@ const useStyles = makeStyles((theme) =>
 type TimelinePreviewProps = {
   timelineScenarios: any[];
   randomized: boolean;
+  preview?: Function;
 }
 
-const TimelinePreview: React.FC<TimelinePreviewProps> = ({timelineScenarios, randomized}:TimelinePreviewProps) => {
+const TimelinePreview: React.FC<TimelinePreviewProps> = ({timelineScenarios, randomized, preview}:TimelinePreviewProps) => {
   const classes = useStyles();
 
   const scenariosToEdges = () => timelineScenarios.reduce((acc:any[], scenario:any) => {
@@ -100,6 +101,7 @@ const TimelinePreview: React.FC<TimelinePreviewProps> = ({timelineScenarios, ran
           <Button 
             color="secondary"
             startIcon={<PlayArrowIcon />}
+            onClick={ preview ? () => preview() : () => {}}
           >
               Play Timeline
           </Button>

@@ -11,7 +11,7 @@ interface ViewingAppControllerProps {
     onFinish?: Function
 }
 
-const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", onFinish=() => {return}}: ViewingAppControllerProps) => {
+const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", onFinish}: ViewingAppControllerProps) => {
     const [scene, setScene]: any  = useState(undefined);
     const [currentVideo, setCurrentVideo]: any = useState(undefined);
     const [currentAnnotations, setCurrentAnnotations]: any = useState(undefined);
@@ -74,7 +74,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
             setScenario(newScenario)
             if(scenario) { 
                 const firstScene = newScenario.scenes.find((scene: any) => {return scene.id === newScenario.start_scene});
-                setNewScene(firstScene.id);
+                setNewScene(scenarioId ? firstScene.scene_id : firstScene.id);
              }
             return;
         }
@@ -84,7 +84,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     const onFinishScenario = () => {
         if (scenarioId) {
-            setNewScene(scenario.start_scene);
+            const firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
+            setNewScene(firstScene.scene_id);
             return;
         }
         setNewScenario();
@@ -92,10 +93,9 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     const onFinishScene = (actionId: string = "", callback: Function) => {
         // Call onFinish when scene is ended
-        if (!actionId && onFinish) { onFinish(); return; }
-
+        if (!actionId && onFinish) {onFinish(); return; }
         // If only playing scene reload scene
-        if (!actionId && !onFinish && sceneId) { 
+        if (!onFinish && sceneId) { 
             setNewScene(scene.id);
             callback('end');
             return;
@@ -104,7 +104,6 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         // Find all links of current scene
         const sceneLinks: any = timelineId ? scene.links : scenario.scenes.find((targetScene: any) => targetScene.scene_id === scene.id).links;
         
-        console.log(sceneLinks);
         // If no action id load first scene
         if (!actionId && !onFinish && !sceneId) { onFinishScenario(); callback('end'); return; }
 
@@ -115,10 +114,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         if (!action.target_id && onFinish) { callback('exit'); onFinish(); return; }
         if (!action.target_id) { callback('end'); onFinishScenario(); return; }
 
-        const newSceneId = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id).id;
-
-        setNewScene(newSceneId);
-        callback('resume');
+        const newScene = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id);
+        setNewScene(scenarioId ? newScene.scene_id : newScene.id);
     };
 
     useEffect(() => {
@@ -148,7 +145,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     useEffect(() => {
         if(scenario) {
             let firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
-            setNewScene(firstScene.id);
+            setNewScene(scenarioId ? firstScene.scene_id : firstScene.id);
             return;
         }
     }, [scenario]);

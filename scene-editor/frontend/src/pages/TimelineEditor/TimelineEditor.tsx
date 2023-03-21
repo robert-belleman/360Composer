@@ -128,6 +128,10 @@ const TimelineEditor = () => {
     fetchTimelineScenarios()
   }
 
+  const startPreview = () => {
+    navigate(`/preview-player/timeline/${timelineID}`);
+  }
+
   const renderTop = () => (
     <div>
       <Grid container spacing={3}>
@@ -140,6 +144,7 @@ const TimelineEditor = () => {
       </Grid>
     </div>
   )
+
 
   return (
     <div>
@@ -171,7 +176,10 @@ const TimelineEditor = () => {
             <TimelineUserList timelineID={timelineID!} />
           </Grid>
           <Grid item xs={12} md={12} lg={12}>
-            <TimelinePreview randomized={timeline.randomized} timelineScenarios={timelineScenarios!} />
+            <TimelinePreview 
+              randomized={timeline.randomized}
+              timelineScenarios={timelineScenarios!}
+              preview={startPreview}/>
           </Grid>
         </Grid>
       </div>

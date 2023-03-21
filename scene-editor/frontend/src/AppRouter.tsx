@@ -19,6 +19,7 @@ import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
 import ViewingAppTest from "./pages/ViewingAppTest/ViewingAppTest";
 import UserTest from "./pages/UserTest/UserTest";
+import PlayerCustomer from "./pages/Player/PlayerCustomer";
 import Player from "./pages/Player/Player";
 
 const AppRouter: React.FC = () => {
@@ -51,7 +52,8 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
                 <Route path="/usertest" element={<UserTest/>}/>
-                <Route path="/player/:timelineID/:uuID" element={<Player/>} />
+                <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
+                <Route path="/preview-player/:type/:id" element={<Player/>} />                
             </Routes>
         </BrowserRouter>: 
             hasCustomerToken() ?
@@ -59,7 +61,7 @@ const AppRouter: React.FC = () => {
                 <Routes>
                     <Route path="/usertest" element={<UserTest/>}/>
                     <Route path="/usertest/:pageID" element={<UserTest/>}/>
-                    <Route path="/player/:timelineID/:uuID" element={<Player/>} />
+                    <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                     <Route path="/app/*" element={<Login/>} />
                 </Routes>
             </BrowserRouter>
@@ -71,7 +73,7 @@ const AppRouter: React.FC = () => {
                     <Route path="/app/*" element={<Login/>} />
                     <Route path="/usertest" element={<UserTest/>}/>
                     <Route path="/usertest/:pageID" element={<UserTest/>}/>
-                    <Route path="/player/:timelineID/:uuID" element={<Player/>} />
+                    <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                 </Routes>
             </BrowserRouter>
     );

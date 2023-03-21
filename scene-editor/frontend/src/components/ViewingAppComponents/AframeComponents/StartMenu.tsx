@@ -14,7 +14,7 @@ interface StartMenuProps {
 }
 
 const StartMenu: React.FC<StartMenuProps> = ({onStart}: StartMenuProps) => {
-    const startTitle: string = "Welcome! Press play";
+    const startTitle: string = "Welcome! Please look at play";
     const startOption: string = "Play";
     
     const [rotation, setRotation] = useState<{x: number, y:number, z:number}>({x:0, y:0, z:0})

@@ -143,7 +143,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     const enableAndroidAutoplay = () => {
         setAndroid({...android, accepted: true});
         playVideo();
-        pauseVideo();
     }
 
     useEffect(() => {
