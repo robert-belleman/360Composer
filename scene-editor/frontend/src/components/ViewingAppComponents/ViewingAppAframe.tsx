@@ -11,7 +11,7 @@ import StereoComponent from "./AframeComponents/StereoComponent";
 import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 import { stereoscopic } from './AframeComponents/Stereoscopic';
-import { Button } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 
 stereoscopic(AFRAME);
 
@@ -30,6 +30,10 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         videoLoaded: false
     });
     const videoAsset : any = useRef(undefined);
+    const [android, setAndroid] = useState({
+        onAndroid: false,
+        accepted: false
+    });
 
     const playVideo: Function = () => {
         if (!videoAsset) { return };
@@ -136,6 +140,12 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         });
     }
 
+    const enableAndroidAutoplay = () => {
+        setAndroid({...android, accepted: true});
+        playVideo();
+        pauseVideo();
+    }
+
     useEffect(() => {
         setAppState({
             ...appState,
@@ -145,6 +155,9 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
     useEffect(() => {
         pauseVideo();
+        if (navigator.userAgent.match(/android/i)) {
+            setAndroid({...android, onAndroid: true})
+        }
     }, []);
 
     return (
@@ -160,7 +173,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                     id={`video${video.id}`}
                     controls
                     autoPlay={false}
-                    src={`${process.env.PUBLIC_URL}/asset/${video.path}`} //DEVSRC
+                    // src={`${process.env.PUBLIC_URL}/asset/${video.path}`} //DEVSRC
+                    src={`/asset/${video.path}`}
                     crossOrigin="crossorigin"
                     onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
                     webkit-playsinline="true"
@@ -181,7 +195,23 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                             enabled={appState.menuEnabled && appState.started && !appState.ended}
                             onOption={chosenMenuOption}/>
             : null}
-        </Scene>
+        </Scene>'
+        {android.onAndroid ? 
+            <Dialog open={!android.accepted}>
+                <DialogTitle id="alert-dialog-title">
+                    {"Enable Autoplay"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                    Please accept staring videos automatically
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={enableAndroidAutoplay} autoFocus>OK</Button>
+                </DialogActions>
+            </Dialog>
+        : 
+            null}
         <Button 
         id="entervrbutton"
         style={{position: 'absolute', 

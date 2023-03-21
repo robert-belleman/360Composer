@@ -45,7 +45,7 @@ const EndMenu: React.FC<EndMenuProps> = ({onEnd}: EndMenuProps) => {
             rotation={{ x: 0, y: rotation.y, z: 0 }}
         >
             <Entity position={{x: 0, y: 1/4+(-1)/2/4, z: 0}}>
-                <Text value={endTitle} align={"center"} color={"white"} width={2.5}/>
+                <Text position={{ x: 0, y: 0, z: -0.001}} value={endTitle} align={"center"} color={"white"} width={2.5}/>
             </Entity>
             <Plane 
                 position={{ x: 0, y: -1/4 + ((-1)/2/4), z: 0}}
@@ -57,7 +57,7 @@ const EndMenu: React.FC<EndMenuProps> = ({onEnd}: EndMenuProps) => {
                 animation__mouseleave={{property: "components.material.material.color", type: "color",
                                         startEvents: ["mouseleave"], to: "white", dur: 150}}
             >
-                <Text value={endOption} align={"center"} color={"black"} width={2} />
+                <Text position={{ x: 0, y: 0, z: -0.001}} value={endOption} align={"center"} color={"black"} width={2} />
             </Plane>
         </Entity>
     );

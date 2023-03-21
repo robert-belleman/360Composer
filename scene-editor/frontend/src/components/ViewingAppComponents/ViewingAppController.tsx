@@ -11,7 +11,7 @@ interface ViewingAppControllerProps {
     onFinish?: Function
 }
 
-const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", onFinish}: ViewingAppControllerProps) => {
+const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", onFinish=() => {return}}: ViewingAppControllerProps) => {
     const [scene, setScene]: any  = useState(undefined);
     const [currentVideo, setCurrentVideo]: any = useState(undefined);
     const [currentAnnotations, setCurrentAnnotations]: any = useState(undefined);
