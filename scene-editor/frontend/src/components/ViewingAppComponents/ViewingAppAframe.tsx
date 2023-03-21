@@ -163,7 +163,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 color: 'black', 
                 margin:10,
                 padding: 10, 
-                fontSize:'2em',
+                fontSize:'1.2em',
                 backgroundColor: 'white'
                 }}
         onClick={enterVR}

@@ -20,3 +20,18 @@ body {
     justify-content: center;
     border-radius: 1ch;
 }
+
+.paper {
+    padding: 20px;
+    // border-style: solid;
+    // border-color: lightgray;
+    // border-width: 1px;
+    border-radius: 5px;
+    background-color: white;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 1px grey;
+}
+
+.textBox {
+    background-color: rgb(221, 236, 255);
+}
