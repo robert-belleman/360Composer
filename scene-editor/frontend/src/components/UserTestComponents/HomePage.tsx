@@ -128,7 +128,7 @@ const HomePage: React.FC<UserTestComponentProps> = ({onFinish, userInput, submit
                     </Button>
                 </Grid>
                 <Grid xs={12} md={6} className="paper">
-                    <img src={`${process.env.PUBLIC_URL}/usertest-preview-images/preview-start.png`} alt="start preview" width={"535"}/>
+                    <img src={`${process.env.PUBLIC_URL}/usertest-preview-images/preview-start.png`} alt="start preview"/>
                 </Grid>
                 <Grid xs={12} className="paper textBox">
                     If the application was not working, please click the following button to skip.

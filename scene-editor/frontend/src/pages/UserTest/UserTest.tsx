@@ -69,10 +69,9 @@ const UserTest: React.FC = () => {
     const handleSubmit = (input : UserInput) => {
         setUserInput(input);
     }
-
     useEffect(() => {
         if (!(token.id !== "" && token.id !== null && token.role === 'customer')) {
-            dispatch(logInCustomer('a0ba5d4b-3dc9-4d85-8171-b391fb2990d4', 'test'));
+            dispatch(logInCustomer('3bf6ce57-2c91-4adf-a6bc-b7c48442ecd5', 'test'));
         }
     }, [token, dispatch])
 

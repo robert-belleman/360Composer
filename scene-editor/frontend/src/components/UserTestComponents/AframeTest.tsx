@@ -3,7 +3,7 @@ import ViewingAppController from "../ViewingAppComponents/ViewingAppController";
 import { UserTestComponentProps } from "./ComponentProps";
 
 const AframeTest: React.FC<UserTestComponentProps> = ({onFinish, active=false}) => {
-    const timelineId = "d9fc1061-f274-4794-a5ea-c518dd01917c"
+    const timelineId = "af7cf3c2-9e1e-4238-9d10-d383fcfd6f25"
     const endTest = async () => {
         onFinish();
     };

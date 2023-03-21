@@ -70,7 +70,12 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     const setNewScenario = () => {
         if (timeline.randomized) {
-            setScenario(timeline.scenarios[Math.floor(Math.random() * timeline.scenarios.length)])
+            const newScenario = timeline.scenarios[Math.floor(Math.random() * timeline.scenarios.length)]
+            setScenario(newScenario)
+            if(scenario) { 
+                const firstScene = newScenario.scenes.find((scene: any) => {return scene.id === newScenario.start_scene});
+                setNewScene(firstScene.id);
+             }
             return;
         }
         const firstScenario = timeline.scenarios.find((scenario: any) => {return scenario.uuid === timeline.start});
@@ -78,7 +83,6 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     }
 
     const onFinishScenario = () => {
-        console.log("new scenario")
         if (scenarioId) {
             setNewScene(scenario.start_scene);
             return;
@@ -86,36 +90,35 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         setNewScenario();
     }
 
-    const onFinishScene = (actionId: string = "") => {
+    const onFinishScene = (actionId: string = "", callback: Function) => {
         // Call onFinish when scene is ended
         if (!actionId && onFinish) { onFinish(); return; }
 
         // If only playing scene reload scene
         if (!actionId && !onFinish && sceneId) { 
             setNewScene(scene.id);
-            return 'end';
+            callback('end');
+            return;
         }
 
         // Find all links of current scene
         const sceneLinks: any = timelineId ? scene.links : scenario.scenes.find((targetScene: any) => targetScene.scene_id === scene.id).links;
         
+        console.log(sceneLinks);
         // If no action id load first scene
-        if (!actionId && !onFinish && !sceneId) { 
-            onFinishScenario();
-            return 'end';
-        }
+        if (!actionId && !onFinish && !sceneId) { onFinishScenario(); callback('end'); return; }
 
-        if (!sceneLinks.length && onFinish) { onFinish(); return 'end' }
-        if (!sceneLinks.length) { return 'end' }
+        if (!sceneLinks.length && onFinish) { callback('exit'); onFinish(); return; }
+        if (!sceneLinks.length) { callback('end'); return; }
 
         const action = sceneLinks.find((link:any) => link.action_id === actionId);
-        if (!action.target_id && onFinish) { onFinish(); return 'end' }
-        if (!action.target_id) { onFinishScenario(); return 'end' }
+        if (!action.target_id && onFinish) { callback('exit'); onFinish(); return; }
+        if (!action.target_id) { callback('end'); onFinishScenario(); return; }
 
         const newSceneId = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id).id;
 
         setNewScene(newSceneId);
-        return 'resume';
+        callback('resume');
     };
 
     useEffect(() => {

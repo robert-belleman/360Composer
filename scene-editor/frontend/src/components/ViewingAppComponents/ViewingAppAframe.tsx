@@ -42,6 +42,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     };
 
     const replay = () => {
+        onFinish("", () => {return});
         setAppState({
             started: false,
             menuEnabled: true,
@@ -49,12 +50,20 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             ended: false,
             videoLoaded: false
         });
+        pauseVideo();
     };
 
     const enterVR = () => {
         const scene: any = document.getElementById('aframescene');
         scene.enterVR();
     };
+
+    const exitVR = () => {
+        console.log("exit vr");
+        const scene: any = document.getElementById('aframescene');
+        document.exitPointerLock();
+        scene.exitVR();
+    }
 
     const startVideo = () => {
         setAppState({
@@ -66,14 +75,17 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         playVideo();
     };
 
-    const chosenMenuOption = (id: string) => {
-        setAppState({
-            ...appState,
-            menuEnabled:false
-        });
-        const actionId = annotations.options.find((option: any) => option.id === id).action.id;
-        const response = onFinish(actionId)
+    const menuOptionCallback = (response: string) => {
         switch(response) {
+            case 'exit': {
+                setAppState({
+                    ...appState,
+                    ended:true
+                });
+                console.log()
+                exitVR();
+                break;
+            }
             case 'end': {
                 setAppState({
                     ...appState,
@@ -81,10 +93,23 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 });
                 break;
             }
+            case 'resume': {
+                startVideo();
+                break;
+            }
             default: {
                 break;
             }
-        };
+        }
+    }
+
+    const chosenMenuOption = (id: string) => {
+        setAppState({
+            ...appState,
+            menuEnabled:false
+        });
+        const actionId = annotations.options.find((option: any) => option.id === id).action.id;
+        onFinish(actionId, menuOptionCallback);
     };
 
     const onTimeUpdate = (time: number) => {
@@ -124,20 +149,23 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
     return (
         <>
-        <Scene id="aframescene" 
-            vrModeUI={{enabled: false, enterVRButton: "#entervrbutton", }}
-            background={{color: "black"}}>
+        <Scene 
+            id="aframescene" 
+            vrModeUI={{enabled: false, enterVRButton: "#entervrbutton" }}
+            background={{color: "black"}}
+            embedded>
             <Assets>
                 <video
                     ref={videoAsset}
                     id={`video${video.id}`}
                     controls
-                    autoPlay={true}
+                    autoPlay={false}
                     src={`${process.env.PUBLIC_URL}/asset/${video.path}`} //DEVSRC
                     crossOrigin="crossorigin"
                     onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
                     webkit-playsinline="true"
                     onLoadedData={videoLoaded}
+                    playsInline
                 />
             </Assets>
             <StereoComponent

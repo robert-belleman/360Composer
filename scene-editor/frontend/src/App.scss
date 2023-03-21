@@ -32,6 +32,10 @@ body {
     box-shadow: 0 1px 1px grey;
 }
 
+.paper > img {
+    max-width: 100%;
+}
+
 .textBox {
     background-color: rgb(221, 236, 255);
 }
