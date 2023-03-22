@@ -53,7 +53,7 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
                 <Route path="/usertest" element={<UserTest/>}/>
                 <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
-                <Route path="/preview-player/:type/:id" element={<Player/>} />                
+                <Route path="/app/preview-player/:type/:id" element={<Player/>} />                
             </Routes>
         </BrowserRouter>: 
             hasCustomerToken() ?

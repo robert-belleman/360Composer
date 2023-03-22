@@ -129,7 +129,7 @@ const TimelineEditor = () => {
   }
 
   const startPreview = () => {
-    navigate(`/preview-player/timeline/${timelineID}`);
+    navigate(`/app/preview-player/timeline/${timelineID}`);
   }
 
   const renderTop = () => (

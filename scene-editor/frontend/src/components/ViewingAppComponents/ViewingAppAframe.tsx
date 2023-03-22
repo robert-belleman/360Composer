@@ -3,15 +3,15 @@ import 'aframe';
 
 import {
     Assets,
-    Scene,
-    Sky
+    Scene
 } from '@belivvr/aframe-react';
 import Menu from "./AframeComponents/Menu";
 import StereoComponent from "./AframeComponents/StereoComponent";
 import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 import { stereoscopic } from './AframeComponents/Stereoscopic';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import { Button } from "@mui/material";
+import { isFirefox, isMobile } from "react-device-detect";
 
 stereoscopic(AFRAME);
 
@@ -27,13 +27,14 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         menuEnabled: true,
         videoPlaying: false,
         ended: false,
-        videoLoaded: false
+        videoLoaded: false,
+        playButtonClicked: false
     });
     const videoAsset : any = useRef(undefined);
-    const [android, setAndroid] = useState({
-        onAndroid: false,
-        accepted: false
-    });
+    // const [android, setAndroid] = useState({
+    //     onAndroid: false,
+    //     accepted: false
+    // });
 
     const playVideo: Function = () => {
         if (!videoAsset) { return };
@@ -52,7 +53,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             menuEnabled: true,
             videoPlaying: false,
             ended: false,
-            videoLoaded: false
+            videoLoaded: false,
+            playButtonClicked: false
         });
         pauseVideo();
     };
@@ -141,21 +143,22 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     }
 
     const enableAndroidAutoplay = () => {
-        setAndroid({...android, accepted: true});
+        // setAndroid({...android, accepted: true});
         playVideo();
     }
 
     useEffect(() => {
         setAppState({
             ...appState,
-            videoLoaded:false
+            videoLoaded:false,
+            playButtonClicked: false
         });
     }, [video]);
 
     useEffect(() => {
         pauseVideo();
         if (navigator.userAgent.match(/android/i)) {
-            setAndroid({...android, onAndroid: true})
+            // setAndroid({...android, onAndroid: true})
         }
     }, []);
 
@@ -194,39 +197,50 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                             enabled={appState.menuEnabled && appState.started && !appState.ended}
                             onOption={chosenMenuOption}/>
             : null}
-        </Scene>'
-        {android.onAndroid ? 
-            <Dialog open={!android.accepted}>
-                <DialogTitle id="alert-dialog-title">
-                    {"Enable Autoplay"}
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                    Please accept staring videos automatically
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={enableAndroidAutoplay} autoFocus>OK</Button>
-                </DialogActions>
-            </Dialog>
-        : 
-            null}
-        <Button 
-        id="entervrbutton"
-        style={{position: 'absolute', 
-                zIndex: 9999, 
-                right: 0, 
-                bottom: 0, 
-                color: 'black', 
-                margin:10,
-                padding: 10, 
-                fontSize:'1.2em',
-                backgroundColor: 'white'
-                }}
-        onClick={enterVR}
-        >
-            ENTER VR
-        </Button>
+        </Scene>
+            { /* To circumvent video play issues on mobile devices,a play button is
+               * created if the user is on mobile and is not using firefox  
+               */
+            !appState.playButtonClicked && isMobile && !isFirefox ? 
+                <Button 
+                id="playbutton"
+                style={{position: 'absolute',
+                        zIndex: 9999, 
+                        top: "50%",
+                        left: "50%",
+                        color: 'black',
+                        width: 90,
+                        height: 80,
+                        transform: "translate(-50%, -50%)",
+                        padding: 10, 
+                        fontSize:'2em',
+                        backgroundColor: 'white',
+                        opacity: 0.9
+                        }}
+                onClick={() => {videoAsset.current.play(); setAppState({...appState, playButtonClicked: false})}}
+                >
+                    ▶
+                </Button> 
+            : 
+                null
+            }
+            <Button 
+            id="entervrbutton"
+            style={{position: 'absolute', 
+                    zIndex: 9999, 
+                    right: 0, 
+                    bottom: 0, 
+                    color: 'black', 
+                    margin:10,
+                    padding: 10, 
+                    fontSize:'1.2em',
+                    backgroundColor: 'white',
+                    opacity: 0.8
+                    }}
+            onClick={enterVR}
+            >
+                ENTER VR
+            </Button>
         </>
     );
 };

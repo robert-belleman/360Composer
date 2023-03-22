@@ -394,7 +394,7 @@ const ScenarioEditor:React.FC = () => {
   const previewScene = () => {
     saveScenarioTimeline();
 
-    navigate(`/preview-player/scenario/${scenarioID}`)
+    navigate(`/app/preview-player/scenario/${scenarioID}`)
   }
 
   const fetchScenarioTimeline = () => axios.get(`/api/scenario/${scenarioID}/`)
