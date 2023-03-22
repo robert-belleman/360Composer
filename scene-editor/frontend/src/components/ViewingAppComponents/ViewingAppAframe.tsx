@@ -132,8 +132,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     }
 
     const handleClickPlayButton = () => {
-        setAppState({...appState, playButtonClicked: false});
         playVideo();
+        setAppState({...appState, playButtonClicked: false});
     };
 
     const onVideoLoaded = () => {

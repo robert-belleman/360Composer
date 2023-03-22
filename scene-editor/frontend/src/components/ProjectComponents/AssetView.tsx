@@ -20,7 +20,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import IconButton from '@mui/material/IconButton';
 import Checkbox from '@mui/material/Checkbox';
 import Avatar from '@mui/material/Avatar';
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -168,11 +168,11 @@ const useStyles = makeStyles((theme) =>
   };
 
   const handleSelect = async (value: string, id: string) => {
-    console.log(value, id);
     await axios.post(`/api/asset/${id}/setview/${value}`)
       .then(() => setAlertMessage({show: true, 
                                    message: `Asset's view type succesfully changed to ${value}`,
                                    type: Alert.Success}))
+      .then(fetchAssets)
       .catch((e:any) => console.log('An error occured whilst editing asset "view type"', e))
   };
 
@@ -213,10 +213,12 @@ const useStyles = makeStyles((theme) =>
               label="View Type"
               onChange={(event) => handleSelect(event.target.value, asset.id)}
               autoWidth={true}
+              variant="outlined"
+              size="small"
             >
               <MenuItem value={"mono"}>Monoscopic</MenuItem>
-              <MenuItem value={"sidetoside"}>Side to Side</MenuItem>
-              <MenuItem value={"toptobottom"}>Top to Bottom</MenuItem>
+              <MenuItem value={"sidetoside"}>Side by Side</MenuItem>
+              <MenuItem value={"toptobottom"}>Top-Bottom</MenuItem>
             </Select>
             <Checkbox
               edge="end"
