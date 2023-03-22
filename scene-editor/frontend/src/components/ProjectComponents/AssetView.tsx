@@ -20,7 +20,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import IconButton from '@mui/material/IconButton';
 import Checkbox from '@mui/material/Checkbox';
 import Avatar from '@mui/material/Avatar';
-import Snackbar from '@mui/material/Snackbar';
+import Snackbar from '@material-ui/core/Snackbar';
 
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';

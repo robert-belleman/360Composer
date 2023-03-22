@@ -15,7 +15,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Snackbar from '@mui/material/Snackbar';
+import Snackbar from '@material-ui/core/Snackbar';
 
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';

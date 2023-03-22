@@ -14,7 +14,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Divider from '@mui/material/Divider';
-import Snackbar from '@mui/material/Snackbar';
+import Snackbar from '@material-ui/core/Snackbar';
 
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 

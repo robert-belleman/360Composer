@@ -31,10 +31,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         playButtonClicked: false
     });
     const videoAsset : any = useRef(undefined);
-    // const [android, setAndroid] = useState({
-    //     onAndroid: false,
-    //     accepted: false
-    // });
 
     const playVideo: Function = () => {
         if (!videoAsset) { return };
@@ -131,12 +127,16 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
     };
 
+    const onVideoEnded = () => {
+        replay();
+    }
+
     const handleClickPlayButton = () => {
         setAppState({...appState, playButtonClicked: false});
         playVideo();
     };
 
-    const videoLoaded = () => {
+    const onVideoLoaded = () => {
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
         playVideo();
         setAppState({
@@ -147,11 +147,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         });
     }
 
-    const enableAndroidAutoplay = () => {
-        // setAndroid({...android, accepted: true});
-        playVideo();
-    }
-
     useEffect(() => {
         setAppState({
             ...appState,
@@ -159,13 +154,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             playButtonClicked: false
         });
     }, [video]);
-
-    useEffect(() => {
-        pauseVideo();
-        if (navigator.userAgent.match(/android/i)) {
-            // setAndroid({...android, onAndroid: true})
-        }
-    }, []);
 
     return (
         <>
@@ -180,13 +168,13 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                     id={`video${video.id}`}
                     controls
                     autoPlay={false}
-                    // src={`${process.env.PUBLIC_URL}/asset/${video.path}`} //DEVSRC
                     src={`/asset/${video.path}`}
                     crossOrigin="crossorigin"
-                    onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
-                    webkit-playsinline="true"
-                    onLoadedData={videoLoaded}
                     playsInline
+                    webkit-playsinline="true"
+                    onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
+                    onLoadedData={onVideoLoaded}
+                    onEnded={onVideoEnded}
                 />
             </Assets>
             <StereoComponent

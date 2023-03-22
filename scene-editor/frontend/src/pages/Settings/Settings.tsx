@@ -26,7 +26,7 @@ import { Typography } from '@mui/material';
 
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
-import Snackbar from '@mui/material/Snackbar';
+import Snackbar from '@material-ui/core/Snackbar';
 
 const Alert = (props: AlertProps) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;

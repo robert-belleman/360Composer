@@ -25,7 +25,7 @@ import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
-import Snackbar from '@mui/material/Snackbar';
+import Snackbar from '@material-ui/core/Snackbar';
 
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import TimelineIcon from '@mui/icons-material/Timeline';
@@ -95,13 +95,13 @@ const AddTimelineDialog = ({open, handleSubmit, handleClose}:DialogProps) => {
   const resetState = () => { setName(''); setDescription(''); }
 
   const handleCancel = () => {
-    handleClose();
     resetState();
+    handleClose();
   }
 
   const handleAdd = () => {
-    handleSubmit(name, description)
     resetState();
+    handleSubmit(name, description)
   }
 
   return (
@@ -305,8 +305,8 @@ const useStyles = makeStyles((theme) =>
         </Grid>
       </Grid>
       <DeleteWarningDialog id={warningState.id} open={warningState.open} handleDelete={() => handleDelete(warningState.id)} handleClose={() => setWarningState({open: false, id: ""})} />
-      <AddTimelineDialog open={dialogOpen} handleSubmit={handleAddTimeline} handleClose={() => setDialogOpen(false)} />
-      <TimelineSnackbar open={alertState.open} message={alertState.message} severity={alertState.severity} handleClose={handleAlertClose} />
+      <AddTimelineDialog open={dialogOpen} handleSubmit={handleAddTimeline} handleClose={() => setDialogOpen(false)}/>
+      <TimelineSnackbar open={alertState.open} message={alertState.message} severity={alertState.severity} handleClose={handleAlertClose}/>
     </Paper>
   )
 }
