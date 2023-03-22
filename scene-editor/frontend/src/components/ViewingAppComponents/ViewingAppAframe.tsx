@@ -131,6 +131,11 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
     };
 
+    const handleClickPlayButton = () => {
+        setAppState({...appState, playButtonClicked: false});
+        playVideo();
+    };
+
     const videoLoaded = () => {
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
         playVideo();
@@ -201,7 +206,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             { /* To circumvent video play issues on mobile devices,a play button is
                * created if the user is on mobile and is not using firefox  
                */
-            !appState.playButtonClicked && isMobile && !isFirefox ? 
+            appState.videoPlaying && !appState.playButtonClicked && !isFirefox && isMobile ? 
                 <Button 
                 id="playbutton"
                 style={{position: 'absolute',
@@ -217,7 +222,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                         backgroundColor: 'white',
                         opacity: 0.9
                         }}
-                onClick={() => {videoAsset.current.play(); setAppState({...appState, playButtonClicked: false})}}
+                onClick={handleClickPlayButton}
                 >
                     ▶
                 </Button> 

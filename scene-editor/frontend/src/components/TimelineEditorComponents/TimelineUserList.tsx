@@ -147,7 +147,7 @@ const TimelineUserList:React.FC<UserListProps> = ({timelineID}:UserListProps) =>
         className: classes.popoverPaper
       }}
     >
-      <Typography variant="body1" component="p">{`localhost:3002/player/${timelineID}/${popoverState.id}`}</Typography>
+      <Typography variant="body1" component="p">{`${window.location.hostname}:${window.location.port}/player/${timelineID}/${popoverState.id}`}</Typography>
     </Popover>
   )
 
