@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { createElement, Ref, useEffect, useRef, useState } from "react";
 import 'aframe';
 
 import {
     Assets,
-    Scene
+    Scene,
+    Video
 } from '@belivvr/aframe-react';
 import Menu from "./AframeComponents/Menu";
 import StereoComponent from "./AframeComponents/StereoComponent";
@@ -30,26 +31,27 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         videoLoaded: false,
         playButtonClicked: false
     });
-    const videoAsset : any = useRef(undefined);
 
     const playVideo: Function = () => {
-        if (!videoAsset) { return };
-        videoAsset.current.play();
+        const videoElement: any = document.getElementById(`video${video.id}`);
+        if (!videoElement) { return };
+        videoElement.play();
     };
 
     const pauseVideo: Function = () => {
-        if (!videoAsset.current) { return };
-        videoAsset.current.pause();
+        const videoElement: any = document.getElementById(`video${video.id}`);
+        if (!videoElement) { return };
+        videoElement.pause();
     };
 
     const replay = () => {
         onFinish("", () => {return});
         setAppState({
-            started: false,
-            menuEnabled: true,
-            videoPlaying: false,
+            started: true,
+            menuEnabled: false,
+            videoPlaying: true,
             ended: false,
-            videoLoaded: false,
+            videoLoaded: true,
             playButtonClicked: false
         });
         pauseVideo();
@@ -61,7 +63,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     };
 
     const exitVR = () => {
-        console.log("exit vr");
         const scene: any = document.getElementById('aframescene');
         document.exitPointerLock();
         scene.exitVR();
@@ -131,12 +132,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         replay();
     }
 
-    const handleClickPlayButton = () => {
-        playVideo();
-        setAppState({...appState, playButtonClicked: false});
-    };
-
     const onVideoLoaded = () => {
+        console.log("loaded");
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
         playVideo();
         setAppState({
@@ -150,10 +147,27 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     useEffect(() => {
         setAppState({
             ...appState,
+            videoPlaying: false,
             videoLoaded:false,
             playButtonClicked: false
         });
     }, [video]);
+
+    const handlePlayButton = () => {
+        const videoEl: any = document.getElementById(`video${video.id}`)
+        console.log(videoEl)
+        videoEl.play()
+        const videoSphereLeft: any = document.getElementById("videosphere-left");
+        const videoSphereRight: any = document.getElementById("videosphere-right");
+        if (videoSphereLeft && videoSphereRight) { 
+            videoSphereLeft.components.material.material.map.image.play()
+            videoSphereRight.components.material.material.map.image.play()
+        }
+        setAppState({...appState, playButtonClicked: true});
+    };
+
+    console.log(appState)
+    console.log(video.path)
 
     return (
         <>
@@ -162,19 +176,16 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             vrModeUI={{enabled: false, enterVRButton: "#entervrbutton" }}
             background={{color: "black"}}
             embedded>
-            <Assets>
+            <Assets id="aframe-video-assets">
                 <video
-                    ref={videoAsset}
                     id={`video${video.id}`}
-                    controls
-                    autoPlay={false}
                     src={`/asset/${video.path}`}
-                    crossOrigin="crossorigin"
-                    playsInline
-                    webkit-playsinline="true"
+                    playsInline={true}
                     onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
                     onLoadedData={onVideoLoaded}
                     onEnded={onVideoEnded}
+                    autoPlay={false}
+                    preload={"auto"} 
                 />
             </Assets>
             <StereoComponent
@@ -191,11 +202,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                             onOption={chosenMenuOption}/>
             : null}
         </Scene>
-            { /* To circumvent video play issues on mobile devices,a play button is
-               * created if the user is on mobile and is not using firefox  
-               */
-            appState.videoPlaying && !appState.playButtonClicked && !isFirefox && isMobile ? 
-                <Button 
+            {/* { appState.videoPlaying && !appState.playButtonClicked && !isFirefox && isMobile ? 
+               <button 
                 id="playbutton"
                 style={{position: 'absolute',
                         zIndex: 9999, 
@@ -210,13 +218,13 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                         backgroundColor: 'white',
                         opacity: 0.9
                         }}
-                onClick={handleClickPlayButton}
+                onClick={handlePlayButton}
                 >
                     ▶
-                </Button> 
+                </button> 
             : 
                 null
-            }
+            } */}
             <Button 
             id="entervrbutton"
             style={{position: 'absolute', 
@@ -228,7 +236,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                     padding: 10, 
                     fontSize:'1.2em',
                     backgroundColor: 'white',
-                    opacity: 0.8
+                    opacity: 0.8,
+                    cursor:'pointer'
                     }}
             onClick={enterVR}
             >

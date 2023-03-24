@@ -1,5 +1,6 @@
 import React  from 'react';
 import { VideoSphere } from '@belivvr/aframe-react';
+import { EntityProps } from '@belivvr/aframe-react/types/core';
 
 interface StereoVideoProps {
   src: string;
@@ -14,15 +15,17 @@ export default function StereoVideo ({
   mode = 'full',
   stereo = false,
   split = 'horizontal',
-  visible = false
+  visible = false,
 }: StereoVideoProps) : JSX.Element {
   return <>
       <VideoSphere
+        id="videosphere-left"
         visible={visible}
         src={src}
         my-stereoscopic-video={{eye: 'left', mode: mode, stereo: stereo, split: split}}
       />
       <VideoSphere
+        id="videosphere-right"
         visible={visible}
         src={src}
         my-stereoscopic-video={{eye: 'right', mode: mode, stereo: stereo, split: split}}
