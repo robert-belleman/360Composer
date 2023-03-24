@@ -106,6 +106,24 @@ class TrimAsset(Resource):
         return HTTPStatus.BAD_REQUEST
 
 
+@ns.route("/<string:id>/export", methods=['POST'])
+@ns.response(HTTPStatus.NOT_FOUND, "Project not found")
+@ns.param("id", "The project identifier")
+class Export(Resource):
+
+    @user_jwt_required
+    @ns.marshal_with(project_schema)
+    def export(self, id):
+        claims = get_jwt()
+        
+        
+        return
+
+
+
+
+
+
 
 join_args = reqparse.RequestParser()
 join_args.add_argument("assets", required=True, help="The assets to join.")

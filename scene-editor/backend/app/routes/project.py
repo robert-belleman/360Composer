@@ -71,44 +71,6 @@ asset_upload.add_argument(
 @ns.param("id", "The project identifier")
 class ProjectAssets(Resource):
 
-    # def extension_to_type(self, extension):
-    #     try:
-    #         return {".mp4": AssetType.video, ".glb": AssetType.model}[extension]
-    #     except KeyError:
-    #         return None
-
-    # def generate_asset_meta(self, asset_type, filename, path):
-    #     size = os.path.getsize(path)
-
-    #     # Initialize asset metadata
-    #     asset_meta={
-    #         "file_size": size,
-    #         "thumbnail_path": None,
-    #         "duration": None,
-    #         "frames": None,
-    #         "fps": None,
-    #     }
-
-    #     # only get duration and thumbnail if it is a video
-    #     if asset_type == AssetType.video:
-    #         thumbnail_path = os.path.join(
-    #             os.environ.get('ASSET_DIR'), filename + '.png')
-    #         if not ffmpeg_util.create_thumbnail(path, thumbnail_path):
-    #             thumbnail_path = None
-
-    #         asset_meta["thumbnail_path"] = thumbnail_path
-    #         # duration = ffmpeg_util.get_duration(path)
-    #         video_metadata = ffmpeg_util.get_video_metadata(path)
-
-    #         # TODO: instead of strings, make it the correct type
-    #         asset_meta["duration"] = int(ffmpeg_util.ffmpeg_get_video_duration(video_metadata)) #int
-    #         asset_meta["frames"] = ffmpeg_util.ffmpeg_get_video_frame_count(video_metadata) #int
-    #         asset_meta["fps"] = ffmpeg_util.ffmpeg_get_video_fps(video_metadata) #float
-
-    #         return asset_meta
-
-    #     return asset_meta
-
     @user_jwt_required
     @ns.marshal_with(asset_schema)
     def get(self, id):
