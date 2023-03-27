@@ -4,9 +4,9 @@ from app.routes.api import api
 
 usertest_schema = api.model("UserTest", {
     "device": fields.String(description="User Device"),
-    "os": fields.String(description="User Os"),
     "browser": fields.String(description="User Browser"),
     "hmd": fields.String(description="User hmd"),
+    "enteredVR": fields.Boolean(description="Did the user enter vr"),
     "workedbaboon": fields.Boolean(description="Did baboon scene work correctly"),
     "workedtopbottom": fields.Boolean(description="Did topbottom scene work correctly"),
     "workedsidebyside": fields.Boolean(description="Did sidebyside scene work correctly"),

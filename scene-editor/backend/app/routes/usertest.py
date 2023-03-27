@@ -46,9 +46,9 @@ class PostUserTest(Resource):
         """
         row = UserTestModel(
             device = api.payload['device'],
-            os = api.payload['os'],
             browser = api.payload['browser'],
             hmd = api.payload['hmd'],
+            enteredVR = api.payload['enteredVr'],
             workedbaboon = api.payload['workedBaboonAframe'],
             workedtopbottom = api.payload['workedTopBottom'],
             workedsidebyside = api.payload['workedSideBySide'],

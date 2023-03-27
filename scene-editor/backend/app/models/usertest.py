@@ -8,10 +8,10 @@ class UserTest(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     
     device = db.Column(db.String(128))
-    os = db.Column(db.String(128))
     browser = db.Column(db.String(128))
     hmd = db.Column(db.String(128))
     
+    enteredVR = db.Column(db.Boolean)
     workedbaboon = db.Column(db.Boolean)
     workedtopbottom = db.Column(db.Boolean)
     workedsidebyside = db.Column(db.Boolean)

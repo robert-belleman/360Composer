@@ -26,9 +26,9 @@ const UserTest: React.FC = () => {
     
     interface UserInput {
         device: string,
-        os: string,
         browser: string,
         hmd: string,
+        enteredVr: boolean,
         workedBaboonAframe: boolean,
         workedTopBottom: boolean,
         workedSideBySide: boolean
@@ -50,9 +50,9 @@ const UserTest: React.FC = () => {
     
     const [userInput, setUserInput] = useState<UserInput>({
         device: "",
-        os: "",
         browser: "",
         hmd: "",
+        enteredVr: false,
         workedBaboonAframe: false,
         workedTopBottom: false,
         workedSideBySide: false,
@@ -94,6 +94,29 @@ const UserTest: React.FC = () => {
     }, [submitted, userInput])
     
     const toNextPage = () => {
+        // If at end repeat
+        if (index + 1 === testComponents.length) { 
+            setUserInput({
+                device: "",
+                browser: "",
+                hmd: "",
+                enteredVr: false,
+                workedBaboonAframe: false,
+                workedTopBottom: false,
+                workedSideBySide: false,
+                commentsAframe: "",
+                detectedBrowserName: browserName,
+                detectedBrowserVersion: browserVersion,
+                detectedOsName: osName,
+                detectedOsVersion: osVersion,
+                detectedMobileVendor: mobileVendor,
+                detectedMobileModel: mobileModel
+            })
+            setIndex(0);
+            navigate(`/usertest/0`)
+            return true;
+        }
+
         // If going to end page, submit anwsers
         if (index + 1 === testComponents.length - 1) { 
             setSubmitted(true);

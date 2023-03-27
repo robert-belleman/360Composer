@@ -8,10 +8,6 @@ const HomePage: React.FC<UserTestComponentProps> = ({onFinish, userInput, submit
     const [osText, setOsText] = useState(userInput['os']);
     const [browserText, setBrowserText] = useState(userInput['browser']);
     const [hmdText, setHmdText] = useState(userInput['hmd']);
-    
-    const handleOsChange = (event: any) => {
-        setOsText(event.target.value);
-    };
 
     const handleDeviceChange = (event: any) => {
         setDeviceText(event.target.value);
@@ -27,7 +23,6 @@ const HomePage: React.FC<UserTestComponentProps> = ({onFinish, userInput, submit
     const startTest = async () => {
         var newUserinput = userInput;
         newUserinput.device = deviceText;
-        newUserinput.os = osText;
         newUserinput.browser = browserText;
         newUserinput.hmd = hmdText;
         submit(newUserinput);
@@ -47,7 +42,7 @@ const HomePage: React.FC<UserTestComponentProps> = ({onFinish, userInput, submit
                 </Grid>
                 <Grid container item xs={12} alignItems="center" className="paper">
                         <Grid xs={12} md={6}>
-                            Name of your device. (e.g. Iphone, Quest 2, Desktop)
+                            Name of your device and device version. (e.g. Iphone 13, Quest 2, Samsung Galaxy S22)
                         </Grid>
                         <Grid xs={12} md={6}>
                             <TextField
@@ -63,22 +58,6 @@ const HomePage: React.FC<UserTestComponentProps> = ({onFinish, userInput, submit
                         </Grid>
                 </Grid>
                 <Grid container item xs={12} alignItems="center" className="paper">
-                    <Grid xs={12} md={6}>
-                        Your operating system (e.g. iOS, Windows, Android)
-                    </Grid>
-                    <Grid xs={12} md={6}>
-                        <TextField
-                            margin="dense"
-                            id="os"
-                            label="Operating system"
-                            type="text"
-                            fullWidth
-                            value={osText}
-                            onChange={handleOsChange} 
-                        />
-                    </Grid>
-                </Grid>
-                    <Grid container item xs={12} alignItems="center" className="paper">
                     <Grid xs={12} md={6}>
                         Your browser (e.g. Safari, Chrome, Firefox)
                     </Grid>
