@@ -1,10 +1,9 @@
-import React, { createElement, Ref, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import 'aframe';
 
 import {
     Assets,
-    Scene,
-    Video
+    Scene
 } from '@belivvr/aframe-react';
 import Menu from "./AframeComponents/Menu";
 import StereoComponent from "./AframeComponents/StereoComponent";
@@ -12,7 +11,7 @@ import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 import { stereoscopic } from './AframeComponents/Stereoscopic';
 import { Button } from "@mui/material";
-import { isFirefox, isMobile } from "react-device-detect";
+import { isIOS, isMobile, isSafari } from "react-device-detect";
 
 stereoscopic(AFRAME);
 
@@ -202,7 +201,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                             onOption={chosenMenuOption}/>
             : null}
         </Scene>
-            {/* { appState.videoPlaying && !appState.playButtonClicked && !isFirefox && isMobile ? 
+        { appState.videoPlaying && !appState.playButtonClicked && isIOS && isMobile ?
                <button 
                 id="playbutton"
                 style={{position: 'absolute',
@@ -224,7 +223,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 </button> 
             : 
                 null
-            } */}
+            }
             <Button 
             id="entervrbutton"
             style={{position: 'absolute', 

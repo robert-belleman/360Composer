@@ -32,46 +32,46 @@ const AframeQuestions: React.FC<UserTestComponentProps> = ({onFinish, userInput,
                     Please answer some of the following questions regarding the experiment. If your answer to the question is yes, please check the box.
                 </Grid>
                 <Grid container item xs={12} alignItems="center" className="paper">
-                    <Grid xs={11} item={true}>
+                    <Grid xs={10} item={true}>
                         Did you click the Enter VR button in the bottom right of the screen?
                     </Grid>
-                    <Grid xs={1} item={true}>
+                    <Grid xs={2} item={true}>
                         {usedVr ? "Yes " : "No "}
                         <Checkbox checked={usedVr} onChange={(e) => setUsedVr(e.target.checked)} />
                     </Grid>
                 </Grid>
                 <Grid container item xs={12} alignItems="center" className="paper">
                     <Grid xs={12} md={6} item={true}>
-                        <img src={`${process.env.PUBLIC_URL}/usertest-preview-images/baboon-preview${usedVr ? '-vr' : ''}.png`} alt="baboon-preview"/>
+                        <img className="quesionImg" src={`${process.env.PUBLIC_URL}/usertest-preview-images/baboon-preview${usedVr ? '-vr' : ''}.png`} alt="baboon-preview"/>
                     </Grid>
-                    <Grid xs={11} item={true}>
+                    <Grid xs={10} item={true}>
                         Did you see the baboon and did your screen resemble the image above?
                     </Grid>
-                    <Grid xs={1} item={true}>
+                    <Grid xs={2} item={true}>
                         {workedBaboon ? "Yes " : "No "}
                         <Checkbox checked={workedBaboon} onChange={(e) => setWorkedBaboon(e.target.checked)} />
                     </Grid>
                 </Grid>
                 <Grid container item xs={12} alignItems="center" className="paper">
                     <Grid xs={12} md={6} item={true}>
-                        <img src={`${process.env.PUBLIC_URL}/usertest-preview-images/preview-topbottom${usedVr ? '-vr' : ''}.png`} alt="topbottom-preview"/>
+                        <img className="quesionImg" src={`${process.env.PUBLIC_URL}/usertest-preview-images/preview-topbottom${usedVr ? '-vr' : ''}.png`} alt="topbottom-preview"/>
                     </Grid>
-                    <Grid xs={11} item={true}>
+                    <Grid xs={10} item={true}>
                         {!usedVr ? "In the second scene, was your whole screen orange and did it resemble the image above?" : "In the second scene, was the left screen orange, the right screen blue, and did your screen resemble the image above?"}
                     </Grid>
-                    <Grid xs={1} item={true}>
+                    <Grid xs={2} item={true}>
                         {workedTopBottom ? "Yes " : "No "}
                         <Checkbox checked={workedTopBottom} onChange={(e) => setWorkedTopBottom(e.target.checked)} />
                     </Grid>
                 </Grid>
                 <Grid container item xs={12} alignItems="center" className="paper">
                     <Grid xs={12} md={6} item={true}>
-                        <img src={`${process.env.PUBLIC_URL}/usertest-preview-images/preview-sidebyside${usedVr ? '-vr' : ''}.png`} alt="sidebyside-preview"/>
+                        <img className="quesionImg" src={`${process.env.PUBLIC_URL}/usertest-preview-images/preview-sidebyside${usedVr ? '-vr' : ''}.png`} alt="sidebyside-preview"/>
                     </Grid>
-                    <Grid xs={11} item={true}>
+                    <Grid xs={10} item={true}>
                         {!usedVr ? "In the second scene, was your whole screen orange and did it resemble the image above?" : "In the second scene, was the left screen orange, the right screen blue, and did your screen resemble the image above?"}
                     </Grid>
-                    <Grid xs={1} item={true}>
+                    <Grid xs={2} item={true}>
                         {workedSideBySide ? "Yes " : "No "}
                         <Checkbox checked={workedSideBySide} onChange={(e) => setWorkedSideBySide(e.target.checked)} />
                     </Grid>
