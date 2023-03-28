@@ -16,6 +16,7 @@ import { browserName,
          mobileVendor,
          mobileModel
 } from 'react-device-detect';
+import { max } from "lodash";
 
 const UserTest: React.FC = () => {
     const token = useSelector((state:any) => state.token);
@@ -76,11 +77,6 @@ const UserTest: React.FC = () => {
     }, [token, dispatch])
 
     useEffect(() => {
-        if (!pageID) { return }
-        // if (index !== parseInt(pageID)) {setIndex(parseInt(pageID))}
-    }, [pageID])
-
-    useEffect(() => {
         navigate(`/usertest/${index}`)
         CurrentPage = testComponents[index];
     }, [index])
@@ -92,7 +88,16 @@ const UserTest: React.FC = () => {
                     .catch(e => console.log(e));
         }
     }, [submitted, userInput])
-    
+
+    useEffect(() => {
+        window.addEventListener('popstate', (event) => {
+            const newIndex = max([index - 1, 0]);
+            setIndex(newIndex ? newIndex : 0);
+            navigate(`/usertest/${newIndex}`)
+            return true;
+        });
+    }, []);
+
     const toNextPage = () => {
         // If at end repeat
         if (index + 1 === testComponents.length) { 

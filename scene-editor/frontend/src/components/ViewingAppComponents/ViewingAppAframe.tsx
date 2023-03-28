@@ -28,13 +28,18 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         videoPlaying: false,
         ended: false,
         videoLoaded: false,
-        playButtonClicked: false
+        playButtonOpen: false
     });
 
     const playVideo: Function = () => {
         const videoElement: any = document.getElementById(`video${video.id}`);
         if (!videoElement) { return };
-        videoElement.play();
+        const promise = videoElement.play();
+        if (promise !== undefined) {
+            promise.catch(() => {
+                setAppState({...appState, playButtonOpen: true})
+            });
+        }
     };
 
     const pauseVideo: Function = () => {
@@ -51,7 +56,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             videoPlaying: true,
             ended: false,
             videoLoaded: true,
-            playButtonClicked: false
+            playButtonOpen: false
         });
         pauseVideo();
     };
@@ -84,7 +89,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                     ...appState,
                     ended:true
                 });
-                console.log()
                 exitVR();
                 break;
             }
@@ -132,7 +136,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     }
 
     const onVideoLoaded = () => {
-        console.log("loaded");
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
         playVideo();
         setAppState({
@@ -147,26 +150,15 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         setAppState({
             ...appState,
             videoPlaying: false,
-            videoLoaded:false,
-            playButtonClicked: false
+            videoLoaded:false
         });
     }, [video]);
 
     const handlePlayButton = () => {
         const videoEl: any = document.getElementById(`video${video.id}`)
-        console.log(videoEl)
         videoEl.play()
-        const videoSphereLeft: any = document.getElementById("videosphere-left");
-        const videoSphereRight: any = document.getElementById("videosphere-right");
-        if (videoSphereLeft && videoSphereRight) { 
-            videoSphereLeft.components.material.material.map.image.play()
-            videoSphereRight.components.material.material.map.image.play()
-        }
-        setAppState({...appState, playButtonClicked: true});
+        setAppState({...appState, playButtonOpen: false});
     };
-
-    console.log(appState)
-    console.log(video.path)
 
     return (
         <>
@@ -201,7 +193,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                             onOption={chosenMenuOption}/>
             : null}
         </Scene>
-        { appState.videoPlaying && !appState.playButtonClicked && isIOS && isMobile ?
+        { appState.playButtonOpen ?
                <button 
                 id="playbutton"
                 style={{position: 'absolute',
