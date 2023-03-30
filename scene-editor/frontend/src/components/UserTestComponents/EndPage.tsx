@@ -16,6 +16,9 @@ const EndPage: React.FC<UserTestComponentProps> = ({onFinish}) => {
                     <a target="_blank" href="https://apps.apple.com/us/app/google-chrome/id535886823">https://apps.apple.com/us/app/google-chrome/id535886823</a>
                     <br></br>
                     <br></br>
+                    Contact info: menno.vanrooijen@student.uva.nl
+                    <br></br>
+                    <br></br>
                     You can now close this tab or click repeat to repeat the questionaire.
                     <br></br>
                     <br></br>

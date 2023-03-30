@@ -34,7 +34,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     const playVideo: Function = () => {
         const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
         if (!videoElement) { return };
-        videoElement.play();
+        const promise = videoElement.play();
+        return promise !== undefined ? true : false
     };
 
     const pauseVideo: Function = () => {
@@ -68,13 +69,14 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     }
 
     const startVideo = () => {
+        const playWorked = playVideo();
         setAppState({
             ...appState,
             started:true,
             videoPlaying:true,
-            menuEnabled:false
+            menuEnabled:false,
+            playButtonOpen: !playWorked
         });
-        playVideo();
     };
 
     const menuOptionCallback = (response: string) => {
@@ -132,21 +134,22 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
     const onVideoLoaded = () => {
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
-        if (isIOS) {
-            setAppState({
-                ...appState,
-                menuEnabled:false,
-                videoLoaded:true,
-                playButtonOpen: true
-            });
-            return;
-        }
-        playVideo();
+        // if (isIOS) {
+        //     setAppState({
+        //         ...appState,
+        //         menuEnabled:false,
+        //         videoLoaded:true,
+        //         playButtonOpen: true
+        //     });
+        //     return;
+        // }
+        const playWorked = playVideo();
         setAppState({
             ...appState,
             videoPlaying:true,
             menuEnabled:false,
-            videoLoaded:true
+            videoLoaded:true,
+            playButtonOpen: !playWorked
         });
     }
 
