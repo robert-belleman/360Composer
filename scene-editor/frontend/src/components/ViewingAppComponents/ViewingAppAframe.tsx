@@ -35,6 +35,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
         if (!videoElement) { return };
         videoElement.play()
+        videoElement.muted = false;
     };
 
     const pauseVideo: Function = () => {
@@ -140,14 +141,14 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
     const onVideoLoaded = () => {
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
-        if (isIOS) {
-            setAppState({
-                ...appState,
-                videoLoaded:true,
-                menuEnabled:false
-            });
-            return;
-        }
+        // if (isIOS) {
+        //     setAppState({
+        //         ...appState,
+        //         videoLoaded:true,
+        //         menuEnabled:false
+        //     });
+        //     return;
+        // }
         playVideo();
         setAppState({
             ...appState,
@@ -172,6 +173,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             videoPlaying: false,
             videoLoaded:false
         });
+        pauseVideo();
         if (isIOS) {
             setPlayButtonOpen(true);
         }
@@ -189,12 +191,13 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 <video
                     id={`aframe-video-${video.id}`}
                     src={`/asset/${video.path}`}
-                    playsInline={true}
+                    playsInline
                     onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
                     onLoadedData={onVideoLoaded}
                     onEnded={onVideoEnded}
-                    autoPlay={false}
-                    preload={"auto"} 
+                    autoPlay={true}
+                    preload={"auto"}
+                    muted
                 />
             </Assets>
             <StereoComponent
