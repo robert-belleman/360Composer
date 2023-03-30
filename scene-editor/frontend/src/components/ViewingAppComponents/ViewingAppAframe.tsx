@@ -69,14 +69,14 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     }
 
     const startVideo = () => {
-        if (isIOS) {
-            setAppState({
-                ...appState,
-                menuEnabled:false,
-                started:true,
-            });
-            return;
-        }
+        // if (isIOS) {
+        //     setAppState({
+        //         ...appState,
+        //         menuEnabled:false,
+        //         started:true,
+        //     });
+        //     return;
+        // }
         playVideo();
         setAppState({
             ...appState,
