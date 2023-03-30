@@ -27,15 +27,18 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         menuEnabled: true,
         videoPlaying: false,
         ended: false,
-        videoLoaded: false,
-        playButtonOpen: false
+        videoLoaded: false
     });
+    const [playButtonOpen, setPlayButtonOpen] = useState(false);
 
     const playVideo: Function = () => {
         const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
         if (!videoElement) { return };
-        const promise = videoElement.play();
-        return promise !== undefined ? true : false
+        try {
+            videoElement.play()
+        } catch (error) {
+            setPlayButtonOpen(true);
+        }
     };
 
     const pauseVideo: Function = () => {
@@ -51,9 +54,9 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             menuEnabled: false,
             videoPlaying: true,
             ended: false,
-            videoLoaded: true,
-            playButtonOpen: false
+            videoLoaded: true
         });
+        setPlayButtonOpen(false);
         pauseVideo();
     };
 
@@ -69,13 +72,12 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     }
 
     const startVideo = () => {
-        const playWorked = playVideo();
+        playVideo();
         setAppState({
             ...appState,
             started:true,
             videoPlaying:true,
-            menuEnabled:false,
-            playButtonOpen: !playWorked
+            menuEnabled:false
         });
     };
 
@@ -143,20 +145,18 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         //     });
         //     return;
         // }
-        const playWorked = playVideo();
+        playVideo();
         setAppState({
             ...appState,
             videoPlaying:true,
             menuEnabled:false,
-            videoLoaded:true,
-            playButtonOpen: !playWorked
+            videoLoaded:true
         });
     }
 
     const handlePlayButton = () => {
-        const videoEl: any = document.getElementById(`aframe-video-${video.id}`)
-        videoEl.play()
-        setAppState({...appState, playButtonOpen: false, videoPlaying: true});
+        playVideo();
+        setPlayButtonOpen(false);
     };
     
     useEffect(() => {
@@ -201,7 +201,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                             onOption={chosenMenuOption}/>
             : null}
         </Scene>
-            { appState.playButtonOpen ?
+            { playButtonOpen ?
                <Button 
                 id="playbutton"
                 style={{position: 'absolute',
