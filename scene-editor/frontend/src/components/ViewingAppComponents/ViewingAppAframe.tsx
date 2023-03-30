@@ -69,7 +69,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
     const startVideo = () => {
         if (isIOS) {
-            setPlayButtonOpen(true);
             setAppState({
                 ...appState,
                 menuEnabled:false,
@@ -142,7 +141,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     const onVideoLoaded = () => {
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
         if (isIOS) {
-            setPlayButtonOpen(true);
             setAppState({
                 ...appState,
                 videoLoaded:true,
@@ -174,6 +172,9 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             videoPlaying: false,
             videoLoaded:false
         });
+        if (isIOS) {
+            setPlayButtonOpen(true);
+        }
     }, [video]);
 
 
@@ -210,7 +211,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                             onOption={chosenMenuOption}/>
             : null}
         </Scene>
-            { playButtonOpen ?
+            { appState.started && playButtonOpen ?
                <Button 
                 id="playbutton"
                 style={{position: 'absolute',
