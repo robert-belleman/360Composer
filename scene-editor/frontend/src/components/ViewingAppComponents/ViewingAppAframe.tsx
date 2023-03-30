@@ -12,6 +12,7 @@ import EndMenu from "./AframeComponents/EndMenu";
 import { stereoscopic } from './AframeComponents/Stereoscopic';
 import { Button } from "@mui/material";
 import { isIOS, isMobile, isSafari } from "react-device-detect";
+import { delay } from "lodash";
 
 stereoscopic(AFRAME);
 
@@ -57,34 +58,18 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         pauseVideo();
     };
 
-    const enterVR = () => {
+    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+    const enterVR = async () => {
         const scene: any = document.getElementById('aframescene');
         scene.enterVR();
     };
 
     const exitVR = () => {
         const scene: any = document.getElementById('aframescene');
-        document.exitPointerLock();
         scene.exitVR();
+        startVideo();
     }
-
-    const startVideo = () => {
-        // if (isIOS) {
-        //     setAppState({
-        //         ...appState,
-        //         menuEnabled:false,
-        //         started:true,
-        //     });
-        //     return;
-        // }
-        playVideo();
-        setAppState({
-            ...appState,
-            started:true,
-            videoPlaying:true,
-            menuEnabled:false
-        });
-    };
 
     const menuOptionCallback = (response: string) => {
         switch(response) {
@@ -139,16 +124,18 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         replay();
     }
 
+    const startVideo = () => {
+        setAppState({
+            ...appState,
+            started:true,
+            videoPlaying:true,
+            menuEnabled:false
+        });
+        playVideo();
+    };
+
     const onVideoLoaded = () => {
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
-        // if (isIOS) {
-        //     setAppState({
-        //         ...appState,
-        //         videoLoaded:true,
-        //         menuEnabled:false
-        //     });
-        //     return;
-        // }
         playVideo();
         setAppState({
             ...appState,
@@ -174,7 +161,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             videoLoaded:false
         });
         pauseVideo();
-        if (isIOS) {
+        if (isIOS && !appState.started) {
             setPlayButtonOpen(true);
         }
     }, [video]);
