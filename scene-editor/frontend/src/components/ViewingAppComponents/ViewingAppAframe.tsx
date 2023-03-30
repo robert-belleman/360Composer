@@ -137,6 +137,15 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
     const onVideoLoaded = () => {
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
+        if (isIOS) {
+            setAppState({
+                ...appState,
+                menuEnabled:false,
+                videoLoaded:true,
+                playButtonOpen: true
+            });
+            return;
+        }
         playVideo();
         setAppState({
             ...appState,
@@ -146,6 +155,12 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         });
     }
 
+    const handlePlayButton = () => {
+        const videoEl: any = document.getElementById(`video${video.id}`)
+        videoEl.play()
+        setAppState({...appState, playButtonOpen: false, videoPlaying: true});
+    };
+    
     useEffect(() => {
         setAppState({
             ...appState,
@@ -154,11 +169,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         });
     }, [video]);
 
-    const handlePlayButton = () => {
-        const videoEl: any = document.getElementById(`video${video.id}`)
-        videoEl.play()
-        setAppState({...appState, playButtonOpen: false});
-    };
 
     return (
         <>

@@ -8,7 +8,7 @@ import { ThemeProvider, Theme, StyledEngineProvider, createTheme } from '@mui/ma
 import "./App.scss";
 import AppRouter from "./AppRouter";
 import { store } from "./Store"
-
+import {Helmet} from "react-helmet";
 
 declare module '@mui/styles/defaultTheme' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -25,6 +25,9 @@ const App: React.FC = () => {
 
     return (
         <StyledEngineProvider injectFirst>
+            <Helmet>
+                <meta name="apple-mobile-web-app-capable" content="yes" />
+            </Helmet>
             <ThemeProvider theme={theme}>
                 <Provider store={store}>
                     <AppRouter />
