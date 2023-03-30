@@ -34,12 +34,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     const playVideo: Function = () => {
         const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
         if (!videoElement) { return };
-        const promise = videoElement.play();
-        if (promise !== undefined) {
-            promise.catch(() => {
-                setAppState({...appState, playButtonOpen: true})
-            });
-        }
+        videoElement.play();
     };
 
     const pauseVideo: Function = () => {
@@ -203,8 +198,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                             onOption={chosenMenuOption}/>
             : null}
         </Scene>
-        { appState.playButtonOpen ?
-               <button 
+            { appState.playButtonOpen ?
+               <Button 
                 id="playbutton"
                 style={{position: 'absolute',
                         zIndex: 9999, 
@@ -222,7 +217,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 onClick={handlePlayButton}
                 >
                     ▶
-                </button> 
+                </Button> 
             : 
                 null
             }
