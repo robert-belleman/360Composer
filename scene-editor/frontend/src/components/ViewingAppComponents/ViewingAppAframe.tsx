@@ -32,7 +32,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     });
 
     const playVideo: Function = () => {
-        const videoElement: any = document.getElementById(`video${video.id}`);
+        const videoElement: any = document.getElementById(`aframe-video`);
         if (!videoElement) { return };
         const promise = videoElement.play();
         if (promise !== undefined) {
@@ -43,7 +43,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     };
 
     const pauseVideo: Function = () => {
-        const videoElement: any = document.getElementById(`video${video.id}`);
+        const videoElement: any = document.getElementById(`aframe-video`);
         if (!videoElement) { return };
         videoElement.pause();
     };
@@ -156,7 +156,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     }
 
     const handlePlayButton = () => {
-        const videoEl: any = document.getElementById(`video${video.id}`)
+        const videoEl: any = document.getElementById(`aframe-video`)
         videoEl.play()
         setAppState({...appState, playButtonOpen: false, videoPlaying: true});
     };
@@ -179,7 +179,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             embedded>
             <Assets id="aframe-video-assets">
                 <video
-                    id={`video${video.id}`}
+                    id={`aframe-video`}
                     src={`/asset/${video.path}`}
                     playsInline={true}
                     onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
@@ -190,7 +190,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 />
             </Assets>
             <StereoComponent
-                    videoId={`video${video.id}`}
+                    videoId={`aframe-video`}
                     stereoMode={video.view_type}
                     paused={!appState.videoPlaying}
                     loading={!appState.videoPlaying && !appState.menuEnabled}/>
