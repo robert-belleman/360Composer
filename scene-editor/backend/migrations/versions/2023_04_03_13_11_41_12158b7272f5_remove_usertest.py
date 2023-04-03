@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.drop_table('usertest')
+    op.drop_table('user_test')
 
 
 def downgrade():
