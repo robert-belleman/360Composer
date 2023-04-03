@@ -18,7 +18,6 @@ import ScenePlayer from "./pages/ScenePlayer/ScenePlayer";
 import Project from "./pages/Project/Project";
 import ScenarioPlayer from "./pages/ScenarioPlayer/ScenarioPlayer";
 import ViewingAppTest from "./pages/ViewingAppTest/ViewingAppTest";
-import UserTest from "./pages/UserTest/UserTest";
 import PlayerCustomer from "./pages/Player/PlayerCustomer";
 import Player from "./pages/Player/Player";
 
@@ -51,7 +50,6 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/settings" element={<Settings/>}></Route>
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
-                <Route path="/usertest" element={<UserTest/>}/>
                 <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                 <Route path="/app/preview-player/:type/:id" element={<Player/>} />                
             </Routes>
@@ -59,8 +57,6 @@ const AppRouter: React.FC = () => {
             hasCustomerToken() ?
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
-                    <Route path="/usertest" element={<UserTest/>}/>
-                    <Route path="/usertest/:pageID" element={<UserTest/>}/>
                     <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                     <Route path="/app/*" element={<Login/>} />
                 </Routes>
@@ -68,11 +64,9 @@ const AppRouter: React.FC = () => {
             :
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
-                    {/* <Route path="/app/register" element={<Register/>}></Route> */}
-                    {/* <Route path="/app/register-done" element={<RegisterDone/>}></Route> */}
+                    <Route path="/app/register" element={<Register/>}></Route>
+                    <Route path="/app/register-done" element={<RegisterDone/>}></Route>
                     <Route path="/app/*" element={<Login/>} />
-                    <Route path="/usertest" element={<UserTest/>}/>
-                    <Route path="/usertest/:pageID" element={<UserTest/>}/>
                     <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                 </Routes>
             </BrowserRouter>

@@ -92,15 +92,6 @@ services:
       - ./scene-editor/backend/assets/:/static/:ro
     ports:
       - 8080:8080
-
-  # player:
-  #   container_name: player
-  #   build:
-  #     context: ./pcit-vr-player
-  #     dockerfile: ./Dockerfile
-  #   restart: unless-stopped
-  #   ports:
-  #     - 3002:3002
       
 volumes:
   postgres:

@@ -1,7 +1,5 @@
 # 360 Composer
 
-NOTE: This current build was created for usertesting and therefore some pages are disabled like register.
-
 The 360 compose is a software package containing all the components needed to deploy a 360 video story line editing suite.
 
 ## Requirements
