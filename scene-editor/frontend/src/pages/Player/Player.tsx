@@ -1,3 +1,5 @@
+// This file contains the simple logic for the player inside the editor.
+
 import React from 'react';
 import { useParams } from "react-router-dom";
 import ViewingAppController from '../../components/ViewingAppComponents/ViewingAppController';

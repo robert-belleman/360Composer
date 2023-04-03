@@ -1,3 +1,7 @@
+/*  PlayerCustomer contains the landing page of a customer in which the customer must login
+*   to view the viewing application.
+*/
+
 import axios from 'axios';
 import React,  { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";

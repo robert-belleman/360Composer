@@ -1,3 +1,5 @@
+/*  FeedBack show the feedback that is available when a menu option is shown.
+ */
 import React, { useEffect } from 'react';
 import { Plane, Text } from '@belivvr/aframe-react';
 

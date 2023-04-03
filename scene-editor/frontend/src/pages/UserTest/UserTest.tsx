@@ -25,6 +25,7 @@ const UserTest: React.FC = () => {
     const {pageID} = useParams<'pageID'>();
     const navigate = useNavigate();
     
+    // All input values for the user to change.
     interface UserInput {
         device: string,
         browser: string,
@@ -42,6 +43,7 @@ const UserTest: React.FC = () => {
         detectedMobileModel: string
     }
 
+    // Array which contains all components that are needed in the test in chronological order.
     const testComponents: React.FC<UserTestComponentProps>[] = [
         HomePage,
         AframeTest,
@@ -69,26 +71,32 @@ const UserTest: React.FC = () => {
 
     const handleSubmit = (input : UserInput) => {
         setUserInput(input);
-    }
+    };
+
+    // TODO: Make login dynamic
+    // Logs in the preset customer.
     useEffect(() => {
         if (!(token.id !== "" && token.id !== null && token.role === 'customer')) {
             dispatch(logInCustomer('3bf6ce57-2c91-4adf-a6bc-b7c48442ecd5', 'test'));
         }
-    }, [token, dispatch])
+    }, [token, dispatch]);
 
+    // Navigate to updated index
     useEffect(() => {
         navigate(`/usertest/${index}`)
         CurrentPage = testComponents[index];
-    }, [index])
+    }, [index]);
 
+    // Post userInput to database
     useEffect(() => {
         if (submitted) {
             console.log(userInput)
             axios.post(`/api/usertest/post`, userInput)
                     .catch(e => console.log(e));
         }
-    }, [submitted, userInput])
+    }, [submitted, userInput]);
 
+    // On back action, return to previous page.
     useEffect(() => {
         window.addEventListener('popstate', (event) => {
             const newIndex = max([index - 1, 0]);
@@ -126,6 +134,8 @@ const UserTest: React.FC = () => {
         if (index + 1 === testComponents.length - 1) { 
             setSubmitted(true);
         }
+
+        // To next page
         if(index + 1 < testComponents.length) {
             setIndex(index + 1);
             navigate(`/usertest/${index + 1}`)
@@ -133,6 +143,7 @@ const UserTest: React.FC = () => {
         }
     }
 
+    // Skips to folliwing component.
     const skipPage = () => {
         if(index + 2 < testComponents.length) {
             console.log("SKIP PAGE")

@@ -1,8 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import AFRAME from 'aframe';
-
+import React from "react";
 import {
-    Assets,
     Entity,
 } from '@belivvr/aframe-react';
 import MyStereoscopicCamera from "./Stereoscopic/components/MyStereoscopicCamera";
@@ -16,8 +13,7 @@ interface StereoComponentProps {
 }
 const gazeTime : number = 2000
 
-const StereoComponent: React.FC<StereoComponentProps> = ({videoId, stereoMode, paused, loading}: StereoComponentProps) => {    
-
+const StereoComponent: React.FC<StereoComponentProps> = ({videoId, stereoMode, paused, loading}: StereoComponentProps) => {
     const cursor = (
         <Entity 
             raycaster={{far: 30, objects: ".intersectable"}}

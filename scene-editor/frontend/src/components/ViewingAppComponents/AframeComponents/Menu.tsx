@@ -1,6 +1,8 @@
+/*  Menu shows a menu in front of the user. It shows the data that is given in the annotations.
+ *  When an option is clicked it communicates this back to the A-Frame implemtation component.
+ */
 import React, { useEffect, useState } from "react";
 import 'aframe';
-
 import {
     Plane,
     Entity,
@@ -25,9 +27,11 @@ const Menu: React.FC<MenuProps> = ({annotations, enabled, onOption}: MenuProps) 
         onOption(id);
     }
 
+    // Adds onClick listerer to every menu option
     useEffect(() => {
         const handleClick = (e: any) => {
             const targetOption = annotations.options.find((option: any) => {return option.id === e.target.id});
+            // If the target option contains feedback. Show this to the user
             if (targetOption.feedback) {
                 setFeedback({id: targetOption.id, text: targetOption.feedback}); 
                 return;
@@ -47,11 +51,13 @@ const Menu: React.FC<MenuProps> = ({annotations, enabled, onOption}: MenuProps) 
         }
     }, [enabled, annotations]);
 
+    // Sets the current rotation of the camera when loaded.
     useEffect(() => {
         var camera:any = document.getElementById('mainCamera');
         setRotation(camera.getAttribute('rotation'));
     }, [enabled]);
 
+    // calculates the position where the menu should be placed/
     const m = new Matrix4().makeTranslation(0,0,0);
     let position = new Vector3(-2 * Math.sin(degToRad(rotation.y)), 1.6, -2 * Math.cos(degToRad(rotation.y))).applyMatrix4(m);
     

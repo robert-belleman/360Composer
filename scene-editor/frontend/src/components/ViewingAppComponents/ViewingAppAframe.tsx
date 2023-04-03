@@ -1,3 +1,7 @@
+/*  ViewingAppAframe manages the A-Frame implementation of the viewing application.
+ *  It manages the video and annotation data given by the controller which must be
+ *  set at all times.
+ */
 import React, { useEffect, useState } from "react";
 import 'aframe';
 
@@ -32,19 +36,24 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     });
     const [playButtonOpen, setPlayButtonOpen] = useState(false);
 
+    // Plays the current video by id
     const playVideo: Function = () => {
         const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
         if (!videoElement) { return };
         videoElement.play()
+
+        // Unmute the video. Mute is set because of iOS devices.
         videoElement.muted = false;
     };
 
+    // Pauses the current video
     const pauseVideo: Function = () => {
         const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
         if (!videoElement) { return };
         videoElement.pause();
     };
 
+    // Reset the state of the app for replay.
     const replay = () => {
         onFinish("", () => {return});
         setAppState({
@@ -58,21 +67,24 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         pauseVideo();
     };
 
-    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
+    // enters VR by accessing the scene
     const enterVR = async () => {
         const scene: any = document.getElementById('aframescene');
         scene.enterVR();
     };
-
+    
+    // exits VR by accessing the scene
     const exitVR = () => {
         const scene: any = document.getElementById('aframescene');
         scene.exitVR();
         startVideo();
     }
 
+    // menuOptionCallback receives a response from the controller
+    // when an option is submitted to the controller.
     const menuOptionCallback = (response: string) => {
         switch(response) {
+            // Exiting application. Exit VR and set to ended
             case 'exit': {
                 setAppState({
                     ...appState,
@@ -81,6 +93,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 exitVR();
                 break;
             }
+            // The action had no next step. Bring application to end screen
             case 'end': {
                 setAppState({
                     ...appState,
@@ -88,6 +101,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 });
                 break;
             }
+            // Resume current video. (Currently no support from editor)
             case 'resume': {
                 startVideo();
                 break;
@@ -98,6 +112,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
     }
 
+    // Communicate to controller which actionid was taken.
     const chosenMenuOption = (id: string) => {
         setAppState({
             ...appState,
@@ -107,6 +122,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         onFinish(actionId, menuOptionCallback);
     };
 
+    // Checks if the video has reached the annotation and opens menu.
+    // (Currently only supports the first annotation.)
     const onTimeUpdate = (time: number) => {
         if (annotations) {
             if (time >= annotations.timestamp) {
@@ -124,6 +141,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         replay();
     }
 
+    // Starts the video and disables the menu.
     const startVideo = () => {
         setAppState({
             ...appState,
@@ -135,6 +153,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     };
 
     const onVideoLoaded = () => {
+        // If the starting menu is open. Do not start playing.
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
         playVideo();
         setAppState({
@@ -145,6 +164,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         });
     }
 
+    // iOS devices require a gesture for automatic playback. If this is pressed
+    // start the video.
     const handlePlayButton = () => {
         playVideo();
         setPlayButtonOpen(false);

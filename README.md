@@ -41,3 +41,5 @@ npm install
 npm start
 ```
 
+Note that these environment is not connected to the server. So all assets that are used by the application should be transferred
+to the the public folder in the front end.

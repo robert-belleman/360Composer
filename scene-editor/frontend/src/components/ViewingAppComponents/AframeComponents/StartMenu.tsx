@@ -1,6 +1,8 @@
+/*  EndMenu manages the menu that is showed when the viewing application is in its starting state.
+ *  It places the end menu on eye level in front of the user.
+ */
 import React, { useEffect, useState } from "react";
 import 'aframe';
-
 import {
     Plane,
     Entity,
@@ -19,6 +21,7 @@ const StartMenu: React.FC<StartMenuProps> = ({onStart}: StartMenuProps) => {
     
     const [rotation, setRotation] = useState<{x: number, y:number, z:number}>({x:0, y:0, z:0})
 
+    // adds handleclick to menu option.
     useEffect(() => {
         const handleClick = (e: any) => {
             onStart();
@@ -31,11 +34,13 @@ const StartMenu: React.FC<StartMenuProps> = ({onStart}: StartMenuProps) => {
         };
     }, []);
 
+    // Sets the current rotation of the camera when loaded.
     useEffect(() => {
         var camera:any = document.getElementById('mainCamera');
         setRotation(camera.getAttribute('rotation'));
     }, []);
 
+    // calculates the position where the menu should be placed
     const m = new Matrix4().makeTranslation(0,0,0);
     let position = new Vector3(-2 * Math.sin(degToRad(rotation.y)), 1.6, -2 * Math.cos(degToRad(rotation.y))).applyMatrix4(m);
 
