@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from flask import request
 from flask_restx import Resource, reqparse
@@ -30,7 +31,7 @@ import app.util.util as util
 import hashlib, binascii, os
 import uuid
 import datetime
- 
+
 ns = api.namespace("project")
 
 @ns.route("/<string:id>/")
@@ -76,11 +77,11 @@ class ProjectAssets(Resource):
             thumbnail_path = os.path.join(os.environ.get('ASSET_DIR'), filename + '.png')
             if not create_thumbnail(path, thumbnail_path):
                 thumbnail_path = None
-            
+
             duration = get_duration(path)
 
             return {"duration": duration, "thumbnail_path": thumbnail_path, "file_size": size}
-        
+
         return {"duration": None, "thumbnail_path": None, "file_size": size}
 
     @user_jwt_required
@@ -97,7 +98,7 @@ class ProjectAssets(Resource):
     def post(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
+
         args = asset_upload.parse_args()
         file = args["file"]
         asset_name = args["name"]
@@ -113,8 +114,21 @@ class ProjectAssets(Resource):
         path = os.path.join(os.environ.get('ASSET_DIR'), asset_filename)
         util.write_file(request, path, file)
 
+        # TODO Use worker to process async
+
+        for height in ('1080', '720'):
+            out_path = os.path.join(os.environ.get('ASSET_DIR'), f'{filename}-{height}.mp4')
+            subprocess.check_call(['ffmpeg',
+                                   '-i', path,
+                                   '-vf', f'scale=-1:{height}',
+                                   '-crf', '21',
+                                   '-preset', 'veryfast', # don't care about file size for now
+                                   '-f', 'mp4',
+                                   out_path])
+
         meta = self.generate_asset_meta(asset_type, filename, path)
 
+        # Only commit to database if files were uploaded and transcoded successfully
         row = AssetModel(name=asset_name, user_id=project.user_id, path=asset_filename, asset_type=asset_type, thumbnail_path=meta["thumbnail_path"], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
         db.session.commit()
 
@@ -132,9 +146,9 @@ class ProjectObjects(Resource):
     def get(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
+
         return project.assets.filter_by(asset_type=AssetType.model).all()
-        
+
 @ns.route("/<string:id>/videos")
 @ns.response(HTTPStatus.NOT_FOUND, "Project not found")
 @ns.param("id", "The project identifier")
@@ -147,7 +161,7 @@ class ProjectVideos(Resource):
     def get(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
+
         return project.assets.filter_by(asset_type=AssetType.video).all()
 
 @ns.route("/<string:id>/scenes")
@@ -160,7 +174,7 @@ class ProjectScenes(Resource):
     def get(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
+
         return project.scenes
 
     @user_jwt_required
@@ -168,10 +182,10 @@ class ProjectScenes(Resource):
     def post(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
-        scene = SceneModel(name=api.payload["name"], 
-                           project_id=project.id, 
-                           user_id=api.payload["user_id"], 
+
+        scene = SceneModel(name=api.payload["name"],
+                           project_id=project.id,
+                           user_id=api.payload["user_id"],
                            description=api.payload["description"])
 
         project.scenes.append(scene)
@@ -179,7 +193,7 @@ class ProjectScenes(Resource):
         db.session.add(scene)
         db.session.commit()
 
-        return "", HTTPStatus.CREATED   
+        return "", HTTPStatus.CREATED
 
 @ns.route("/<string:id>/scenarios")
 @ns.response(HTTPStatus.NOT_FOUND, "Project not found")
@@ -191,7 +205,7 @@ class ProjectScenarios(Resource):
     def get(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
+
         return ScenarioModel.query.filter_by(project_id=id).all()
 
     @user_jwt_required
@@ -200,9 +214,9 @@ class ProjectScenarios(Resource):
     def post(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
+
         scenario = ScenarioModel(name=api.payload['name'],
-                                 project_id=project.id,  
+                                 project_id=project.id,
                                  description=api.payload['description'])
         project.scenarios.append(scenario)
 
@@ -221,7 +235,7 @@ class ProjectTimelines(Resource):
     def get(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
+
         return project.timelines
 
     @user_jwt_required
@@ -230,7 +244,7 @@ class ProjectTimelines(Resource):
     def post(self, id):
         claims = get_jwt()
         project = ProjectModel.query.filter_by(id=id, user_id=claims['id']).first_or_404()
-        
+
         timeline = TimelineModel(name=api.payload['name'],
                                  description=api.payload['description'],
                                  randomized=api.payload['randomized'],
@@ -254,9 +268,8 @@ class ProjectCreate(Resource):
     @ns.marshal_with(project_schema)
     def post(self):
         project = ProjectModel(user_id=api.payload["id"], name=api.payload["name"])
-        
+
         db.session.add(project)
         db.session.commit()
 
         return project
-
