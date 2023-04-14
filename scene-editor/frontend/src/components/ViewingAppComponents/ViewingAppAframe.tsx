@@ -72,12 +72,24 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         const scene: any = document.getElementById('aframescene');
         scene.enterVR();
     };
-    
+
     // exits VR by accessing the scene
     const exitVR = () => {
         const scene: any = document.getElementById('aframescene');
         scene.exitVR();
         startVideo();
+    }
+
+    const changeQuality = () => {
+        const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
+        if (!videoElement) { return };
+        // console.log(video);
+        const basePath = video.path.substring(0, video.path.length - 4);
+        videoElement.src = `/asset/${basePath}-720.mp4`;
+        const button = document.getElementById('qualitybutton');
+        if (button) {
+            button.style.display = 'none';
+        }
     }
 
     // menuOptionCallback receives a response from the controller
@@ -174,7 +186,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             videoPlaying:true,
         });
     };
-    
+
     useEffect(() => {
         setAppState({
             ...appState,
@@ -190,8 +202,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
     return (
         <>
-        <Scene 
-            id="aframescene" 
+        <Scene
+            id="aframescene"
             vrModeUI={{enabled: false, enterVRButton: "#entervrbutton" }}
             background={{color: "black"}}
             embedded>
@@ -215,25 +227,25 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                     loading={!appState.videoPlaying && !appState.menuEnabled}/>
             {!appState.started ? <StartMenu onStart={startVideo} /> : null}
             {appState.ended ? <EndMenu onEnd={replay}/> : null}
-            {appState.menuEnabled && appState.started && !appState.ended ? 
-                <Menu 
+            {appState.menuEnabled && appState.started && !appState.ended ?
+                <Menu
                             annotations={annotations}
                             enabled={appState.menuEnabled && appState.started && !appState.ended}
                             onOption={chosenMenuOption}/>
             : null}
         </Scene>
             { appState.started && playButtonOpen ?
-               <Button 
+               <Button
                 id="playbutton"
                 style={{position: 'absolute',
-                        zIndex: 9999, 
+                        zIndex: 9999,
                         top: "50%",
                         left: "50%",
                         color: 'black',
                         width: 90,
                         height: 80,
                         transform: "translate(-50%, -50%)",
-                        padding: 10, 
+                        padding: 10,
                         fontSize:'2em',
                         backgroundColor: 'white',
                         opacity: 0.9
@@ -241,19 +253,20 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                 onClick={handlePlayButton}
                 >
                     ▶
-                </Button> 
-            : 
+                </Button>
+            :
                 null
             }
-            <Button 
+
+            <Button
             id="entervrbutton"
-            style={{position: 'absolute', 
-                    zIndex: 9999, 
-                    right: 0, 
-                    bottom: 0, 
-                    color: 'black', 
+            style={{position: 'absolute',
+                    zIndex: 9999,
+                    right: 0,
+                    bottom: 0,
+                    color: 'black',
                     margin:10,
-                    padding: 10, 
+                    padding: 10,
                     fontSize:'1.2em',
                     backgroundColor: 'white',
                     opacity: 0.8,
@@ -262,6 +275,24 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             onClick={enterVR}
             >
                 ENTER VR
+            </Button>
+            <Button
+                id="qualitybutton"
+                style={{position: 'absolute',
+                    zIndex: 9999,
+                    left: 0,
+                    bottom: 0,
+                    color: 'black',
+                    margin: 10,
+                    padding: 10,
+                    fontSize: '1.2em',
+                    backgroundColor: 'white',
+                    opacity: 0.8,
+                    cursor:'pointer'
+                    }}
+            onClick={changeQuality}
+            >
+                Low Quality
             </Button>
         </>
     );
