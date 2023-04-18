@@ -16,8 +16,8 @@ if [ "$DEBUG" ]; then
     echo '=== STARTING DEVELOPMENT SERVER ==='
     export FLASK_DEBUG=1
     export FLASK_ENV=development
-    flask run --host=0.0.0.0 --port=5000
+    exec flask run --host=0.0.0.0 --port=5000
 else
     echo '=== STARTING PRODUCTION SERVER ==='
-    uwsgi /uwsgi.ini
+    exec uwsgi /uwsgi.ini
 fi
