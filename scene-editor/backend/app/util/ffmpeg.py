@@ -37,10 +37,9 @@ class HlsProfile:
 
 HLS_PROFILES = (
     HlsProfile(3840, 2160, 'main', 16000, 192),
-    HlsProfile(1920, 1080, 'main',  6000, 192),
+    HlsProfile(1920, 1080, 'main',  6000, 128),
     HlsProfile(1280,  720, 'main',  3000, 128),
-    HlsProfile( 960,  540, 'main',  2000, 128),
-    HlsProfile( 768,  432, 'main',  1000,  96),
+    HlsProfile( 960,  540, 'main',  2000, 96),
 )
 
 
@@ -74,16 +73,17 @@ def create_hls(inp_path: Path):
         args += ('-map', f'[vscale{i}]',
                  '-map', f'[asplit{i}]',
                  '-c:a', 'aac',
-                 '-c:v', 'h264',
+                 '-c:v', 'libx264',
+                 '-preset', 'veryfast',
                  '-profile:v', prof.name,
-                 '-b:v', str(prof.video_bitrate),
-                 '-movflags', '+faststart',
+                 '-b:v', str(prof.video_bitrate * 1000),
                  '-b:a', str(prof.audio_bitrate * 1000),
+                 '-g', '30',
+                 '-movflags', 'frag_keyframe+empty_moov',  # fragmented MP4
                  '-hls_time', '4',
                  '-hls_list_size', '0',
                  '-hls_playlist_type', 'vod',
-                 '-hls_segment_type', 'mpegts',
-                 '-master_pl_name', 'main.m3u8')
+                 '-hls_segment_type', 'mpegts')
 
         name_prefix = '.'.join(inp_path.as_posix().split('.')[:-1])
         args.append(f'{name_prefix}-{prof.height}p.m3u8')

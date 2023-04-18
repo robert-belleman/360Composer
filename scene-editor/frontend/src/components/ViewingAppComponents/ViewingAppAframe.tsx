@@ -17,6 +17,7 @@ import { stereoscopic } from './AframeComponents/Stereoscopic';
 import { Button } from "@mui/material";
 import { isIOS, isMobile, isSafari } from "react-device-detect";
 import { delay } from "lodash";
+import Hls from "hls.js";
 
 stereoscopic(AFRAME);
 
@@ -83,9 +84,31 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     const changeQuality = () => {
         const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
         if (!videoElement) { return };
-        // console.log(video);
         const basePath = video.path.substring(0, video.path.length - 4);
-        videoElement.src = `/asset/${basePath}-720.mp4`;
+
+        const videoSrc = `/asset/${basePath}-720p.m3u8`;
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(videoElement);
+        }
+        // HLS.js is not supported on platforms that do not have Media Source
+        // Extensions (MSE) enabled.
+        //
+        // When the browser has built-in HLS support (check using `canPlayType`),
+        // we can provide an HLS manifest (i.e. .m3u8 URL) directly to the video
+        // element through the `src` property. This is using the built-in support
+        // of the plain video element, without using HLS.js.
+        //
+        // Note: it would be more normal to wait on the 'canplay' event below however
+        // on Safari (where you are most likely to find built-in HLS support) the
+        // video.src URL must be on the user-driven white-list before a 'canplay'
+        // event will be emitted; the last video event that can be reliably
+        // listened-for when the URL is not on the white-list is 'loadedmetadata'.
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            videoElement.src = videoSrc;
+        }
+
         const button = document.getElementById('qualitybutton');
         if (button) {
             button.style.display = 'none';
