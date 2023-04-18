@@ -1,12 +1,12 @@
 flask==2.1.3
 flask-restx
-SQLALchemy==1.4.46 
+SQLAlchemy==1.4.46
 flask_sqlalchemy==2.5.1
 flask-migrate
 flask_jwt_extended
 flask-cors
 werkzeug
-psycopg2-binary==2.8.6
+psycopg2-binary~=2.9
 requests==2.24.0
 redis==3.3.11
 rq==1.1.0
