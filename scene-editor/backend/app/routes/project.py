@@ -1,5 +1,5 @@
 import os
-import subprocess
+from pathlib import Path
 
 from flask import request
 from flask_restx import Resource, reqparse
@@ -25,7 +25,7 @@ from app.models.scene import Scene as SceneModel
 from app.models.scenario import Scenario as ScenarioModel
 from app.models.timeline import Timeline as TimelineModel, TimelineScenario as TimelineScenarioModel
 
-from app.util.ffmpeg import create_thumbnail, get_duration
+from app.util.ffmpeg import create_thumbnail, get_duration, create_hls
 import app.util.util as util
 
 import hashlib, binascii, os
@@ -115,16 +115,7 @@ class ProjectAssets(Resource):
         util.write_file(request, path, file)
 
         # TODO Use worker to process async
-
-        for height in ('1080', '720'):
-            out_path = os.path.join(os.environ.get('ASSET_DIR'), f'{filename}-{height}.mp4')
-            subprocess.check_call(['ffmpeg',
-                                   '-i', path,
-                                   '-vf', f'scale=-1:{height}',
-                                   '-crf', '21',
-                                   '-preset', 'veryfast', # don't care about file size for now
-                                   '-f', 'mp4',
-                                   out_path])
+        create_hls(Path(os.environ.get('ASSET_DIR'), asset_filename))
 
         meta = self.generate_asset_meta(asset_type, filename, path)
 
