@@ -13,6 +13,7 @@ COPY /scene-editor/frontend/public /app/scene-editor-frontend/public
 COPY /scene-editor/frontend/tsconfig.json /app/scene-editor-frontend/tsconfig.json
 
 ENV HOST 0.0.0.0
+ENV NODE_ENV development
 ENV NODE_OPTIONS --openssl-legacy-provider
 
 ENTRYPOINT ["npm", "start"]
