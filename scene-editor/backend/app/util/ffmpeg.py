@@ -31,8 +31,8 @@ class HlsProfile:
     width: int
     height: int
     name: str
-    video_bitrate: int
-    audio_bitrate: int
+    video_bitrate: int  # kbit/s
+    audio_bitrate: int  # kbit/s
 
 
 HLS_PROFILES = (
@@ -77,8 +77,8 @@ def create_hls(inp_path: Path):
                  '-c:v', 'h264',
                  '-profile:v', prof.name,
                  '-b:v', str(prof.video_bitrate),
-                 '-b:a', str(prof.audio_bitrate),
                  '-movflags', '+faststart',
+                 '-b:a', str(prof.audio_bitrate * 1000),
                  '-hls_time', '4',
                  '-hls_list_size', '0',
                  '-hls_playlist_type', 'vod',
@@ -86,7 +86,7 @@ def create_hls(inp_path: Path):
                  '-master_pl_name', 'main.m3u8')
 
         name_prefix = '.'.join(inp_path.as_posix().split('.')[:-1])
-        args.append(f'{name_prefix}-{prof.height}.m3u8')
+        args.append(f'{name_prefix}-{prof.height}p.m3u8')
 
     # now call ffmpeg
     subprocess.check_call(args)
