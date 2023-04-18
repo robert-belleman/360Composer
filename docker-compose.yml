@@ -73,7 +73,6 @@ services:
       - 8081:8081
 
   nginx:
-    container_name: nginx-server
     image: nginx
     depends_on:
       - backend
@@ -85,11 +84,17 @@ services:
       - 8080:8080
 
   frontend: # port 3000
-    build:
-      context: .
-      dockerfile: ./ops/Dockerfile.frontend-dev
-      args:
-        BASEPATH: "/app"
+    image: node:18
+    volumes:
+      - type: bind
+        source: ./scene-editor/frontend
+        target: /app
+    environment:
+      HOST: 0.0.0.0
+      NODE_ENV: development
+      NODE_OPTIONS: --openssl-legacy-provider
+    working_dir: /app
+    entrypoint: ["bash", "-c", "npm ci && exec npm start"]
 
 volumes:
   postgres:
