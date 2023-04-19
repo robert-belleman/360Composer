@@ -94,7 +94,7 @@ services:
       NODE_ENV: development
       NODE_OPTIONS: --openssl-legacy-provider
     working_dir: /app
-    entrypoint: ["bash", "-c", "npm ci && exec npm start"]
+    entrypoint: ["npm", "start"]
 
 volumes:
   postgres:
