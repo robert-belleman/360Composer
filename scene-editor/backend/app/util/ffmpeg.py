@@ -36,7 +36,7 @@ class HlsProfile:
 
 
 HLS_PROFILES = (
-    HlsProfile(3840, 2160, 'main', 16000, 192),
+    # HlsProfile(3840, 2160, 'main', 16000, 192),
     HlsProfile(1920, 1080, 'main',  6000, 128),
     HlsProfile(1280,  720, 'main',  3000, 128),
     HlsProfile( 960,  540, 'main',  2000, 96),
@@ -44,49 +44,37 @@ HLS_PROFILES = (
 
 
 def create_hls(inp_path: Path):
-    args = ['ffmpeg',
-            '-i', inp_path.as_posix()]
+    args = ('ffmpeg',
+            '-hide_banner',
+            '-i', inp_path.as_posix(),
+            '-preset', 'veryfast',
+            '-g', '30',
+            '-sc_threshold', '0',
+            '-movflags', 'frag_keyframe+empty_moov')  # fragmented MP4
 
-    filters = []
-
-    # Build the concatenate filter chain
-    filters.append('[0:v][0:a] concat=n=1:v=1:a=1 [vconcat][aconcat]')
-
-    # Build the video split filter chain
-    temp = f'[vconcat] split={len(HLS_PROFILES)} '
-    temp += ''.join(f'[vsplit{i}]' for i in range(len(HLS_PROFILES)))
-    filters.append(temp)
-
-    # Build the audio split filter chain
-    temp = f'[aconcat] asplit={len(HLS_PROFILES)} '
-    temp += ''.join(f'[asplit{i}]' for i in range(len(HLS_PROFILES)))
-    filters.append(temp)
-
-    # Build the rescale filter chain (one per output)
+    var_stream_map = []
     for i, prof in enumerate(HLS_PROFILES):
-        filters.append(f'[vsplit{i}] scale={prof.width}:{prof.height}:force_original_aspect_ratio=decrease [vscale{i}]')
+        args += ('-map', '0:0', '-map', '0:1')
+        args += (f'-filter:v:{i}', f'scale={prof.width}:{prof.height}:force_original_aspect_ratio=decrease',
+                 f'-c:v:{i}', 'libx264',
+                 f'-b:v:{i}', f'{prof.video_bitrate}k',
+                 f'-c:a:{i}', 'aac',
+                 f'-b:a:{1}', f'{prof.audio_bitrate}k')
+        var_stream_map.append(f"v:{i},a:{i}")
 
-    args += ('-filter_complex', ";".join(filters))
+    args += ('-var_stream_map', ' '.join(var_stream_map))
+
+    output_dir = Path(inp_path.parent, inp_path.name[:inp_path.name.rindex('.')])
+    output_dir.mkdir()
 
     # Output
-    for i, prof in enumerate(HLS_PROFILES):
-        args += ('-map', f'[vscale{i}]',
-                 '-map', f'[asplit{i}]',
-                 '-c:a', 'aac',
-                 '-c:v', 'libx264',
-                 '-preset', 'veryfast',
-                 '-profile:v', prof.name,
-                 '-b:v', str(prof.video_bitrate * 1000),
-                 '-b:a', str(prof.audio_bitrate * 1000),
-                 '-g', '30',
-                 '-movflags', 'frag_keyframe+empty_moov',  # fragmented MP4
-                 '-hls_time', '4',
-                 '-hls_list_size', '0',
-                 '-hls_playlist_type', 'vod',
-                 '-hls_segment_type', 'mpegts')
-
-        name_prefix = '.'.join(inp_path.as_posix().split('.')[:-1])
-        args.append(f'{name_prefix}-{prof.height}p.m3u8')
+    args += ('-f', 'hls',
+             '-hls_time', '4',
+             '-hls_list_size', '0',
+             '-hls_playlist_type', 'vod',
+             '-hls_segment_type', 'mpegts',
+             '-master_pl_name', f'main.m3u8',
+             '-hls_segment_filename', f'{output_dir}/v%v-s%d.ts', f'{output_dir}/v%v.m3u8')
 
     # now call ffmpeg
     subprocess.check_call(args)
