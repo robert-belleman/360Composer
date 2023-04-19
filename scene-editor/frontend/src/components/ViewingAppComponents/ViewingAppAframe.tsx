@@ -18,6 +18,7 @@ import { Button } from "@mui/material";
 import { isIOS, isMobile, isSafari } from "react-device-detect";
 import { delay } from "lodash";
 import Hls from "hls.js";
+import { WindowsMotionController } from "@babylonjs/core";
 
 stereoscopic(AFRAME);
 
@@ -222,8 +223,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
     }, [video]);
 
-
-    return (
+    const components = (
         <>
         <Scene
             id="aframescene"
@@ -233,7 +233,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             <Assets id="aframe-video-assets">
                 <video
                     id={`aframe-video-${video.id}`}
-                    src={`/asset/${video.path}`}
                     playsInline
                     onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
                     onLoadedData={onVideoLoaded}
@@ -315,10 +314,24 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
                     }}
             onClick={changeQuality}
             >
-                Low Quality
+                Quality
             </Button>
         </>
     );
+
+    console.debug("Injecting HLS.js");
+
+    const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
+    const videoSrc = `/asset/${video.path}`;
+    if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(videoSrc);
+        hls.attachMedia(videoElement);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        videoElement.src = videoSrc;
+    }
+
+    return components;
 };
 
 export default ViewingAppAframe;

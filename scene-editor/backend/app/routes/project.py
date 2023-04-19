@@ -114,13 +114,13 @@ class ProjectAssets(Resource):
         path = os.path.join(os.environ.get('ASSET_DIR'), asset_filename)
         util.write_file(request, path, file)
 
-        # TODO Use worker to process async
         create_hls(Path(os.environ.get('ASSET_DIR'), asset_filename))
+        hls_playlist = filename + '/main.m3u8'
 
         meta = self.generate_asset_meta(asset_type, filename, path)
 
         # Only commit to database if files were uploaded and transcoded successfully
-        row = AssetModel(name=asset_name, user_id=project.user_id, path=asset_filename, asset_type=asset_type, thumbnail_path=meta["thumbnail_path"], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
+        row = AssetModel(name=asset_name, user_id=project.user_id, path=hls_playlist, asset_type=asset_type, thumbnail_path=meta["thumbnail_path"], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
         db.session.commit()
 
         return row, HTTPStatus.CREATED
