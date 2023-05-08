@@ -69,7 +69,7 @@ def create_hls(inp_path: Path) -> None:
 
     # Output
     args += ('-f', 'hls',
-             '-hls_time', '4',
+             '-hls_time', '6',
              '-hls_list_size', '0',
              '-hls_playlist_type', 'vod',
              '-hls_segment_type', 'mpegts',
