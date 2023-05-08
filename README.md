@@ -28,3 +28,8 @@ docker compose up --build
 ```bash
 docker compose up --build
 ```
+
+(Re-)install dependencies:
+```
+docker compose run frontend install
+```
