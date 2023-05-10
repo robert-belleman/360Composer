@@ -64,7 +64,6 @@ services:
     ports:
       - 5433:5432
 
-# Geen idee waar deze voor is dus nu even gecomment - 18nov22_rico
   adminer:
     image: adminer
     depends_on:

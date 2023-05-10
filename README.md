@@ -4,7 +4,10 @@
 
 ## Changes in robin-variable-quality branch
 
-- Updated docker-compose development stack with faster builds and live reloading for the frontend
+- Improved docker-compose development stack:
+  - Updated base images
+  - Development stack no longer uses production build of the frontend, but instead a development server with live reloading (much faster!)
+  - Proxying is now done by nginx, instead of http-proxy-middleware.
 - HLS transcoding in backend (video path now returns m3u8 playlist instead of mp4 file)
 - Modified a-frame video player for HLS support
 - (WIP) Modified annotation editor (babylon.js video player) for HLS support
