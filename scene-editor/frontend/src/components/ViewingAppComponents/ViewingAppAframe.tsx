@@ -15,9 +15,9 @@ import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 import { stereoscopic } from './AframeComponents/Stereoscopic';
 import { Button } from "@mui/material";
+import Hls from "hls.js";
 import { isIOS, isMobile, isSafari } from "react-device-detect";
 import { delay } from "lodash";
-import Hls from "hls.js";
 import { WindowsMotionController } from "@babylonjs/core";
 
 stereoscopic(AFRAME);
@@ -82,39 +82,25 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         startVideo();
     }
 
-    const changeQuality = () => {
-        const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
-        if (!videoElement) { return };
-        const basePath = video.path.substring(0, video.path.length - 4);
+    // const changeQuality = () => {
+    //     const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
+    //     if (!videoElement) { return };
+    //     const basePath = video.path.substring(0, video.path.length - 4);
 
-        const videoSrc = `/asset/${basePath}-720p.m3u8`;
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(videoSrc);
-            hls.attachMedia(videoElement);
-        }
-        // HLS.js is not supported on platforms that do not have Media Source
-        // Extensions (MSE) enabled.
-        //
-        // When the browser has built-in HLS support (check using `canPlayType`),
-        // we can provide an HLS manifest (i.e. .m3u8 URL) directly to the video
-        // element through the `src` property. This is using the built-in support
-        // of the plain video element, without using HLS.js.
-        //
-        // Note: it would be more normal to wait on the 'canplay' event below however
-        // on Safari (where you are most likely to find built-in HLS support) the
-        // video.src URL must be on the user-driven white-list before a 'canplay'
-        // event will be emitted; the last video event that can be reliably
-        // listened-for when the URL is not on the white-list is 'loadedmetadata'.
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            videoElement.src = videoSrc;
-        }
+    //     const videoSrc = `/asset/${basePath}-720p.m3u8`;
+    //     if (Hls.isSupported()) {
+    //         const hls = new Hls();
+    //         hls.loadSource(videoSrc);
+    //         hls.attachMedia(videoElement);
+    //     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    //         videoElement.src = videoSrc;
+    //     }
 
-        const button = document.getElementById('qualitybutton');
-        if (button) {
-            button.style.display = 'none';
-        }
-    }
+    //     const button = document.getElementById('qualitybutton');
+    //     if (button) {
+    //         button.style.display = 'none';
+    //     }
+    // }
 
     // menuOptionCallback receives a response from the controller
     // when an option is submitted to the controller.
@@ -223,7 +209,21 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
     }, [video]);
 
-    const components = (
+    useEffect(() => {
+        console.debug("Injecting HLS.js");
+
+        const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
+        const videoSrc = `/asset/${video.path}`;
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(videoElement);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            videoElement.src = videoSrc;
+        }
+    });
+
+    return (
         <>
         <Scene
             id="aframescene"
@@ -298,7 +298,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             >
                 ENTER VR
             </Button>
-            <Button
+            {/* <Button
                 id="qualitybutton"
                 style={{position: 'absolute',
                     zIndex: 9999,
@@ -315,23 +315,9 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             onClick={changeQuality}
             >
                 Quality
-            </Button>
+            </Button> */}
         </>
     );
-
-    console.debug("Injecting HLS.js");
-
-    const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
-    const videoSrc = `/asset/${video.path}`;
-    if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(videoSrc);
-        hls.attachMedia(videoElement);
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        videoElement.src = videoSrc;
-    }
-
-    return components;
 };
 
 export default ViewingAppAframe;
