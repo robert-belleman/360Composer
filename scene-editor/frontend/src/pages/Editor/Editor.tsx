@@ -1,10 +1,10 @@
-import React, {useEffect, useState} from "react";
+import React, {RefObject, useCallback, useEffect, useState} from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { concat, sortBy } from 'lodash';
 
 import {
-  FreeCamera, 
+  FreeCamera,
   Vector3,
   AbstractMesh,
   SceneLoader,
@@ -51,6 +51,8 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
 import axios from "axios";
 
+import Hls from "hls.js";
+
 import SceneComponent from "../../components/SceneComponent";
 import AssetList from "../../components/EditorComponents/AssetList";
 import SceneSettings from "../../components/EditorComponents/SceneSettings";
@@ -64,6 +66,7 @@ import UpdateSceneDialog from "../../components/EditorComponents/UpdateSceneDial
 import { View } from '../../types/views';
 
 import "./Editor.scss";
+import ReactDOM from "react-dom";
 
 const theme = createTheme();
 const useStyles = makeStyles((theme) =>
@@ -89,7 +92,7 @@ const Editor: React.FC = () => {
     const useQuery = () => new URLSearchParams(useLocation().search);
     const param:string|null = useQuery().get('goBack');
     const goBack = !(param === null || param === undefined)
-  
+
     const classes = useStyles();
 
     const [scene, setScene]: any = useState(undefined);
@@ -161,7 +164,7 @@ const Editor: React.FC = () => {
         .catch((e) => console.log(e))
     }
 
-    /* 
+    /*
      * Fetches the objects that are stored in the database for this scene
      */
     const fetchSceneObjects = async () => {
@@ -178,11 +181,11 @@ const Editor: React.FC = () => {
         fetchSceneData();
         fetchAnnotations();
       }
-      
+
     }, [scene_id]);
 
     useEffect(() => {
-      if (babylonScene !== undefined) 
+      if (babylonScene !== undefined)
         fetchSceneObjects();
     }, [babylonScene]);
 
@@ -218,7 +221,7 @@ const Editor: React.FC = () => {
 
       // NOTE: this can use a rewrite, hacky 1 AM code
       if (activeAnnotation !== undefined) {
-        
+
         const manager = new GUI3DManager(babylonScene);
 
         var anchor = new TransformNode(activeAnnotation.id);
@@ -233,8 +236,8 @@ const Editor: React.FC = () => {
         anchor.rotation = babylonCamera.rotation.clone();
 
         panel.linkToTransformNode(anchor);
-        
-        
+
+
         // GUI
         var plane = MeshBuilder.CreatePlane("plane", {size: 3});
         plane.position = anchor.position.clone();
@@ -274,7 +277,7 @@ const Editor: React.FC = () => {
       // Create marks for the transport slider
       const marks = sortBy(annotations, ['timestamp']).map((obj: any, index:number) => {
         return (
-            { 
+            {
               value: obj.timestamp,
               label: `${index+1}`
             })
@@ -290,7 +293,7 @@ const Editor: React.FC = () => {
       if (babylonScene !== undefined) {
           console.log("starting mapping of objects")
 
-          
+
           objects.map((object: any) => {
             // only load objects that are not yet in the list
               SceneLoader.ImportMesh(
@@ -315,7 +318,7 @@ const Editor: React.FC = () => {
                       rootMesh.position = new Vector3(object.x_pos, object.y_pos, object.z_pos);
                       rootMesh.rotationQuaternion = new Quaternion(object.x_rotation, object.y_rotation, object.z_rotation, object.w_rotation);
                       rootMesh.scaling = new Vector3(object.x_scale, object.y_scale, object.z_scale);
-                      
+
                       sceneRootMeshes.push({
                         "mesh": rootMesh,
                         "id": object.id
@@ -347,7 +350,7 @@ const Editor: React.FC = () => {
         "z_scale": 1,
 
         "x_rotation": 0,
-        "y_rotation": 0,  
+        "y_rotation": 0,
         "z_rotation": 0,
         "w_rotation": 1,
       }
@@ -371,7 +374,7 @@ const Editor: React.FC = () => {
         "z_scale": scale.z,
 
         "x_rotation": rotation.x,
-        "y_rotation": rotation.y,  
+        "y_rotation": rotation.y,
         "z_rotation": rotation.z,
         "w_rotation": rotation.w
       }
@@ -381,26 +384,34 @@ const Editor: React.FC = () => {
         });
     }
 
-    const loadVideo = () => {
-      if (video === undefined) {
-        return;
-      }
+    const onVideoElemRef = useCallback(videoElem => {
+      const hls = new Hls();
+      hls.loadSource(`/asset/${video.path}`);
+      hls.attachMedia(videoElem);
+      loadVideoBabylon(videoElem);
+    }, [video]);
 
+    const loadVideo = () => {
+      const component = <video ref={onVideoElemRef}></video>;
+      ReactDOM.render(component, document.getElementById('video-player-root'));
+    }
+
+    const loadVideoBabylon = (videoElem: HTMLVideoElement) => {
       if (videoDome !== undefined) {
         videoDome.dispose();
       }
 
       const posterURL = `/api/asset/${video.id}/thumbnail`;
       videoDome = new VideoDome(
-        "videoDome", 
-        [`/asset/${video.path}`], 
+        "videoDome",
+        videoElem,
         {
           resolution: 32,
           clickToPlay: false,
           autoPlay: playing,
           poster: posterURL,
           loop: true
-        }, 
+        },
         babylonScene
       );
       setVideoDome(videoDome);
@@ -413,7 +424,7 @@ const Editor: React.FC = () => {
       videoDome.videoTexture.video.ontimeupdate = (event: any) => {
         setCurrentVideoTime(event.target.currentTime);
       };
-      
+
       videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
         setCurrentVideoLength(event.target.duration);
         setStereoscopic(video.view_type);
@@ -440,7 +451,7 @@ const Editor: React.FC = () => {
 
     // runs whenever the seen has been set up
     const onSceneReady = (scene: any) => {
-      
+
       // keep track of scene to use it later
       setBabylonScene(scene);
 
@@ -484,7 +495,7 @@ const Editor: React.FC = () => {
           }
 
           activeMesh = mesh;
-            
+
       });
 
        // enable gizmo settings with keyboard presses
@@ -545,7 +556,7 @@ const Editor: React.FC = () => {
       } else {
         console.log("Scenelight is undefined")
       }
-      
+
       setLightIntensity(newValue as number);
     };
 
@@ -601,7 +612,7 @@ const Editor: React.FC = () => {
 
       return `${minutesLabel}:${secondsLabel}`
     }
-    
+
     const renderSettings = () => (
       <Grid container>
         <Grid item xs={12}>
@@ -609,14 +620,14 @@ const Editor: React.FC = () => {
             <Typography variant="h6" className="title">
               Scene Settings
             </Typography>
-            <SceneSettings 
-              onLightIntensityChanged={onLightIntensityChanged} 
+            <SceneSettings
+              onLightIntensityChanged={onLightIntensityChanged}
               lightIntensity={lightIntensity}
             />
             <Divider style={{marginTop: 20, marginBottom: 20}} />
             <Typography variant="subtitle1" component="p" style={{display: 'flex', alignItems: 'center', flexWrap: 'wrap'}}><ImageIcon /> 360° media</Typography>
-            <MediaSelector 
-              sceneID={scene_id!} 
+            <MediaSelector
+              sceneID={scene_id!}
               onMediaSelected={() => {fetchSceneData(); fetchAnnotations()}} // always fetch new scene data and annotations when something has changed with the media
               onMediaDeleted={() => fetchSceneData()}
               media={media}
@@ -747,6 +758,7 @@ const Editor: React.FC = () => {
 
     return scene_id ? (
         <div>
+            <div id="video-player-root" style={{display: "none"}}></div>
             <TopBar></TopBar>
             <SideMenu activeView={View.Project}/>
             <div className={classes.root}>
@@ -774,11 +786,11 @@ const Editor: React.FC = () => {
                     </Grid>
                   </Grid>
                 </Grid>
-                <NewAnnotationDialog 
-                  sceneID={scene_id!} 
-                  timeStamp={currentVideoTime} 
-                  open={newAssetDialogOpen} 
-                  closeHandler={setNewAssetDialogOpen} 
+                <NewAnnotationDialog
+                  sceneID={scene_id!}
+                  timeStamp={currentVideoTime}
+                  open={newAssetDialogOpen}
+                  closeHandler={setNewAssetDialogOpen}
                   onAnnotationCreated={onAnnotationCreated}
                 />
               </Container>
