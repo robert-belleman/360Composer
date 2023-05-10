@@ -22,7 +22,7 @@ When installing you can choose to run a production or development build.
 docker compose up --build
 ```
 
-(Re-)install dependencies:
+(Re-)install dependencies (npm install):
 ```
 docker compose run frontend install
 ```
