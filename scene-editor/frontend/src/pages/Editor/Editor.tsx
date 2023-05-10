@@ -385,7 +385,11 @@ const Editor: React.FC = () => {
     }
 
     const onVideoElemRef = useCallback(videoElem => {
-      const hls = new Hls();
+      const conf = {
+        startLevel: -1, // download lowest quality variant as speed test
+        capLevelOnFPSDrop: true,
+      };
+      const hls = new Hls(conf);
       hls.loadSource(`/asset/${video.path}`);
       hls.attachMedia(videoElem);
       loadVideoBabylon(videoElem);

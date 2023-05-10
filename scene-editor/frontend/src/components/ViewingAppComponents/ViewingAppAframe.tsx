@@ -214,13 +214,13 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
 
         const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
         const videoSrc = `/asset/${video.path}`;
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(videoSrc);
-            hls.attachMedia(videoElement);
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            videoElement.src = videoSrc;
+        const conf = {
+            startLevel: -1, // download lowest quality variant as speed test
+            capLevelOnFPSDrop: true,
         }
+        const hls = new Hls(conf);
+        hls.loadSource(videoSrc);
+        hls.attachMedia(videoElement);
     });
 
     return (
