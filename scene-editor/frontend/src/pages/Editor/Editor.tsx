@@ -1,4 +1,4 @@
-import React, {RefObject, useCallback, useEffect, useState} from "react";
+import React, {RefObject, useCallback, useContext, useEffect, useState} from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { concat, sortBy } from 'lodash';
@@ -67,6 +67,7 @@ import { View } from '../../types/views';
 
 import "./Editor.scss";
 import ReactDOM from "react-dom";
+import { HlsContext } from "../../App";
 
 const theme = createTheme();
 const useStyles = makeStyles((theme) =>
@@ -86,6 +87,7 @@ const useStyles = makeStyles((theme) =>
     )
 
 const Editor: React.FC = () => {
+    const hls = useContext<Hls | undefined>(HlsContext);
 
     const { project_id, scene_id } = useParams<'project_id' | 'scene_id'>();
     const navigate = useNavigate();
@@ -385,15 +387,14 @@ const Editor: React.FC = () => {
     }
 
     const onVideoElemRef = useCallback(videoElem => {
-      const conf = {
-        startLevel: -1, // download lowest quality variant as speed test
-        capLevelOnFPSDrop: true,
-      };
-      const hls = new Hls(conf);
+      if (hls == undefined) {
+        console.warn("HLS not available");
+        return;
+      }
       hls.loadSource(`/asset/${video.path}`);
       hls.attachMedia(videoElem);
       loadVideoBabylon(videoElem);
-    }, [video]);
+    }, [hls, video]);
 
     const loadVideo = () => {
       const component = <video ref={onVideoElemRef}></video>;

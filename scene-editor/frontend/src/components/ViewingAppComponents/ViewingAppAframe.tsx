@@ -2,7 +2,7 @@
  *  It manages the video and annotation data given by the controller which must be
  *  set at all times.
  */
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import 'aframe';
 
 import {
@@ -15,10 +15,11 @@ import StartMenu from "./AframeComponents/StartMenu";
 import EndMenu from "./AframeComponents/EndMenu";
 import { stereoscopic } from './AframeComponents/Stereoscopic';
 import { Button } from "@mui/material";
-import Hls from "hls.js";
 import { isIOS, isMobile, isSafari } from "react-device-detect";
 import { delay } from "lodash";
 import { WindowsMotionController } from "@babylonjs/core";
+import { HlsContext } from "../../App";
+import Hls from "hls.js";
 
 stereoscopic(AFRAME);
 
@@ -29,6 +30,8 @@ interface ViewingAppAframeProps {
 }
 
 const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, onFinish}: ViewingAppAframeProps) => {
+    const hls = useContext<Hls | undefined>(HlsContext);
+
     const [appState, setAppState] = useState({
         started: false,
         menuEnabled: true,
@@ -210,18 +213,19 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     }, [video]);
 
     useEffect(() => {
+        if (hls == undefined) {
+            console.warn("HLS not available");
+            return;
+        }
+
         console.debug("Injecting HLS.js");
 
         const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
         const videoSrc = `/asset/${video.path}`;
-        const conf = {
-            startLevel: -1, // download lowest quality variant as speed test
-            capLevelOnFPSDrop: true,
-        }
-        const hls = new Hls(conf);
+
         hls.loadSource(videoSrc);
         hls.attachMedia(videoElement);
-    });
+    }, [hls]);
 
     return (
         <>
