@@ -422,7 +422,7 @@ const Editor: React.FC = () => {
       setVideoDome(videoDome);
 
       // reset video transport
-      setCurrentVideoLength(videoDome.videoTexture.video.duration)
+      setCurrentVideoLength(0);
       setCurrentVideoTime(0);
 
       // make sure playback is updated
