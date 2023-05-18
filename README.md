@@ -19,22 +19,23 @@ When installing you can choose to run a production or development build.
 ### Development
 
 First, run npm install once (do this again when package.json is changed):
-```
+```sh
 docker compose run frontend install
 ```
 
 Create the assets directory: `mkdir /assets`
 
 Then, start the entire stack:
-```bash
+```sh
 docker compose up --build
 ```
 
 ### Production
 
+Images will be uploaded to the GitHub container registry, but for now need to be built locally using the `./docker-build.sh` script.
+
 Export the production compose file and build and start the docker:
 
-```bash
-export COMPOSE_FILE="docker-compose-prod.yml"
-docker compose up --build
+```sh
+docker compose -f docker-compose.prod.yaml up
 ```

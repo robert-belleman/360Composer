@@ -1,5 +1,5 @@
 version: '3'
-name: vr_app
+
 services:
 
   backend: # port 5000
@@ -27,8 +27,7 @@ services:
         - redis
 
   redis:
-    image: redis:alpine
-    container_name: redis
+    image: redis
 
   postgres:
     image: postgres:12

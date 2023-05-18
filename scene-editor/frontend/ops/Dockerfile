@@ -13,6 +13,10 @@ ENV NODE_OPTIONS=--openssl-legacy-provider
 
 RUN npm run build
 
+WORKDIR /
+
 FROM nginx
 
-COPY --from=build /app/build /var/www/html
+COPY --from=build /app/build /var/www/html/app
+
+COPY ops/nginx-prod.conf /etc/nginx/conf.d/default.conf

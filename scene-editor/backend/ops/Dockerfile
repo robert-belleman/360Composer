@@ -15,8 +15,6 @@ ENV ASSET_DIR=/assets
 COPY ops/entrypoint.sh /
 COPY ops/uwsgi.ini /
 
-COPY migrations/ /app/migrations/
-
-COPY app/ /app/
+COPY . /app/
 
 ENTRYPOINT ["/entrypoint.sh"]
