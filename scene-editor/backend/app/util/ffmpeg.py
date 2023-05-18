@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import ffmpeg
 
 
-def create_thumbnail(in_path, out_path):
+def create_thumbnail(in_path: str, out_path: str):
     try:
         ffmpeg.input(in_path, ss=1) \
               .filter('scale', 500, -1) \
@@ -43,7 +43,7 @@ HLS_PROFILES = (
 )
 
 
-def create_hls(inp_path: Path) -> None:
+def create_hls(inp_path: Path, output_dir: Path) -> None:
     args = ('ffmpeg',
             '-hide_banner',
             '-i', inp_path.as_posix(),
@@ -63,9 +63,6 @@ def create_hls(inp_path: Path) -> None:
         var_stream_map.append(f"v:{i},a:{i}")
 
     args += ('-var_stream_map', ' '.join(var_stream_map))
-
-    output_dir = Path(inp_path.parent, inp_path.name[:inp_path.name.rindex('.')])
-    output_dir.mkdir()
 
     # Output
     args += ('-f', 'hls',

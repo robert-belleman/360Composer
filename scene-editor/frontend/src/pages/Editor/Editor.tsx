@@ -300,7 +300,7 @@ const Editor: React.FC = () => {
             // only load objects that are not yet in the list
               SceneLoader.ImportMesh(
                   undefined,
-                  `/asset/`, // TODO: fix this for production
+                  `/assets/`, // TODO: fix this for production
                   object['asset.path'],
                   babylonScene,
                   ((meshes) => {
@@ -391,7 +391,7 @@ const Editor: React.FC = () => {
         console.warn("HLS not available");
         return;
       }
-      hls.loadSource(`/asset/${video.path}`);
+      hls.loadSource(`/assets/${video.path}`);
       hls.attachMedia(videoElem);
       loadVideoBabylon(videoElem);
     }, [hls, video]);

@@ -18,13 +18,16 @@ When installing you can choose to run a production or development build.
 
 ### Development
 
-```bash
-docker compose up --build
-```
-
-(Re-)install dependencies (npm install):
+First, run npm install once (do this again when package.json is changed):
 ```
 docker compose run frontend install
+```
+
+Create the assets directory: `mkdir /assets`
+
+Then, start the entire stack:
+```bash
+docker compose up --build
 ```
 
 ### Production

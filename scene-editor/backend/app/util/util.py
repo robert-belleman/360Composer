@@ -1,14 +1,15 @@
-import uuid
 import datetime
+import binascii
+import os
 
-def random_file_name():
-  # create random filename
+def random_file_name() -> str:
+    # create random filename
     basename = "asset"
-    suffix = datetime.datetime.now().strftime("%y%m%d%H%M%S")
-    random = str(uuid.uuid4().hex)
-    return "".join([basename, random, suffix])
+    prefix = datetime.datetime.now().strftime("%y%m%d%H%M")
+    random = binascii.b2a_hex(os.urandom(8)).decode()
+    return ''.join([basename, prefix, random])
 
-def write_file(request, path, file):
+def write_file(request, path, file) -> None:
     # save the file to system and create the database entry
     # check if file upload is chunked
     if 'Content-Range' in request.headers:

@@ -1,26 +1,25 @@
-import os
-from flask_restx import Resource, reqparse
-from werkzeug.datastructures import FileStorage
-from werkzeug.utils import secure_filename
+from functools import wraps
+from pathlib import Path
+
+from flask_restx import Resource
 from http import HTTPStatus
-from flask import send_file, send_from_directory, make_response, jsonify
+from flask import send_file, make_response, jsonify
 
 from app.models.database import db
-
-from functools import wraps
 
 from flask_jwt_extended import get_jwt
 from app.util.auth import user_jwt_required, user_or_customer_jwt_required
 
+from app.config import ASSET_DIR
+
 from app.routes.api import api
 
 from app.schemas.asset import asset_schema
-from app.schemas.scene import scene_schema
 
 from app.models.asset import Asset as AssetModel
 from app.models.asset import ViewType
 from app.models.project import Project as ProjectModel
- 
+
 ns = api.namespace("asset")
 
 
@@ -48,7 +47,7 @@ class Asset(Resource):
     @ns.marshal_with(asset_schema)
     def get(self, id):
         """
-        Fetches the asset location from database and returns it as a file 
+        Fetches the asset location from database and returns it as a file
         """
         asset = AssetModel.query.filter_by(id=id.split('.')[0]).first_or_404()
 
@@ -67,7 +66,7 @@ class Thumbnail(Resource):
         """
         asset = AssetModel.query.filter_by(id=id.split('.')[0]).first_or_404()
 
-        return send_file(asset.thumbnail_path, as_attachment=True)
+        return send_file(Path(ASSET_DIR, asset.thumbnail_path), as_attachment=True)
 
 
 @ns.route("/<string:id>/delete")

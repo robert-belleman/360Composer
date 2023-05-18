@@ -20,7 +20,7 @@ import {
   VRDeviceOrientationFreeCamera,
   FreeCameraDeviceOrientationInput,
   Mesh,
-  RayHelper, 
+  RayHelper,
   VRExperienceHelper,
   Ray
 } from "@babylonjs/core"
@@ -110,7 +110,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
         .then((res: any) => {setVideo(res.data); onSceneStart();})
         .catch((e) => console.log(e))
     }
-    /* 
+    /*
      * Fetches the objects that are stored in the database for this scene
      */
     const fetchSceneObjects = async () => {
@@ -187,7 +187,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
             // only load objects that are not yet in the list
               SceneLoader.ImportMesh(
                   undefined,
-                  `/asset/`, // TODO: fix this for production
+                  `/assets/`, // TODO: fix this for production
                   object['asset.path'],
                   vrScene.current,
                   ((meshes) => {
@@ -209,7 +209,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
                       rootMesh.position = new Vector3(object.x_pos, object.y_pos, object.z_pos);
                       rootMesh.rotationQuaternion = new Quaternion(object.x_rotation, object.y_rotation, object.z_rotation, object.w_rotation);
                       rootMesh.scaling = new Vector3(object.x_scale, object.y_scale, object.z_scale);
-                      
+
                       sceneRootMeshes.push({
                         "mesh": rootMesh,
                         "id": object.id
@@ -242,15 +242,15 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
 
       const posterURL = `/api/asset/${video.id}/thumbnail`;
       videoDome.current = new VideoDome(
-        "videoDome", 
-        [`/asset/${video.path}`], //#DEV
+        "videoDome",
+        [`/assets/${video.path}`],
         {
           resolution: 32,
           clickToPlay: false,
           autoPlay: false,
           poster: posterURL,
           loop: false
-        }, 
+        },
         vrScene.current
       );
 
@@ -262,7 +262,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       videoDome.current.videoTexture.video.ontimeupdate = (event: any) => {
         setCurrentVideoTime(event.target.currentTime);
       };
-      
+
       videoDome.current.videoTexture.video.onloadedmetadata = (event: any) => {
         setCurrentVideoLength(event.target.duration)
       };
@@ -276,7 +276,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       panel.margin = 0.3;
 
       // set anchor in front of camera
-      let forwardRay = vrHelper?.currentVRCamera.getForwardRay(); 
+      let forwardRay = vrHelper?.currentVRCamera.getForwardRay();
       var buttonPosition = vrHelper?.currentVRCamera.position.clone().add(forwardRay.direction.scale(5.5));
       buttonPosition.y += 2;
 
@@ -300,7 +300,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
         const white = new RegExp(/^\s$/)
         return white.test(x.charAt(0))
       };
-      
+
       const newLineStr = '\n'
       let res = ''
 
@@ -331,7 +331,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
     function renderAnnotation() {
       // first pause the video
       videoDome.current?.videoTexture.video.pause();
-      
+
       // draw the question on screen
       drawText(wordWrap(activeAnnotation.text, 50))
 
@@ -351,7 +351,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
           clearButtons();
           clearText();
 
-          let forwardRay = vrScene.current?.activeCamera.getForwardRay(); 
+          let forwardRay = vrScene.current?.activeCamera.getForwardRay();
           var buttonPosition = vrScene.current?.activeCamera.position.clone().add(forwardRay.direction.scale(5.5));
           var sideVector = forwardRay.direction.cross(new Vector3(0, 1, 0).scale(3));
           buttonPosition.y -= 3.5;
@@ -365,7 +365,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
           drawText(wordWrap(option.feedback, 50));
         })
       }
-      
+
     }
 
     function createButton(scene: any, text: string, position: Vector3, action: () => void) {
@@ -375,16 +375,16 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       plane.position.y = 1.4;
       // plane.rotation = vrScene.current?.activeCamera.rotation.clone();
       plane.position = position;
-  
+
       var advancedTexture = AdvancedDynamicTexture.CreateForMesh(plane, 1024, 512);
-  
+
       var rect1 = new Rectangle();
       rect1.cornerRadius = 30;
       rect1.thickness = 5;
       rect1.background = "white";
       rect1.alpha = 1.0;
       advancedTexture.addControl(rect1);
-  
+
       var textBlock = new TextBlock();
       textBlock.text = text;
       textBlock.textWrapping = true;
@@ -401,19 +401,19 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
 
       // append the action to the list of actions
       buttonActions.current.push(action);
-      
+
     }
 
     function clearButtons() {
       // first deselect any possible selections
       unselect();
 
-      // dispose texts 
+      // dispose texts
       for (var i = 0; i < buttonTexts.current.length; i++) {
         buttonTexts.current[i].dispose();
       }
       buttonTexts.current = [];
-      
+
       // remove actions
       buttonActions.current = [];
 
@@ -435,16 +435,16 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       var plane = MeshBuilder.CreatePlane("text", {width: 5, height: 3}, vrScene.current);
       plane.position = planePosition.clone();
       plane.rotation = vrScene.current?.activeCamera.rotation.clone();
-  
+
       var advancedTexture = AdvancedDynamicTexture.CreateForMesh(plane, 1024, 512);
-  
+
       var rect1 = new Rectangle();
       rect1.cornerRadius = 10;
       rect1.thickness = 4;
       rect1.background = "black";
       rect1.alpha = 0.8;
       advancedTexture.addControl(rect1);
-  
+
       var textBlock = new TextBlock();
       textBlock.text = text;
       textBlock.color = "white";
@@ -482,7 +482,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       };
 
       vrHelper = scene.createDefaultVRExperience(vrHelperOptions);
-      
+
       vrHelper.displayLaserPointer = true;
       vrHelper.updateGazeTrackerScale = true;  // Babylon 3.3 preview.
       vrHelper.updateGazeTrackerColor = true;  // Babylon 3.3 preview.
@@ -564,18 +564,18 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
       } else {
           ray = camera.rightController.getForwardRay();
       }
-  
+
       var hit = scene.pickWithRay(ray, predicate);
-  
+
       if (helper) {
           helper.dispose();
       }
-  
+
       if (camera.rightController) {
           if (target) target.isVisible = false;
           helper = RayHelper.CreateAndShow(ray, scene, new Color3(0.7, 0.7, 0.7));
       }
-  
+
       if (hit.pickedMesh) {
           currentMeshSelected = hit.pickedMesh;
           // First phase is to indicate we're currently selecting an object
@@ -587,7 +587,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
               (currentMeshSelected.material as StandardMaterial).diffuseColor = Color3.Red();
               var index = currentMeshSelected.name[currentMeshSelected.name.length - 1];
           }
-  
+
           // Another visual feedback is to scale the target circle
           // Once it has double its size (it could be a timing also)
           // We're considering the user has really decided to select this option

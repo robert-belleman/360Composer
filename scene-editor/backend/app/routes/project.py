@@ -27,6 +27,7 @@ from app.models.timeline import Timeline as TimelineModel, TimelineScenario as T
 
 from app.util.ffmpeg import create_thumbnail, get_duration, create_hls
 import app.util.util as util
+from app.config import ASSET_DIR
 
 import hashlib, binascii, os
 import uuid
@@ -69,18 +70,18 @@ class ProjectAssets(Resource):
         except KeyError:
             return None
 
-    def generate_asset_meta(self, asset_type, filename, path):
-        size = os.path.getsize(path)
+    def generate_asset_meta(self, asset_type: AssetType, base_filename: Path, input_path: Path):
+        size = os.path.getsize(input_path)
 
         # only get duration and thumbnail if it is a video
         if asset_type == AssetType.video:
-            thumbnail_path = os.path.join(os.environ.get('ASSET_DIR'), filename + '.png')
-            if not create_thumbnail(path, thumbnail_path):
+            thumbnail_path = Path(ASSET_DIR, base_filename + '.jpg')
+            if not create_thumbnail(input_path.as_posix(), thumbnail_path.as_posix()):
                 thumbnail_path = None
 
-            duration = get_duration(path)
+            duration = get_duration(input_path)
 
-            return {"duration": duration, "thumbnail_path": thumbnail_path, "file_size": size}
+            return {"duration": duration, "thumbnail_path": thumbnail_path.name, "file_size": size}
 
         return {"duration": None, "thumbnail_path": None, "file_size": size}
 
@@ -109,18 +110,24 @@ class ProjectAssets(Resource):
         if not asset_type:
             return "Invalid extension", HTTPStatus.BAD_REQUEST
 
-        filename = util.random_file_name()
-        asset_filename = filename + extension
-        path = os.path.join(os.environ.get('ASSET_DIR'), asset_filename)
-        util.write_file(request, path, file)
+        if 'Content-Range' in request.headers:
+            return "Chunked uploads not supported", HTTPStatus.BAD_REQUEST
 
-        create_hls(Path(os.environ.get('ASSET_DIR'), asset_filename))
-        hls_playlist = filename + '/main.m3u8'
+        base_name = util.random_file_name()
+        raw_video_path = Path(ASSET_DIR, base_name + extension)
+        with open(raw_video_path, 'wb') as dest_file:
+            dest_file.write(file.stream.read())
 
-        meta = self.generate_asset_meta(asset_type, filename, path)
+        meta = self.generate_asset_meta(asset_type, base_name, raw_video_path)
+        assert meta['thumbnail_path']
+
+        hls_output_dir = Path(ASSET_DIR, base_name)
+        hls_output_dir.mkdir()
+        create_hls(raw_video_path, hls_output_dir)
+        hls_playlist = base_name + '/main.m3u8'
 
         # Only commit to database if files were uploaded and transcoded successfully
-        row = AssetModel(name=asset_name, user_id=project.user_id, path=hls_playlist, asset_type=asset_type, thumbnail_path=meta["thumbnail_path"], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
+        row = AssetModel(name=asset_name, user_id=project.user_id, path=hls_playlist, asset_type=asset_type, thumbnail_path=meta['thumbnail_path'], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
         db.session.commit()
 
         return row, HTTPStatus.CREATED

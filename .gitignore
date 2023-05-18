@@ -7,3 +7,4 @@ server.csr
 *.key
 *.csr
 scene-editor/frontend/public/asset/*
+/assets
