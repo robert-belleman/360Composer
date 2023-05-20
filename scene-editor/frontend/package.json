@@ -40,7 +40,7 @@
     "date-fns": "^2.27.0",
     "ffprobe": "^1.1.2",
     "ffprobe-static": "^3.1.0",
-    "hls.js": "^1.4.0",
+    "hls.js": "^1.4.3",
     "js-file-download": "^0.4.12",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.20",

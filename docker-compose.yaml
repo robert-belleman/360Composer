@@ -30,7 +30,7 @@ services:
     image: redis
 
   postgres:
-    image: postgres:12
+    image: postgres:15
     container_name: postgres-db
     volumes:
       - postgres:/var/lib/postgresql/data
@@ -41,12 +41,12 @@ services:
     ports:
       - 5433:5432
 
-  adminer:
-    image: adminer
-    depends_on:
-      - postgres
-    ports:
-      - 8081:8081
+  # adminer:
+  #   image: adminer
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - 8081:8081
 
   nginx:
     image: nginx
