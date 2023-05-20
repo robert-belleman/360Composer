@@ -33,6 +33,10 @@ services:
   frontend:
     image: 360composer-frontend
     ports: [8080:8080]
+    volumes:
+      - type: bind
+        source: ./assets
+        target: /assets
     restart: unless-stopped
 
 volumes:
