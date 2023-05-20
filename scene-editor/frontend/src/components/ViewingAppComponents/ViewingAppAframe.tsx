@@ -58,20 +58,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         videoElement.pause();
     };
 
-    // Reset the state of the app for replay.
-    const replay = () => {
-        onFinish("", () => {return});
-        setAppState({
-            started: true,
-            menuEnabled: false,
-            videoPlaying: true,
-            ended: false,
-            videoLoaded: true
-        });
-        setPlayButtonOpen(false);
-        pauseVideo();
-    };
-
     // enters VR by accessing the scene
     const enterVR = async () => {
         const scene: any = document.getElementById('aframescene');
@@ -84,26 +70,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         scene.exitVR();
         startVideo();
     }
-
-    // const changeQuality = () => {
-    //     const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
-    //     if (!videoElement) { return };
-    //     const basePath = video.path.substring(0, video.path.length - 4);
-
-    //     const videoSrc = `/asset/${basePath}-720p.m3u8`;
-    //     if (Hls.isSupported()) {
-    //         const hls = new Hls();
-    //         hls.loadSource(videoSrc);
-    //         hls.attachMedia(videoElement);
-    //     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    //         videoElement.src = videoSrc;
-    //     }
-
-    //     const button = document.getElementById('qualitybutton');
-    //     if (button) {
-    //         button.style.display = 'none';
-    //     }
-    // }
 
     // menuOptionCallback receives a response from the controller
     // when an option is submitted to the controller.
@@ -163,8 +129,30 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     };
 
     const onVideoEnded = () => {
-        replay();
+        console.debug('Video ended');
+        onFinish("", () => {return});
+        setAppState({
+            started: true,
+            menuEnabled: false,
+            videoPlaying: false,
+            ended: true,
+            videoLoaded: true
+        });
     }
+
+    const replay = () => {
+        console.debug('Replay');
+        const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
+        videoElement.currentTime = 0;
+        setAppState({
+            started: true,
+            menuEnabled: false,
+            videoPlaying: true,
+            ended: false,
+            videoLoaded: true
+        });
+        playVideo();
+    };
 
     // Starts the video and disables the menu.
     const startVideo = () => {
@@ -178,6 +166,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
     };
 
     const onVideoLoaded = () => {
+        console.debug('Video loaded');
         // If the starting menu is open. Do not start playing.
         if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
         playVideo();
@@ -218,34 +207,32 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             return;
         }
 
-        console.debug("Injecting HLS.js");
+        console.debug("Attaching HLS.js");
 
         const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
-        const videoSrc = `/assets/${video.path}`;
-
-        hls.loadSource(videoSrc);
+        hls.loadSource(`/assets/${video.path}`);
         hls.attachMedia(videoElement);
+        hls.once(Hls.Events.FRAG_LOADED, onVideoLoaded);
+        videoElement.addEventListener('ended', onVideoEnded);
     }, [hls]);
 
     return (
         <>
+        <div id="video-player-root" style={{display: "none"}}>
+            <video
+                id={`aframe-video-${video.id}`}
+                playsInline
+                onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
+                autoPlay={false}
+                muted
+            />
+        </div>
+
         <Scene
             id="aframescene"
             vrModeUI={{enabled: false, enterVRButton: "#entervrbutton" }}
             background={{color: "black"}}
             embedded>
-            <Assets id="aframe-video-assets">
-                <video
-                    id={`aframe-video-${video.id}`}
-                    playsInline
-                    onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
-                    onLoadedData={onVideoLoaded}
-                    onEnded={onVideoEnded}
-                    autoPlay={true}
-                    preload={"auto"}
-                    muted
-                />
-            </Assets>
             <StereoComponent
                     videoId={`aframe-video-${video.id}`}
                     stereoMode={video.view_type}
@@ -302,24 +289,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
             >
                 ENTER VR
             </Button>
-            {/* <Button
-                id="qualitybutton"
-                style={{position: 'absolute',
-                    zIndex: 9999,
-                    left: 0,
-                    bottom: 0,
-                    color: 'black',
-                    margin: 10,
-                    padding: 10,
-                    fontSize: '1.2em',
-                    backgroundColor: 'white',
-                    opacity: 0.8,
-                    cursor:'pointer'
-                    }}
-            onClick={changeQuality}
-            >
-                Quality
-            </Button> */}
         </>
     );
 };
