@@ -30,12 +30,20 @@ Then, start the entire stack:
 docker compose up --build
 ```
 
+The web interface will be available at http://localhost:8080.
+
 ### Production
 
-Images will be uploaded to the GitHub container registry, but for now need to be built locally using the `./docker-build.sh` script.
+Save the `docker-compose.prod.yaml` file to an empty directory and create a `.env` file with the required settings (both randomly generated strings):
+```
+DATABASE_PASSWORD=
+JWT_SECRET_KEY=
+```
 
-Export the production compose file and build and start the docker:
+Create the `./assets` directory, then start the stack:
 
 ```sh
 docker compose -f docker-compose.prod.yaml up
 ```
+
+The web interface will be available at http://localhost:8080.

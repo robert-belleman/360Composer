@@ -3,14 +3,14 @@ version: '3'
 services:
 
   backend:
-    image: 360composer-backend
+    image: ghcr.io/visualisationlab/360composer-backend
     environment:
         DATABASE_URI: "postgresql://postgres:${DATABASE_PASSWORD}@postgres/postgres_pcitvr"
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
         JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     volumes:
-      - type: bind
-        source: ./assets
+      - type: volume
+        source: assets
         target: /assets
     command: bash -c "/entrypoint.sh"
     depends_on: [postgres, redis]
@@ -23,7 +23,9 @@ services:
   postgres:
     image: postgres:15
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - type: volume
+        source: postgres
+        target: /var/lib/postgresql/data
     environment:
         - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
         - POSTGRES_USER=postgres
@@ -31,13 +33,14 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: 360composer-frontend
+    image: ghcr.io/visualisationlab/360composer-frontend
     ports: [8080:8080]
     volumes:
-      - type: bind
-        source: ./assets
+      - type: volume
+        source: assets
         target: /assets
     restart: unless-stopped
 
 volumes:
+  assets:
   postgres:
