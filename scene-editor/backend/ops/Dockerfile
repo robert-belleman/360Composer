@@ -1,12 +1,12 @@
 FROM python:3.11
 
-RUN apt-get update && apt-get install -y ffmpeg postgresql-client
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
-COPY requirements.txt .
 RUN pip install --no-cache-dir uwsgi
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /
+RUN pip install --no-cache-dir -r /requirements.txt
 
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.app
@@ -16,5 +16,7 @@ COPY ops/entrypoint.sh /
 COPY ops/uwsgi.ini /
 
 COPY . /app/
+
+WORKDIR /app
 
 ENTRYPOINT ["/entrypoint.sh"]
