@@ -34,16 +34,26 @@ The web interface will be available at http://localhost:8080.
 
 ### Production
 
-Save the `docker-compose.prod.yaml` file to an empty directory and create a `.env` file with the required settings (both randomly generated strings):
+Save the `docker-compose.prod.yaml` file to an empty directory:
 ```
-DATABASE_PASSWORD=
-JWT_SECRET_KEY=
+curl -o docker-compose.yaml https://raw.githubusercontent.com/robert-belleman/360Composer/robin-variable-quality/docker-compose.prod.yaml
 ```
 
-Create the `./assets` directory, then start the stack:
+Create a `.env` file with the required settings (this is an example, you should generate your own passwords!):
+```
+DATABASE_PASSWORD=j4jOVqaIp60cnZfUeWNpvsukSJT2JZ
+JWT_SECRET_KEY=d0V83DrVapK9pK8j85nPqtSUCE3HJq
+```
+
+Start the stack:
 
 ```sh
-docker compose -f docker-compose.prod.yaml up
+docker compose up
 ```
 
-The web interface will be available at http://localhost:8080.
+Tips:
+- The web interface is available at http://localhost:8080
+- Exit using Ctrl+C
+- Start in background using `docker compose up -d`. Containers will automatically start after a system reboot with the `restart: unless-stopped` restart policy.
+- Stop and remove containers using `docker compose down`
+- Members of the visualisation lab can push updated docker images to GitHub Container Registry using the ./docker-push.sh script
