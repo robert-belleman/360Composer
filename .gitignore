@@ -8,3 +8,4 @@ server.csr
 *.csr
 scene-editor/frontend/public/asset/*
 /assets
+.env
