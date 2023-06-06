@@ -15,7 +15,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
@@ -225,11 +225,11 @@ export default ({activeProject, fullWidth}:ScenarioViewProps) => {
       return (
         <Grid item xs={12} md={6} lg={3} xl={2} key={elem}>
           {range(5).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
-        </Grid>   
+        </Grid>
       )
     })
 
-    const scenarios_ = () => scenarios.length === 0 
+    const scenarios_ = () => scenarios.length === 0
       ? <Typography variant="subtitle1" component="p">No scenarios have been added yet.</Typography>
       : scenarios.map((scenario: any) => (
           <ScenarioTile

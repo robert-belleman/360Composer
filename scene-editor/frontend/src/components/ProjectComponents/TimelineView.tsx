@@ -25,7 +25,7 @@ import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import TimelineIcon from '@mui/icons-material/Timeline';
@@ -213,7 +213,7 @@ const useStyles = makeStyles((theme) =>
 
   const handleAlertClose = () => {
     setAlertState({...alertState, open: false})
-  } 
+  }
 
   const randomChip = () => (
     <Chip
@@ -267,17 +267,17 @@ const useStyles = makeStyles((theme) =>
       </Card>
     </Grid>
   )
-  
+
   const renderOverview = () => {
     const loading_ = () => range(6).map((elem:number) => {
       return (
         <Grid item xs={12} md={6} lg={3} xl={2} key={elem}>
           {range(5).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
-        </Grid>   
+        </Grid>
       )
     })
 
-    const timelines_ = () => timelines.length === 0 
+    const timelines_ = () => timelines.length === 0
       ? <Typography variant="subtitle1" component="p">No timelines have been added yet.</Typography>
       : timelines.map(timelineCard)
 

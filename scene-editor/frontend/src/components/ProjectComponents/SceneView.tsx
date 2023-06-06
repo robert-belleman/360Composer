@@ -27,7 +27,7 @@ import Typography from '@mui/material/Typography';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 
 import VideocamIcon from '@mui/icons-material/Videocam';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -37,8 +37,6 @@ import Skeleton from '@mui/material/Skeleton';
 
 import NewSceneDialog from "./SceneViewComponents/NewSceneDialog";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
-
-import { fetchScenes } from '../../actions/sceneActions';
 
 const theme = createTheme();
 
@@ -201,7 +199,7 @@ const SceneView: React.FC<SceneViewProps> = ({activeProject, fullWidth}) => {
         color: '#2196f3',
         marginBottom: 10
       }
-    }), 
+    }),
   ))();
 
   const handleDelete = (id:string) => {
@@ -225,14 +223,14 @@ const SceneView: React.FC<SceneViewProps> = ({activeProject, fullWidth}) => {
       return (
         <Grid item xs={12} md={6} lg={3} xl={2} key={elem}>
           {range(5).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
-        </Grid>   
+        </Grid>
       )
     })
 
-    const scenes_ = () => scenes.length == 0 
+    const scenes_ = () => scenes.length == 0
     ? <Typography variant="subtitle1" component="p">No scenes have been added yet.</Typography>
     : scenes.map((scene: any) => (
-        <SceneTile 
+        <SceneTile
             id={scene.id}
             key={scene.id}
             name={scene.name}

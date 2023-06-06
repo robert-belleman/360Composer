@@ -26,7 +26,7 @@ import { Typography } from '@mui/material';
 
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 
 const Alert = (props: AlertProps) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -90,7 +90,7 @@ const Settings = () => {
 
   const useDidUpdateEffect = (fn:any, inputs:any) => {
     const didMountRef = useRef(false);
-  
+
     useEffect(() => {
       if (didMountRef.current)
         fn();

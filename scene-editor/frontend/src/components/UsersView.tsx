@@ -19,7 +19,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -109,7 +109,7 @@ const Users = () => {
     fetchUsers();
   }, [])
 
-  const fetchUsers = () => 
+  const fetchUsers = () =>
     axios.get(`/api/customer/?therapist_id=${userID}`)
       .then((res:any) => setUsers(res.data))
       .then(() => setLoadingUsers(false))
