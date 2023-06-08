@@ -30,16 +30,15 @@ def get_duration(path):
 class HlsProfile:
     width: int
     height: int
-    name: str
     video_bitrate: int  # kbit/s
     audio_bitrate: int  # kbit/s
 
 
 HLS_PROFILES = (
-    HlsProfile(3840, 2160, 'main', 16000, 192),
-    HlsProfile(1920, 1080, 'main',  6000, 128),
-    HlsProfile(1280,  720, 'main',  3000, 128),
-    HlsProfile( 960,  540, 'main',  2000, 96),
+    HlsProfile(3840, 2160, 16000, 192),
+    HlsProfile(1920, 1080,  6000, 128),
+    HlsProfile(1280,  720,  3000, 128),
+    HlsProfile( 960,  540,  2000, 96),
 )
 
 
