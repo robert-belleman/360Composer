@@ -391,8 +391,17 @@ const Editor: React.FC = () => {
         console.warn("HLS not available");
         return;
       }
-      hls.loadSource(`/assets/${video.path}`);
-      hls.attachMedia(videoElem);
+
+      const hlsSource = `/assets/${video.path}`;
+      if (Hls.isSupported()) {
+        hls.loadSource(hlsSource);
+        hls.attachMedia(videoElem);
+      } else if (videoElem.canPlayType('application/vnd.apple.mpegurl')) {
+        videoElem.src = hlsSource;
+      } else {
+        console.error("No HLS support");
+      }
+
       loadVideoBabylon(videoElem);
     }, [hls, video]);
 

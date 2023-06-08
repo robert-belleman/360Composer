@@ -210,9 +210,19 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         console.debug("Attaching HLS.js");
 
         const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
-        hls.loadSource(`/assets/${video.path}`);
-        hls.attachMedia(videoElement);
-        hls.once(Hls.Events.FRAG_LOADED, onVideoLoaded);
+        const hlsSource = `/assets/${video.path}`;
+
+        if (Hls.isSupported()) {
+            hls.loadSource(hlsSource);
+            hls.attachMedia(videoElement);
+            hls.once(Hls.Events.FRAG_LOADED, onVideoLoaded);
+        } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+            videoElement.src = hlsSource;
+            videoElement.addEventListener('loadedmetadata', onVideoLoaded);
+        } else {
+            console.error("No HLS support");
+        }
+
         videoElement.addEventListener('ended', onVideoEnded);
     }, [hls]);
 
