@@ -2,7 +2,7 @@
 
 360-Composer is a software package containing all the components needed to deploy a 360 video story line editing suite.
 
-## Changes in robin-variable-quality branch
+## Changes in this branch (f.k.a. robin-variable-quality)
 
 - Improved docker-compose development stack:
   - Updated base images
@@ -23,7 +23,7 @@ First, run npm install once (do this again when package.json is changed):
 docker compose run frontend install
 ```
 
-Create the assets directory: `mkdir /assets`
+Create the assets directory: `mkdir ./assets`
 
 Then, start the entire stack:
 ```sh
@@ -36,7 +36,7 @@ The web interface will be available at http://localhost:8080.
 
 Save the `docker-compose.prod.yaml` file to an empty directory:
 ```
-curl -o docker-compose.yaml https://raw.githubusercontent.com/robert-belleman/360Composer/robin-variable-quality/docker-compose.prod.yaml
+curl -o docker-compose.yaml https://raw.githubusercontent.com/robert-belleman/360Composer/main/docker-compose.prod.yaml
 ```
 
 Create a `.env` file with the required settings (this is an example, you should generate your own passwords!):
