@@ -24,6 +24,7 @@ class ScenarioScene(db.Model):
     scene_id = db.Column(UUID(as_uuid=True), db.ForeignKey(Scene.id), unique=False, nullable=False) # UUID of the related scene
     position_x = db.Column(db.Integer, default=0)
     position_y = db.Column(db.Integer, default=0)
+    scene = db.relationship("Scene")
     actions = db.relationship("Action",
         primaryjoin="and_(ScenarioScene.scene_id == Action.scene_id, Action.type == 'next_scene')",
         foreign_keys="Action.scene_id",
