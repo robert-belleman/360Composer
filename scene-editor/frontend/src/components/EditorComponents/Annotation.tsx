@@ -55,12 +55,21 @@ const Alert = (props: AlertProps) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-const AnnotationSnackbar = ({open, handleClose, message, severity}:any) => {
+type AnnotationSnackbarProps = {
+  open: boolean,
+  handleClose: string,
+  message: string,
+  severity: string,
+}
+
+const AnnotationSnackbar: React.FC<AnnotationSnackbarProps> = ({open, handleClose, message, severity}: AnnotationSnackbarProps):React.ReactElement => {
   return (
     <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-      <Alert onClose={handleClose} severity={severity}>
-        {message}
-      </Alert>
+      <div>
+        <Alert onClose={handleClose} severity={severity}>
+          {message}
+        </Alert>
+      </div>
     </Snackbar>
   )
 }
