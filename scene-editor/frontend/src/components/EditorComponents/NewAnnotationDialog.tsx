@@ -91,9 +91,9 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
     }
 
     axios.post(`/api/scenes/${sceneID}/annotation`, payload)
-      .then((res) => {
+      .then(async (res) => {
         // After creating an annotation, post the options
-        options.forEach((opt: any) => {
+        for (const opt of options) {
           const optionPayload ={
             text: opt.value,
             feedback: opt.feedback,
@@ -101,9 +101,9 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
             scene_id: sceneID
           };
 
-          axios.post(`/api/annotation/${res.data.id}/options`, optionPayload)
+          await axios.post(`/api/annotation/${res.data.id}/options`, optionPayload)
             .catch((e) => console.log(e))
-        })
+        }
 
         // reset the dialog
         setOptions([]);
