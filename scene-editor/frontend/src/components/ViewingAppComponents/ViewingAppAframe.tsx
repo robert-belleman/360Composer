@@ -224,7 +224,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         }
 
         videoElement.addEventListener('ended', onVideoEnded);
-    }, [hls]);
+    }, [hls, video]);
 
     return (
         <>
