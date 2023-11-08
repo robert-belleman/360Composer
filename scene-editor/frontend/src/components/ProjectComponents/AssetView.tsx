@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React,  { useRef, useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { range } from 'lodash';
@@ -107,6 +108,8 @@ const AssetView: React.FC<AssetViewProps> = ({activeProject, fullWidth}) => {
   const [checked, setChecked] = useState([] as any[]);
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [alertMessage, setAlertMessage] = useState({show: false, message:"", type: AlertType.None})
+
+  const navigate = useNavigate();
 
   const onAssetCreated = () => {
     setOpenAssetDialog(false);
@@ -250,10 +253,20 @@ const useStyles = makeStyles((theme) =>
       {renderAssetsList()}
       <Grid container>
         <Grid item xs={4}>
-          <Button style={{marginTop: 10}} color="primary" startIcon={<AddIcon />} onClick={() => setOpenAssetDialog(true)}>Add Asset</Button>
+          <Button
+            style={{marginTop: 10}}
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenAssetDialog(true)}>Add Asset
+          </Button>
         </Grid>
         <Grid item xs={4}>
-          <Button style={{marginTop: 10}} color="primary" startIcon={<EditIcon />} onClick={() => {console.log("TODO: goto edit")}}>Edit Assets</Button>
+          <Button
+            style={{marginTop: 10}}
+            color="primary"
+            startIcon={<EditIcon />}
+            onClick={() => {navigate(`/app/video-editor/${activeProject}`);}}>Edit Assets
+          </Button>
         </Grid>
         <Grid item xs={4}>
           <Button
@@ -261,7 +274,8 @@ const useStyles = makeStyles((theme) =>
             color="secondary"
             startIcon={<DeleteIcon />}
             disabled={checked.length === 0}
-            onClick={deleteCheckedAssets}>Delete Assets</Button>
+            onClick={deleteCheckedAssets}>Delete Assets
+          </Button>
         </Grid>
       </Grid>
       <NewAssetDialog activeProject={activeProject} open={openAssetDialog} closeHandler={() => setOpenAssetDialog(false)} onAssetCreated={onAssetCreated} />

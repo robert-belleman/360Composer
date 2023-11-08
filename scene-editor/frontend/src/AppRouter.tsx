@@ -12,6 +12,7 @@ import Register from "./pages/Auth/Register";
 import RegisterDone from "./pages/Auth/RegisterDone";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Editor from "./pages/Editor/Editor";
+import VideoEditor from "./pages/VideoEditor/VideoEditor"
 import ScenarioEditor from "./pages/ScenarioEditor/ScenarioEditor"
 import TimelineEditor from "./pages/TimelineEditor/TimelineEditor"
 import ScenePlayer from "./pages/ScenePlayer/ScenePlayer";
@@ -38,6 +39,7 @@ const AppRouter: React.FC = () => {
         hasUserToken() ?
         <BrowserRouter basename={process.env.BASEPATH}>
             <Routes>
+                <Route path="/app/video-editor/:projectID" element={<VideoEditor/>}></Route>
                 <Route path="/app/scenario-editor/:projectID/:scenarioID" element={<ScenarioEditor/>}></Route>
                 <Route path="/app/timeline-editor/:projectID/:timelineID" element={<TimelineEditor/>}></Route>
                 <Route path="/app/editor/:project_id/:scene_id" element={<Editor/>}></Route>
@@ -51,9 +53,9 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
                 <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
-                <Route path="/app/preview-player/:type/:id" element={<Player/>} />                
+                <Route path="/app/preview-player/:type/:id" element={<Player/>} />
             </Routes>
-        </BrowserRouter>: 
+        </BrowserRouter>:
             hasCustomerToken() ?
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
