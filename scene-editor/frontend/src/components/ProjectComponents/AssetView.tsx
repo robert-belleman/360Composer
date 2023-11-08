@@ -29,6 +29,7 @@ import Alert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
@@ -153,7 +154,7 @@ const useStyles = makeStyles((theme) =>
       return console.log('error while fetching assets', e);
     }
   };
-  
+
   const handleToggle = (value: number) => () => {
     const currentIndex = checked.indexOf(value);
     const newChecked = [...checked];
@@ -169,7 +170,7 @@ const useStyles = makeStyles((theme) =>
 
   const handleSelect = async (value: string, id: string) => {
     await axios.post(`/api/asset/${id}/setview/${value}`)
-      .then(() => setAlertMessage({show: true, 
+      .then(() => setAlertMessage({show: true,
                                    message: `Asset's view type succesfully changed to ${value}`,
                                    type: Alert.Success}))
       .then(fetchAssets)
@@ -188,7 +189,7 @@ const useStyles = makeStyles((theme) =>
   useEffect(() => {
     fetchAssets();
   }, [activeProject]);
-  
+
   const classes = useStyles();
 
   const renderAssets = () => {
@@ -251,11 +252,11 @@ const useStyles = makeStyles((theme) =>
         <Grid item xs={4}>
           <Button style={{marginTop: 10}} color="primary" startIcon={<AddIcon />} onClick={() => setOpenAssetDialog(true)}>Add Asset</Button>
         </Grid>
-        <Grid item xs={2}>
-          <Box className={classes.box}></Box>
+        <Grid item xs={4}>
+          <Button style={{marginTop: 10}} color="primary" startIcon={<EditIcon />} onClick={() => {console.log("TODO: goto edit")}}>Edit Assets</Button>
         </Grid>
-        <Grid item xs={6}>
-          <Button 
+        <Grid item xs={4}>
+          <Button
             style={{marginTop: 10}}
             color="secondary"
             startIcon={<DeleteIcon />}
