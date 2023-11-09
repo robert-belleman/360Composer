@@ -8,22 +8,22 @@ the video that they are editing.
  */
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { AppBar, TextField, Toolbar } from "@mui/material";
-import { Button } from "@mui/material/";
+import { AppBar, Button, TextField, Toolbar } from "@mui/material";
 
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
 
 type TitleBarProps = {
-  projectID: string | undefined;
   title: string;
   setTitle: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const TitleBar: React.FC<TitleBarProps> = ({ projectID, title, setTitle }) => {
+const TitleBar: React.FC<TitleBarProps> = ({ title, setTitle }) => {
   console.log("Title Bar Rendered");
+
+  const { projectID } = useParams();
 
   const navigate = useNavigate();
 
@@ -44,6 +44,8 @@ const TitleBar: React.FC<TitleBarProps> = ({ projectID, title, setTitle }) => {
     return (
       <TextField
         size="small"
+        color="info"
+        variant="outlined"
         sx={{ marginLeft: 2, marginRight: 2 }}
         placeholder="Untitled Video"
         onChange={(e) => setTitle(e.target.value)}

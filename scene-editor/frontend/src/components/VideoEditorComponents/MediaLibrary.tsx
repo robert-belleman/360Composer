@@ -6,35 +6,70 @@ The library acts as a place to see video assets of the user that
 they want to use in their video edit.
  */
 
-import React from "react";
+import axios from "axios";
 
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
-import Drawer from "@mui/material/Drawer";
-import IconButton from "@mui/material/IconButton";
-import ImageList from "@mui/material/ImageList";
-import ImageListItem from "@mui/material/ImageListItem";
-import ImageListItemBar from "@mui/material/ImageListItemBar";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+import {
+  Button,
+  Container,
+  Drawer,
+  IconButton,
+  ImageList,
+  ImageListItem,
+  ImageListItemBar,
+  Skeleton,
+} from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
 
-import { Skeleton } from "@mui/material";
 import defaultImage from "../../static/images/default.jpg";
+import NewAssetDialog from "../ProjectComponents/AssetViewComponents/NewAssetDialog";
 
 const cols = 2;
 
 type MediaLibraryProps = {
-  assets: never[];
-  loading: boolean;
+  callback: (asset: any) => void;
   width: number;
 };
 
-const MediaLibrary: React.FC<MediaLibraryProps> = ({
-  assets,
-  loading,
-  width,
-}) => {
+const MediaLibrary: React.FC<MediaLibraryProps> = ({ callback, width }) => {
   console.log("Media Library Rendered");
+  const { projectID } = useParams();
+
+  const [assets, setAssets] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [importingAsset, setImportingAsset] = useState(false);
+
+  /**
+   * Fetch all assets that are in project `projectID`.
+   *
+   * Set the `isLoading` variable to true.
+   * Assign the assets to the `assets` variable.
+   * Set the `isLoading` variable to false.
+   */
+  const fetchAssets = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.get(`/api/project/${projectID}/assets`, {});
+      setAssets(res.data);
+      return setIsLoading(false);
+    } catch (e) {
+      return console.log("error while fetching assets", e);
+    }
+  };
+
+  /* Fetch the assets. */
+  useEffect(() => {
+    fetchAssets();
+  }, [projectID]);
+
+  /* Re-render the media library when an asset was imported */
+  const onAssetImport = () => {
+    setImportingAsset(false);
+    fetchAssets();
+  };
 
   /* Convert seconds to minute:seconds */
   const toTime = (seconds: number) => {
@@ -71,7 +106,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
           title={asset.name}
           position="below"
           actionIcon={
-            <IconButton color="info" onClick={() => console.log("CLICKED")}>
+            <IconButton color="info" onClick={() => callback(asset)}>
               <AddIcon />
             </IconButton>
           }
@@ -99,7 +134,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
 
   /* Render list of assets. */
   const renderMedia = () => {
-    if (loading) {
+    if (isLoading) {
       return renderSkeletons();
     }
     return <ImageList cols={cols}>{renderAssets()}</ImageList>;
@@ -118,13 +153,19 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
-          // onClick={() => {}} // TODO: add to timeline
+          onClick={() => setImportingAsset(true)}
           fullWidth
         >
           Import Media
         </Button>
         {renderMedia()}
       </Container>
+      <NewAssetDialog
+        activeProject={projectID!}
+        open={importingAsset}
+        closeHandler={() => setImportingAsset(false)}
+        onAssetCreated={onAssetImport}
+      />
     </Drawer>
   );
 };

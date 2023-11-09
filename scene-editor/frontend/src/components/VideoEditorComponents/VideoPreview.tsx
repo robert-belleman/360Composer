@@ -8,14 +8,13 @@ to their assets.
 
 import React from "react";
 
-import { Typography } from "@mui/material";
-import { Paper } from "@mui/material/";
+import { Paper, Typography } from "@mui/material";
 
 const VideoPreview: React.FC = () => {
   console.log("Video Previewer Rendered");
 
   return (
-    <Paper sx={{ flexGrow: 1, backgroundColor: "#6aff6a" }}>
+    <Paper sx={{ flexGrow: 1, backgroundColor: "#000000" }}>
       <Typography>Preview</Typography>
     </Paper>
   );

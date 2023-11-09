@@ -12,29 +12,14 @@ import React, { useEffect, useState } from "react";
 import { Box, Paper } from "@mui/material";
 
 import TimelineBar from "./TimelineComponents/TimelineBar";
-
-interface Asset {
-  id: string;
-  user_id: string;
-  name: string;
-  path: string;
-  thumbnail_path: string;
-  duration: number;
-  file_size: number;
-  asset_type: string;
-  view_type: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-  scene: number;
-}
+import TimelineLine from "./TimelineComponents/TimelineLine";
 
 type TimelineProps = {
+  clips: any[];
   height: number;
-  assets: Asset[];
 };
 
-const Timeline: React.FC<TimelineProps> = ({ height, assets }) => {
+const Timeline: React.FC<TimelineProps> = ({ clips, height }) => {
   console.log("Timeline Bar Rendered");
 
   const [currentTime, setCurrentTime] = useState(0);
@@ -42,16 +27,26 @@ const Timeline: React.FC<TimelineProps> = ({ height, assets }) => {
 
   /* Compute the total time of all assets when it changes. */
   useEffect(() => {
-    // TODO: computes sum of all assets not used assets
-    setTotalTime(assets.reduce((partialSum, a) => partialSum + a.duration, 0));
-  }, [assets]);
+    // TODO: compute sum of used assets not all assets
+    setTotalTime(clips.reduce((partialSum, a) => partialSum + a.duration, 0));
+  }, [clips]);
 
   return (
     <Paper sx={{ height: height, display: "flex", flexFlow: "column" }}>
-      <Box sx={{ width: 1, display: "content" }}>
+      <Box width={1} sx={{ display: "content" }}>
         <TimelineBar currentTime={currentTime} totalTime={totalTime} />
       </Box>
-      <Box sx={{ flexGrow: 1, backgroundColor: "#6a9cff" }}>Hello</Box>
+      <Box
+        sx={{
+          height: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          backgroundColor: "#6a9cff",
+        }}
+      >
+        <TimelineLine clips={clips} />
+      </Box>
     </Paper>
   );
 };

@@ -1,10 +1,9 @@
 /*
 Filename: Timeline.tsx
 Description:
-This file describes timeline component of the video editor.
-Video assets can be placed onto the timeline or deleted from it.
-The timeline acts as a place where the user can easily trim the
-assets.
+This file describes timeline bar component of the video editor.
+It contains buttons to modify the timeline and displays the
+current time and total time of all media on the timeline.
  */
 
 import React from "react";
@@ -106,7 +105,7 @@ const TimelineBar: React.FC<TimelineBarProps> = ({
     let strCurrentTime = toTime(currentTime);
     let strTotalTime = toTime(totalTime);
     return (
-      <Typography sx={{ flexGrow: 1, textAlign: "center" }}>
+      <Typography color={"black"} sx={{ flexGrow: 1, textAlign: "center" }}>
         {strCurrentTime}/{strTotalTime}
       </Typography>
     );
