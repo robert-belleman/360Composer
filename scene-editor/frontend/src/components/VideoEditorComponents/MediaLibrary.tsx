@@ -173,4 +173,4 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
   );
 };
 
-export default React.memo(MediaLibrary);
+export default MediaLibrary;

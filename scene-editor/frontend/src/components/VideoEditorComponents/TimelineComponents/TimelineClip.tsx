@@ -35,4 +35,4 @@ const TimelineClip: React.FC<TimelineClipProps> = ({ clip }) => {
   );
 };
 
-export default React.memo(TimelineClip);
+export default TimelineClip;

@@ -8,7 +8,14 @@ current time and total time of all media on the timeline.
 
 import React, { useState, useEffect } from "react";
 
-import { AppBar, IconButton, Toolbar, Typography } from "@mui/material";
+import {
+  AppBar,
+  Box,
+  IconButton,
+  Slider,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -19,6 +26,8 @@ import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import Clips from "../Classes/Clips";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
 
 type TimelineBarProps = {
   clips: Clips;
@@ -26,6 +35,7 @@ type TimelineBarProps = {
 };
 
 const TimelineBar: React.FC<TimelineBarProps> = ({ clips, setClips }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
 
@@ -33,6 +43,29 @@ const TimelineBar: React.FC<TimelineBarProps> = ({ clips, setClips }) => {
   useEffect(() => {
     setTotalTime(clips.data.reduce((acc, clip) => acc + clip.getDuration(), 0));
   }, [clips]);
+
+  /* Count up until end of video. */
+  useEffect(() => {
+    if (isPlaying && currentTime < totalTime) {
+      const id = setInterval(
+        () => setCurrentTime((currentTime) => currentTime + 1),
+        1000
+      );
+
+      return () => {
+        clearInterval(id);
+      };
+    }
+  }, [isPlaying, currentTime]);
+
+  const updatePlaying = () => {
+    let playing = totalTime > 0 ? !isPlaying : false;
+    if (currentTime === totalTime) {
+      setCurrentTime(0);
+      playing = true;
+    }
+    setIsPlaying(playing);
+  };
 
   const UndoButton = () => {
     return (
@@ -68,8 +101,16 @@ const TimelineBar: React.FC<TimelineBarProps> = ({ clips, setClips }) => {
 
   const CopyButton = () => {
     return (
-      <IconButton onClick={() => console.log(clips.seek(3))}>
+      <IconButton>
         <ContentCopyIcon />
+      </IconButton>
+    );
+  };
+
+  const PlayPauseButton = () => {
+    return (
+      <IconButton onClick={() => updatePlaying()}>
+        {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
       </IconButton>
     );
   };
@@ -111,9 +152,37 @@ const TimelineBar: React.FC<TimelineBarProps> = ({ clips, setClips }) => {
     let strCurrentTime = toTime(currentTime);
     let strTotalTime = toTime(totalTime);
     return (
-      <Typography color={"black"} sx={{ flexGrow: 1, textAlign: "center" }}>
+      <Typography display="flex" alignItems="center" color={"black"}>
         {strCurrentTime}/{strTotalTime}
       </Typography>
+    );
+  };
+
+  const TimeSlider = () => {
+    /* Change current time `currentTime` to slider value. */
+    const handleChange = (event: Event, newValue: number | number[]) => {
+      if (typeof newValue === "number") {
+        setCurrentTime(newValue);
+      }
+    };
+
+    return (
+      <Slider
+        max={totalTime}
+        value={currentTime}
+        onChange={handleChange}
+        sx={{
+          "& .MuiSlider-thumb": {
+            color: "red",
+          },
+          "& .MuiSlider-track": {
+            color: "red",
+          },
+          "& .MuiSlider-rail": {
+            color: "white",
+          },
+        }}
+      />
     );
   };
 
@@ -125,13 +194,19 @@ const TimelineBar: React.FC<TimelineBarProps> = ({ clips, setClips }) => {
         <CutButton />
         <DeleteButton />
         <CopyButton />
-        <Timer />
+        <Box flexGrow={1} display="flex" justifyContent="center">
+          <PlayPauseButton />
+          <Timer />
+        </Box>
         <ZoomOutButton />
         <ZoomInButton />
         <ZoomFitButton />
       </Toolbar>
+      <Box overflow="hidden">
+        <TimeSlider />
+      </Box>
     </AppBar>
   );
 };
 
-export default React.memo(TimelineBar);
+export default TimelineBar;

@@ -110,14 +110,12 @@ class Clips {
   }
 
   split(time: number) {
-    console.log("splitting at: ", time);
     let copy = new Clips(this.data.slice());
     split(copy, time);
     return copy;
   }
 
   seek(time: number) {
-    console.log("seeking at: ", time);
     return seek(this, time);
   }
 

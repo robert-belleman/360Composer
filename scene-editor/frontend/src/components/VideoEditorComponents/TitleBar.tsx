@@ -77,4 +77,4 @@ const TitleBar: React.FC<TitleBarProps> = ({ title, setTitle }) => {
   );
 };
 
-export default React.memo(TitleBar);
+export default TitleBar;

@@ -20,4 +20,4 @@ const VideoPreview: React.FC = () => {
   );
 };
 
-export default React.memo(VideoPreview);
+export default VideoPreview;
