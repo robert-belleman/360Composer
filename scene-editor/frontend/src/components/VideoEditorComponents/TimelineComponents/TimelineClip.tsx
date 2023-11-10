@@ -8,26 +8,23 @@ import React from "react";
 
 import { Box } from "@mui/material";
 
-import defaultImage from "../../../static/images/default.jpg";
+import Clip from "../Classes/Clip";
 
 const clipHeight = 64;
 
 type TimelineClipProps = {
-  clip: any;
+  clip: Clip;
 };
 
 const TimelineClip: React.FC<TimelineClipProps> = ({ clip }) => {
-  let thumbnail_url = clip.thumbnail_path
-    ? `/api/asset/${clip.id}/thumbnail`
-    : defaultImage;
-
   return (
     <Box
       sx={{
-        background: `url(${thumbnail_url}) repeat-x`,
+        background: `url(${clip.getUrl()})`,
+        backgroundRepeat: "repeat",
         backgroundSize: "contain",
         height: clipHeight,
-        flexGrow: clip.duration,
+        flexGrow: clip.getDuration(),
         borderRadius: 4,
         borderRight: 4,
         borderLeft: 4,

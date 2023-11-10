@@ -8,14 +8,18 @@ import React from "react";
 
 import { Box } from "@mui/material";
 import TimelineClip from "./TimelineClip";
+import Clip from "../Classes/Clip";
+import Clips from "../Classes/Clips";
 
 type TimelineLineProps = {
-  clips: any[];
+  clips: Clips;
 };
 
 const TimelineLine: React.FC<TimelineLineProps> = ({ clips }) => {
   const renderClips = () => {
-    return clips.map((clip: any) => <TimelineClip key={clip.id} clip={clip} />);
+    return clips.data.map((clip: Clip, i: number) => (
+      <TimelineClip key={i} clip={clip} />
+    ));
   };
 
   return (

@@ -13,32 +13,27 @@ import MediaLibrary from "../../components/VideoEditorComponents/MediaLibrary";
 import Timeline from "../../components/VideoEditorComponents/Timeline";
 import TitleBar from "../../components/VideoEditorComponents/TitleBar";
 import VideoPreview from "../../components/VideoEditorComponents/VideoPreview";
+import Clip from "../../components/VideoEditorComponents/Classes/Clip";
+import Clips from "../../components/VideoEditorComponents/Classes/Clips";
 
 /* UI settings */
-const libraryWidth = 400;
+const libraryWidth = 320;
 const timelineHeight = 320;
 
 const VideoEditor = () => {
   /* Initialize variables. */
   const [title, setTitle] = useState("");
-  const [clips, setClips] = useState<any>([]);
-
-  /* Append a clip to the clips array. */
-  const appendClip = (clip: any) => {
-    let newClips = clips.slice();
-    newClips.push(clip);
-    setClips(newClips);
-  };
+  const [clips, setClips] = useState<Clips>(new Clips());
 
   return (
     <Box sx={{ display: "flex" }}>
-      <MediaLibrary callback={appendClip} width={libraryWidth} />
+      <MediaLibrary clips={clips} setClips={setClips} width={libraryWidth} />
       <Box
-        sx={{ width: 1, height: "100vh", display: "flex", flexFlow: "column" }}
+        sx={{ flexGrow: 1, height: "100vh", display: "flex", flexFlow: "column" }}
       >
         <TitleBar title={title} setTitle={setTitle} />
         <VideoPreview />
-        <Timeline clips={clips} height={timelineHeight} />
+        <Timeline clips={clips} setClips={setClips} height={timelineHeight} />
       </Box>
     </Box>
   );

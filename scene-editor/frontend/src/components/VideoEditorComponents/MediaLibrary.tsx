@@ -14,33 +14,43 @@ import { useParams } from "react-router-dom";
 import {
   Button,
   Container,
+  Box,
   Drawer,
   IconButton,
   ImageList,
   ImageListItem,
   ImageListItemBar,
   Skeleton,
+  CircularProgress,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
 
 import defaultImage from "../../static/images/default.jpg";
 import NewAssetDialog from "../ProjectComponents/AssetViewComponents/NewAssetDialog";
+import Clip from "./Classes/Clip";
+import Clips from "./Classes/Clips";
 
 const cols = 2;
 
 type MediaLibraryProps = {
-  callback: (asset: any) => void;
+  clips: Clips;
+  setClips: React.Dispatch<React.SetStateAction<Clips>>;
   width: number;
 };
 
-const MediaLibrary: React.FC<MediaLibraryProps> = ({ callback, width }) => {
+const MediaLibrary: React.FC<MediaLibraryProps> = ({
+  clips,
+  setClips,
+  width,
+}) => {
   console.log("Media Library Rendered");
   const { projectID } = useParams();
 
   const [assets, setAssets] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [importingAsset, setImportingAsset] = useState(false);
+  let imageWidth = Math.floor(width / 2 - 19);
 
   /**
    * Fetch all assets that are in project `projectID`.
@@ -80,74 +90,67 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ callback, width }) => {
     return `${strMinutes}:${strSeconds}`;
   };
 
+  const renderTimestamp = (asset: any) => {
+    return (
+      <ImageListItemBar
+        sx={{
+          background:
+            "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, " +
+            "rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)",
+        }}
+        title={toTime(asset.duration)}
+        position="top"
+      />
+    );
+  };
+
+  const renderImg = (asset: any) => {
+    return (
+      <img
+        src={
+          asset.thumbnail_path
+            ? `/api/asset/${asset.id}/thumbnail`
+            : defaultImage
+        }
+        alt={asset.name}
+        loading="lazy"
+      />
+    );
+  };
+
+  const renderImageTitle = (asset: any) => {
+    return (
+      <ImageListItemBar
+        title={asset ? asset.name : "examplename.mp4"}
+        position="below"
+        actionIcon={
+          <IconButton
+            color="info"
+            onClick={() => setClips(clips.append(new Clip(asset)))}
+          >
+            <AddIcon />
+          </IconButton>
+        }
+      />
+    );
+  };
+
   /* Describe how to render all assets. */
   const renderAssets = () => {
-    return assets.map((asset: any) => (
-      <ImageListItem key={asset.id} sx={{ width: width / 2 - 19 }}>
-        <ImageListItemBar
-          sx={{
-            background:
-              "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, " +
-              "rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)",
-          }}
-          title={toTime(asset.duration)}
-          position="top"
-        />
-        <img
-          src={
-            asset.thumbnail_path
-              ? `/api/asset/${asset.id}/thumbnail`
-              : defaultImage
-          }
-          alt={asset.name}
-          loading="lazy"
-        />
-        <ImageListItemBar
-          title={asset.name}
-          position="below"
-          actionIcon={
-            <IconButton color="info" onClick={() => callback(asset)}>
-              <AddIcon />
-            </IconButton>
-          }
-        />
+    if (isLoading) {
+      return <CircularProgress />;
+    }
+    return assets.map((asset: any, i: number) => (
+      <ImageListItem key={i} sx={{ width: imageWidth }}>
+        {renderTimestamp(asset)}
+        {renderImg(asset)}
+        {renderImageTitle(asset)}
       </ImageListItem>
     ));
   };
 
-  /* Render skeleton when assets are still being fetched. */
-  const renderSkeletons = () => {
-    return (
-      <ImageList cols={cols}>
-        <ImageListItem>
-          <Skeleton variant="rectangular" width={width / 2 - 20} height={100} />
-        </ImageListItem>
-        <ImageListItem>
-          <Skeleton variant="rectangular" width={width / 2 - 20} height={100} />
-        </ImageListItem>
-        <ImageListItem>
-          <Skeleton variant="rectangular" width={width / 2 - 20} height={100} />
-        </ImageListItem>
-      </ImageList>
-    );
-  };
-
-  /* Render list of assets. */
-  const renderMedia = () => {
-    if (isLoading) {
-      return renderSkeletons();
-    }
-    return <ImageList cols={cols}>{renderAssets()}</ImageList>;
-  };
-
   return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: width,
-        flexShrink: 0,
-      }}
-    >
+    <Box minWidth={width} maxWidth={width}>
       <Container disableGutters sx={{ padding: 2 }}>
         <Button
           variant="contained"
@@ -158,7 +161,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ callback, width }) => {
         >
           Import Media
         </Button>
-        {renderMedia()}
+        <ImageList cols={cols}>{renderAssets()}</ImageList>
       </Container>
       <NewAssetDialog
         activeProject={projectID!}
@@ -166,7 +169,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ callback, width }) => {
         closeHandler={() => setImportingAsset(false)}
         onAssetCreated={onAssetImport}
       />
-    </Drawer>
+    </Box>
   );
 };
 

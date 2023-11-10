@@ -6,7 +6,7 @@ It contains buttons to modify the timeline and displays the
 current time and total time of all media on the timeline.
  */
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import { AppBar, IconButton, Toolbar, Typography } from "@mui/material";
 
@@ -18,16 +18,22 @@ import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import Clips from "../Classes/Clips";
 
 type TimelineBarProps = {
-  currentTime: number;
-  totalTime: number;
+  clips: Clips;
+  setClips: React.Dispatch<React.SetStateAction<Clips>>;
 };
 
-const TimelineBar: React.FC<TimelineBarProps> = ({
-  currentTime,
-  totalTime,
-}) => {
+const TimelineBar: React.FC<TimelineBarProps> = ({ clips, setClips }) => {
+  const [currentTime, setCurrentTime] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
+
+  /* Compute the total time of all clips when it changes. */
+  useEffect(() => {
+    setTotalTime(clips.data.reduce((acc, clip) => acc + clip.getDuration(), 0));
+  }, [clips]);
+
   const UndoButton = () => {
     return (
       <IconButton>
@@ -46,16 +52,8 @@ const TimelineBar: React.FC<TimelineBarProps> = ({
 
   const CutButton = () => {
     return (
-      <IconButton>
+      <IconButton onClick={() => setClips(clips.split(1))}>
         <ContentCutIcon />
-      </IconButton>
-    );
-  };
-
-  const CopyButton = () => {
-    return (
-      <IconButton>
-        <ContentCopyIcon />
       </IconButton>
     );
   };
@@ -64,6 +62,14 @@ const TimelineBar: React.FC<TimelineBarProps> = ({
     return (
       <IconButton>
         <DeleteIcon />
+      </IconButton>
+    );
+  };
+
+  const CopyButton = () => {
+    return (
+      <IconButton onClick={() => console.log(clips.seek(3))}>
+        <ContentCopyIcon />
       </IconButton>
     );
   };

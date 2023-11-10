@@ -13,28 +13,22 @@ import { Box, Paper } from "@mui/material";
 
 import TimelineBar from "./TimelineComponents/TimelineBar";
 import TimelineLine from "./TimelineComponents/TimelineLine";
+import Clip from "./Classes/Clip";
+import Clips from "./Classes/Clips";
 
 type TimelineProps = {
-  clips: any[];
+  clips: Clips;
+  setClips: React.Dispatch<React.SetStateAction<Clips>>;
   height: number;
 };
 
-const Timeline: React.FC<TimelineProps> = ({ clips, height }) => {
-  console.log("Timeline Bar Rendered");
-
-  const [currentTime, setCurrentTime] = useState(0);
-  const [totalTime, setTotalTime] = useState(0);
-
-  /* Compute the total time of all assets when it changes. */
-  useEffect(() => {
-    // TODO: compute sum of used assets not all assets
-    setTotalTime(clips.reduce((partialSum, a) => partialSum + a.duration, 0));
-  }, [clips]);
+const Timeline: React.FC<TimelineProps> = ({ clips, setClips, height }) => {
+  console.log("Timeline Rendered");
 
   return (
     <Paper sx={{ height: height, display: "flex", flexFlow: "column" }}>
       <Box width={1} sx={{ display: "content" }}>
-        <TimelineBar currentTime={currentTime} totalTime={totalTime} />
+        <TimelineBar clips={clips} setClips={setClips} />
       </Box>
       <Box
         sx={{
