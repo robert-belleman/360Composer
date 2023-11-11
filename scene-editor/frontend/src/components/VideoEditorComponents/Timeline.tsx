@@ -59,13 +59,13 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
   const [totalTime, setTotalTime] = useState(0);
   /* Level of zoom used as index for ZOOM_FRACTIONS_PER_LEVEL. */
   const [zoomLevel, setZoomLevel] = useState(0);
-  /* Center of the timeline window. */
+  /* Bounds of the timeline window (as fraction). */
   const [camLowerBound, setCamLowerBound] = useState(0);
   const [camUpperBound, setCamUpperBound] = useState(1);
 
   /* Compute the total time of all clips when it changes. */
   useEffect(() => {
-    setTotalTime(clips.data.reduce((acc, clip) => acc + clip.getDuration(), 0));
+    setTotalTime(clips.data.reduce((acc, clip) => acc + clip.duration(), 0));
   }, [clips]);
 
   /* Count up until end of video. */
@@ -124,8 +124,6 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
     return [low, high, zoomLevel];
   };
 
-  console.log(windowInfo());
-
   const TimelineBar = () => {
     const UndoButton = () => {
       return (
@@ -145,7 +143,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
 
     const CutButton = () => {
       return (
-        <IconButton onClick={() => setClips(clips.split(1))}>
+        <IconButton onClick={() => setClips(clips.split(currentTime))}>
           <ContentCutIcon />
         </IconButton>
       );

@@ -40,7 +40,7 @@ class Clip {
       : defaultImage;
   }
 
-  getDuration() {
+  duration() {
     return this.end_time - this.start_time;
   }
 
@@ -49,10 +49,11 @@ class Clip {
     this.end_time = new_end_time;
   }
 
-  split(time: number) {
+  split(timeIntoClip: number) {
     let clip = new Clip(this.asset);
-    this.start_time = time;
-    clip.end_time = time;
+    clip.start_time = this.start_time
+    clip.end_time = clip.start_time + timeIntoClip;
+    this.start_time = clip.end_time;
     return clip;
   }
 }

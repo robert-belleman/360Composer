@@ -23,7 +23,7 @@ const TimelineLayer: React.FC<TimelineLayerProps> = ({ clips, bounds }) => {
     /* If not zoomed in, render all clips. */
     if (zoom === 0) {
       return clips.data.map((clip: any, i: number) => (
-        <TimelineClip key={i} clip={clip} duration={clip.asset.duration} />
+        <TimelineClip key={i} clip={clip} duration={clip.duration()} />
       ));
     }
 

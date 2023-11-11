@@ -78,11 +78,11 @@ function seek(clips: Clips, time: number) {
     if (clip === null) {
       return [null, null];
     }
-    accTime += clip.getDuration();
+    accTime += clip.duration();
 
     /* If `time` gets exceeded by a clip, return it. */
     if (time < accTime) {
-      return [i, clip.getDuration() - accTime + time];
+      return [i, clip.duration() - accTime + time];
     }
   }
   /* If `time` was bigger than all clip lengths combined, return null. */
