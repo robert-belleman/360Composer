@@ -12,7 +12,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { AppBar, Button, TextField, Toolbar } from "@mui/material";
 
-import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import UpgradeIcon from "@mui/icons-material/Upgrade";
 
 type TitleBarProps = {
@@ -32,7 +32,7 @@ const TitleBar: React.FC<TitleBarProps> = ({ title, setTitle }) => {
     <Button
       color="success"
       variant="contained"
-      startIcon={<ArrowBackIosIcon />}
+      startIcon={<ArrowBackIcon />}
       onClick={() => navigate(`/app/project/${projectID}?activeTab=assets`)}
     >
       Back

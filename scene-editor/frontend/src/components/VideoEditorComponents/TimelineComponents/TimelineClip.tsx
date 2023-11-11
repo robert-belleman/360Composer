@@ -14,9 +14,10 @@ const clipHeight = 64;
 
 type TimelineClipProps = {
   clip: Clip;
+  duration: number;
 };
 
-const TimelineClip: React.FC<TimelineClipProps> = ({ clip }) => {
+const TimelineClip: React.FC<TimelineClipProps> = ({ clip, duration }) => {
   return (
     <Box
       sx={{
@@ -24,7 +25,7 @@ const TimelineClip: React.FC<TimelineClipProps> = ({ clip }) => {
         backgroundRepeat: "repeat",
         backgroundSize: "contain",
         height: clipHeight,
-        flexGrow: clip.getDuration(),
+        flexGrow: duration,
         borderRadius: 4,
         borderRight: 4,
         borderLeft: 4,

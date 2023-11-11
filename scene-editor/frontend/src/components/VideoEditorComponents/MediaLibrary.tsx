@@ -33,24 +33,21 @@ import Clips from "./Classes/Clips";
 
 const cols = 2;
 
+const WIDTH = 320;
+
 type MediaLibraryProps = {
   clips: Clips;
   setClips: React.Dispatch<React.SetStateAction<Clips>>;
-  width: number;
 };
 
-const MediaLibrary: React.FC<MediaLibraryProps> = ({
-  clips,
-  setClips,
-  width,
-}) => {
+const MediaLibrary: React.FC<MediaLibraryProps> = ({ clips, setClips }) => {
   console.log("Media Library Rendered");
   const { projectID } = useParams();
 
   const [assets, setAssets] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [importingAsset, setImportingAsset] = useState(false);
-  let imageWidth = Math.floor(width / 2 - 19);
+  let imageWidth = Math.floor(WIDTH / 2 - 19);
 
   /**
    * Fetch all assets that are in project `projectID`.
@@ -150,7 +147,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
   };
 
   return (
-    <Box minWidth={width} maxWidth={width}>
+    <Box minWidth={WIDTH} maxWidth={WIDTH}>
       <Container disableGutters sx={{ padding: 2 }}>
         <Button
           variant="contained"

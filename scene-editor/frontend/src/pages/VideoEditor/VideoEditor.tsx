@@ -16,10 +16,6 @@ import VideoPreview from "../../components/VideoEditorComponents/VideoPreview";
 import Clip from "../../components/VideoEditorComponents/Classes/Clip";
 import Clips from "../../components/VideoEditorComponents/Classes/Clips";
 
-/* UI settings */
-const libraryWidth = 320;
-const timelineHeight = 320;
-
 const VideoEditor = () => {
   /* Initialize variables. */
   const [title, setTitle] = useState("");
@@ -27,13 +23,13 @@ const VideoEditor = () => {
 
   return (
     <Box sx={{ display: "flex" }}>
-      <MediaLibrary clips={clips} setClips={setClips} width={libraryWidth} />
+      <MediaLibrary clips={clips} setClips={setClips} />
       <Box
         sx={{ flexGrow: 1, height: "100vh", display: "flex", flexFlow: "column" }}
       >
         <TitleBar title={title} setTitle={setTitle} />
         <VideoPreview />
-        <Timeline clips={clips} setClips={setClips} height={timelineHeight} />
+        <Timeline clips={clips} setClips={setClips} />
       </Box>
     </Box>
   );
