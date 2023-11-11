@@ -25,11 +25,13 @@ interface Asset {
 
 class Clip {
   asset: Asset;
+  selected: boolean;
   start_time: number;
   end_time: number;
 
   constructor(asset: Asset) {
     this.asset = asset;
+    this.selected = false;
     this.start_time = 0;
     this.end_time = asset.duration;
   }
@@ -55,6 +57,10 @@ class Clip {
     clip.end_time = clip.start_time + timeIntoClip;
     this.start_time = clip.end_time;
     return clip;
+  }
+
+  toggleSelect() {
+    this.selected = !this.selected;
   }
 }
 

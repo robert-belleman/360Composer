@@ -5,6 +5,7 @@ This file describes timeline component of the video editor.
 Video assets can be placed onto the timeline or deleted from it.
 The timeline acts as a place where the user can easily trim the
 assets.
+TODO: rearrange, undo, redo
  */
 
 import React, { useState, useEffect } from "react";
@@ -70,6 +71,10 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
 
   /* Count up until end of video. */
   useEffect(() => {
+    if (totalTime < currentTime) {
+      setCurrentTime(totalTime);
+    }
+
     if (isPlaying && currentTime < totalTime) {
       const id = setInterval(
         () => setCurrentTime((currentTime) => currentTime + 1),
@@ -80,7 +85,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
         clearInterval(id);
       };
     }
-  }, [isPlaying, currentTime]);
+  }, [isPlaying, currentTime, totalTime]);
 
   /**
    * Move the screen window on the timeline.
@@ -93,7 +98,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
       if (camLowerBound + offset < 0) {
         setCamLowerBound(0);
         setCamUpperBound(camUpperBound + offset - (camLowerBound + offset));
-      /* If the offset moves the upper too far, offset the lower bound. */
+        /* If the offset moves the upper too far, offset the lower bound. */
       } else if (camUpperBound + offset > 1) {
         setCamLowerBound(camLowerBound + offset - (camUpperBound + offset - 1));
         setCamUpperBound(1);
@@ -124,151 +129,150 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
     return [low, high, zoomLevel];
   };
 
+  const UndoButton = () => {
+    return (
+      <IconButton>
+        <UndoIcon />
+      </IconButton>
+    );
+  };
+
+  const RedoButton = () => {
+    return (
+      <IconButton>
+        <RedoIcon />
+      </IconButton>
+    );
+  };
+
+  const SplitButton = () => {
+    return (
+      <IconButton onClick={() => setClips(clips.split(currentTime))}>
+        <ContentCutIcon />
+      </IconButton>
+    );
+  };
+
+  const DeleteButton = () => {
+    return (
+      <IconButton onClick={() => setClips(clips.delete())}>
+        <DeleteIcon />
+      </IconButton>
+    );
+  };
+
+  const CopyButton = () => {
+    return (
+      <IconButton onClick={() => setClips(clips.copy())}>
+        <ContentCopyIcon />
+      </IconButton>
+    );
+  };
+
+  const PlayPauseButton = () => {
+    const updatePlaying = () => {
+      let playing = totalTime > 0 ? !isPlaying : false;
+      if (currentTime === totalTime) {
+        setCurrentTime(0);
+        playing = true;
+      }
+      setIsPlaying(playing);
+    };
+    return (
+      <IconButton onClick={() => updatePlaying()}>
+        {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+      </IconButton>
+    );
+  };
+
+  const MoveLeftButton = () => {
+    const canMoveLeft = () => {
+      return camLowerBound > 0 && clips.data.length > 0;
+    };
+
+    const moveLeft = () => {
+      updateCameraBounds(0, -CAMERA_WINDOW_TICKS);
+    };
+
+    return (
+      <IconButton disabled={!canMoveLeft()} onClick={moveLeft}>
+        <ArrowBackIosNewIcon />
+      </IconButton>
+    );
+  };
+
+  const MoveRightButton = () => {
+    const canMoveRight = () => {
+      return camUpperBound < 1 && clips.data.length > 0;
+    };
+
+    const moveRight = () => {
+      updateCameraBounds(0, CAMERA_WINDOW_TICKS);
+    };
+
+    return (
+      <IconButton disabled={!canMoveRight()} onClick={moveRight}>
+        <ArrowForwardIosIcon />
+      </IconButton>
+    );
+  };
+
+  const ZoomOutButton = () => {
+    const canZoomOut = () => {
+      return zoomLevel > 0 && clips.data.length > 0;
+    };
+
+    const zoomOut = () => {
+      if (canZoomOut()) {
+        setZoomLevel(zoomLevel - 1);
+        updateCameraBounds(-1, 0);
+      }
+    };
+
+    return (
+      <IconButton disabled={!canZoomOut()} onClick={zoomOut}>
+        <ZoomOutIcon />
+      </IconButton>
+    );
+  };
+
+  const ZoomInButton = () => {
+    const canZoomIn = () => {
+      return (
+        zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 && clips.data.length > 0
+      );
+    };
+
+    const zoomIn = () => {
+      if (canZoomIn()) {
+        setZoomLevel(zoomLevel + 1);
+        updateCameraBounds(1, 0);
+      }
+    };
+
+    return (
+      <IconButton disabled={!canZoomIn()} onClick={zoomIn}>
+        <ZoomInIcon />
+      </IconButton>
+    );
+  };
+
+  const ZoomFitButton = () => {
+    const resetZoom = () => {
+      const zoomLvl = 0;
+      setZoomLevel(zoomLvl);
+      setCamLowerBound(0);
+      setCamUpperBound(1);
+    };
+
+    return (
+      <IconButton disabled={zoomLevel === 0} onClick={() => resetZoom()}>
+        <CloseFullscreenIcon />
+      </IconButton>
+    );
+  };
+
   const TimelineBar = () => {
-    const UndoButton = () => {
-      return (
-        <IconButton>
-          <UndoIcon />
-        </IconButton>
-      );
-    };
-
-    const RedoButton = () => {
-      return (
-        <IconButton>
-          <RedoIcon />
-        </IconButton>
-      );
-    };
-
-    const CutButton = () => {
-      return (
-        <IconButton onClick={() => setClips(clips.split(currentTime))}>
-          <ContentCutIcon />
-        </IconButton>
-      );
-    };
-
-    const DeleteButton = () => {
-      return (
-        <IconButton>
-          <DeleteIcon />
-        </IconButton>
-      );
-    };
-
-    const CopyButton = () => {
-      return (
-        <IconButton>
-          <ContentCopyIcon />
-        </IconButton>
-      );
-    };
-
-    const PlayPauseButton = () => {
-      const updatePlaying = () => {
-        let playing = totalTime > 0 ? !isPlaying : false;
-        if (currentTime === totalTime) {
-          setCurrentTime(0);
-          playing = true;
-        }
-        setIsPlaying(playing);
-      };
-      return (
-        <IconButton onClick={() => updatePlaying()}>
-          {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-        </IconButton>
-      );
-    };
-
-    const MoveLeftButton = () => {
-      const canMoveLeft = () => {
-        return camLowerBound > 0 && clips.data.length > 0;
-      };
-
-      const moveLeft = () => {
-        updateCameraBounds(0, -CAMERA_WINDOW_TICKS);
-      };
-
-      return (
-        <IconButton disabled={!canMoveLeft()} onClick={moveLeft}>
-          <ArrowBackIosNewIcon />
-        </IconButton>
-      );
-    };
-
-    const MoveRightButton = () => {
-      const canMoveRight = () => {
-        return camUpperBound < 1 && clips.data.length > 0;
-      };
-
-      const moveRight = () => {
-        updateCameraBounds(0, CAMERA_WINDOW_TICKS);
-      };
-
-      return (
-        <IconButton disabled={!canMoveRight()} onClick={moveRight}>
-          <ArrowForwardIosIcon />
-        </IconButton>
-      );
-    };
-
-    const ZoomOutButton = () => {
-      const canZoomOut = () => {
-        return zoomLevel > 0 && clips.data.length > 0;
-      };
-
-      const zoomOut = () => {
-        if (canZoomOut()) {
-          setZoomLevel(zoomLevel - 1);
-          updateCameraBounds(-1, 0);
-        }
-      };
-
-      return (
-        <IconButton disabled={!canZoomOut()} onClick={zoomOut}>
-          <ZoomOutIcon />
-        </IconButton>
-      );
-    };
-
-    const ZoomInButton = () => {
-      const canZoomIn = () => {
-        return (
-          zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 &&
-          clips.data.length > 0
-        );
-      };
-
-      const zoomIn = () => {
-        if (canZoomIn()) {
-          setZoomLevel(zoomLevel + 1);
-          updateCameraBounds(1, 0);
-        }
-      };
-
-      return (
-        <IconButton disabled={!canZoomIn()} onClick={zoomIn}>
-          <ZoomInIcon />
-        </IconButton>
-      );
-    };
-
-    const ZoomFitButton = () => {
-      const resetZoom = () => {
-        const zoomLvl = 0;
-        setZoomLevel(zoomLvl);
-        setCamLowerBound(0);
-        setCamUpperBound(1);
-      };
-
-      return (
-        <IconButton disabled={zoomLevel === 0} onClick={() => resetZoom()}>
-          <CloseFullscreenIcon />
-        </IconButton>
-      );
-    };
-
     const Timer = () => {
       /* Convert seconds to minute:seconds */
       const toTime = (seconds: number) => {
@@ -322,7 +326,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
         <Toolbar variant="dense">
           <UndoButton />
           <RedoButton />
-          <CutButton />
+          <SplitButton />
           <DeleteButton />
           <CopyButton />
           <Box flexGrow={1} display="flex" justifyContent="center">

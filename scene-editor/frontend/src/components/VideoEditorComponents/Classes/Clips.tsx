@@ -89,6 +89,16 @@ function seek(clips: Clips, time: number) {
   return [null, null];
 }
 
+function updateTimes(clips: Clips) {
+  let elapsedTime = 0;
+  for (let i = 0; i < clips.data.length; i++) {
+    let duration = clips.data[i].duration();
+    clips.data[i].start_time = elapsedTime;
+    clips.data[i].end_time = elapsedTime + duration;
+    elapsedTime += duration;
+  }
+}
+
 class Clips {
   data: Clip[];
 
@@ -106,6 +116,38 @@ class Clips {
   insert(index: number, clip: Clip) {
     let copy = new Clips(this.data.slice());
     insert(copy, index, clip);
+    return copy;
+  }
+
+  delete() {
+    let copy = new Clips();
+
+    /* Remove selected items. */
+    for (let i = 0; i < this.data.length; i++) {
+      if (!this.data[i].selected) {
+        append(copy, this.data[i]);
+      }
+    }
+    updateTimes(copy);
+    return copy;
+  }
+
+  copy() {
+    let copy = new Clips(this.data.slice());
+
+    let elapsedTime = 0;
+    for (let i = 0; i < this.data.length; i++) {
+      if (this.data[i].selected) {
+        let copyClip = new Clip(this.data[i].asset);
+        copyClip.start_time = this.data[i].start_time;
+        copyClip.end_time = this.data[i].end_time;
+        copyClip.selected = true;
+        append(copy, copyClip);
+        copy.data[i].selected = false;
+      }
+      elapsedTime += this.data[i].duration();
+    }
+    updateTimes(copy);
     return copy;
   }
 
