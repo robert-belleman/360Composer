@@ -40,6 +40,11 @@ function insert(clips: Clips, index: number, clip: Clip) {
   console.log("array index out of range to insert.");
 }
 
+function remove(clips: Clips, index: number) {
+  clips.data.splice(index, 1);
+  return clips;
+}
+
 /**
  * Split the clip at time `time` in the Clips object.
  * @param time
@@ -119,7 +124,7 @@ class Clips {
     return copy;
   }
 
-  delete() {
+  deleteSelected() {
     let copy = new Clips();
 
     /* Remove selected items. */
@@ -147,6 +152,14 @@ class Clips {
       }
       elapsedTime += this.data[i].duration();
     }
+    updateTimes(copy);
+    return copy;
+  }
+
+  move(srcIndex: number, dstIndex: number) {
+    let copy = new Clips(this.data.slice());
+    insert(copy, dstIndex, this.data[srcIndex]);
+    remove(copy, srcIndex + 1);
     updateTimes(copy);
     return copy;
   }

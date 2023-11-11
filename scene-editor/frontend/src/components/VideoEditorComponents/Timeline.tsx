@@ -155,7 +155,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
 
   const DeleteButton = () => {
     return (
-      <IconButton onClick={() => setClips(clips.delete())}>
+      <IconButton onClick={() => setClips(clips.deleteSelected())}>
         <DeleteIcon />
       </IconButton>
     );
