@@ -30,10 +30,7 @@ import defaultImage from "../../static/images/default.jpg";
 import NewAssetDialog from "../ProjectComponents/AssetViewComponents/NewAssetDialog";
 import Clip from "./Classes/Clip";
 import Clips from "./Classes/Clips";
-
-const cols = 2;
-
-const WIDTH = 320;
+import { MEDIA_LIBRARY_COLS, MEDIA_LIBRARY_WIDTH } from "./Constants";
 
 type MediaLibraryProps = {
   clips: Clips;
@@ -47,7 +44,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ clips, setClips }) => {
   const [assets, setAssets] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [importingAsset, setImportingAsset] = useState(false);
-  let imageWidth = Math.floor(WIDTH / 2 - 19);
+  let imageWidth = Math.floor(MEDIA_LIBRARY_WIDTH / 2 - 19);
 
   /**
    * Fetch all assets that are in project `projectID`.
@@ -147,7 +144,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ clips, setClips }) => {
   };
 
   return (
-    <Box minWidth={WIDTH} maxWidth={WIDTH}>
+    <Box minWidth={MEDIA_LIBRARY_WIDTH} maxWidth={MEDIA_LIBRARY_WIDTH}>
       <Container disableGutters sx={{ padding: 2 }}>
         <Button
           variant="contained"
@@ -158,7 +155,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ clips, setClips }) => {
         >
           Import Media
         </Button>
-        <ImageList cols={cols}>{renderAssets()}</ImageList>
+        <ImageList cols={MEDIA_LIBRARY_COLS}>{renderAssets()}</ImageList>
       </Container>
       <NewAssetDialog
         activeProject={projectID!}

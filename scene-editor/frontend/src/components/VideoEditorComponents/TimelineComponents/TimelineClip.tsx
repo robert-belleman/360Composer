@@ -9,8 +9,8 @@ import React, { useReducer, useState } from "react";
 import { Box, Button } from "@mui/material";
 
 import Clip from "../Classes/Clip";
+import { TIMELINE_CLIP_HEIGHT } from "../Constants";
 
-const clipHeight = 64;
 
 type TimelineClipProps = {
   clip: Clip;
@@ -32,7 +32,7 @@ const TimelineClip: React.FC<TimelineClipProps> = ({ clip, duration }) => {
         background: `url(${clip.getUrl()})`,
         backgroundRepeat: "repeat",
         backgroundSize: "contain",
-        height: clipHeight,
+        height: TIMELINE_CLIP_HEIGHT,
         flexGrow: duration,
         border: 8,
         borderRadius: 4,

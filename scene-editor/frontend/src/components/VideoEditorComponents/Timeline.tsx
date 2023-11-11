@@ -35,10 +35,10 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 import TimelineLayer from "./TimelineComponents/TimelineLayer";
 
+import { TIMELINE_HEIGHT } from "./Constants";
 import Clips from "./Classes/Clips";
 import Clip from "./Classes/Clip";
 
-const HEIGHT = 320;
 /* The fraction that should be displayed per zoom level. */
 const ZOOM_FRACTIONS_PER_LEVEL = [1, 0.8, 0.6, 0.4, 0.2];
 /* The fraction to move the camera when moving left or right. */
@@ -347,7 +347,9 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
   };
 
   return (
-    <Paper sx={{ height: HEIGHT, display: "flex", flexFlow: "column" }}>
+    <Paper
+      sx={{ height: TIMELINE_HEIGHT, display: "flex", flexFlow: "column" }}
+    >
       <Box width={1} sx={{ display: "content" }}>
         <TimelineBar />
       </Box>
