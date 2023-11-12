@@ -1,45 +1,52 @@
-/*
-Filename: TimelineClip.tsx
-Description:
-This file describes a single clip on the timeline.
+/**
+ * TimelineClip.tsx
+ *
+ * Description:
+ * This module describes the TimelineClip Component of the Timeline.
+ * This file mostly focuses on the rendering of a single clip.
+ *
+ * TODO: implement drag and drop for user experience.
+ *
  */
 
-import React, { useReducer, useState } from "react";
+import React, { useReducer } from "react";
 
-import { Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 
-import Clip from "../Classes/Clip";
 import { TIMELINE_CLIP_HEIGHT } from "../Constants";
 
+import { Clip, useClips } from "../ClipsContext";
 
 type TimelineClipProps = {
   clip: Clip;
-  duration: number;
+  visibleLength: number;
 };
 
-const TimelineClip: React.FC<TimelineClipProps> = ({ clip, duration }) => {
+const TimelineClip: React.FC<TimelineClipProps> = ({ clip, visibleLength }) => {
+  const { thumbnailUrl } = useClips();
+
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
   const handleClick = (clip: Clip) => {
-    clip.toggleSelect();
-    forceUpdate();  // Force update to see color change.
+    clip.selected = !clip.selected;
+    forceUpdate(); // Force update to see color change immediately.
   };
 
   return (
-    <Button
+    <Box
       onClick={() => handleClick(clip)}
       sx={{
-        background: `url(${clip.getUrl()})`,
+        background: `url(${thumbnailUrl(clip)})`,
         backgroundRepeat: "repeat",
         backgroundSize: "contain",
         height: TIMELINE_CLIP_HEIGHT,
-        flexGrow: duration,
+        flexGrow: visibleLength,
         border: 8,
         borderRadius: 4,
         boxSizing: "border-box",
         borderColor: clip.selected ? "BlueViolet" : "transparent",
       }}
-    ></Button>
+    ></Box>
   );
 };
 

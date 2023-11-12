@@ -1,57 +1,59 @@
-/*
-Filename: Timeline.tsx
-Description:
-This file describes timeline component of the video editor.
-Video assets can be placed onto the timeline or deleted from it.
-The timeline acts as a place where the user can easily trim the
-assets.
-TODO: rearrange, undo, redo
+/**
+ * Timeline.tsx
+ *
+ * Description:
+ * This module describes the Timeline Component of the VideoEditor.
+ * This file mostly focuses on the menu options regarding the timeline.
+ * Example options are: Cut/Trim, Delete, Duplicate, etc.
+ *
+ * The Timeline contains the following Components:
+ *   - TimelineArea. A Box showing multiple clips and their edits.
+ *
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   AppBar,
   Box,
   IconButton,
+  Paper,
   Slider,
   Toolbar,
   Typography,
-  Paper,
 } from "@mui/material";
 
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
-import TimelineLayer from "./TimelineComponents/TimelineLayer";
+import TimelineArea from "./TimelineComponents/TimelineArea";
 
 import { TIMELINE_HEIGHT } from "./Constants";
-import Clips from "./Classes/Clips";
-import Clip from "./Classes/Clip";
+
+import {
+  DELETE_CLIPS,
+  DUPLICATE_CLIPS,
+  SPLIT_CLIP,
+  useClips,
+} from "./ClipsContext";
 
 /* The fraction that should be displayed per zoom level. */
 const ZOOM_FRACTIONS_PER_LEVEL = [1, 0.8, 0.6, 0.4, 0.2];
 /* The fraction to move the camera when moving left or right. */
 const CAMERA_WINDOW_TICKS = 0.1;
 
-type TimelineProps = {
-  clips: Clips;
-  setClips: React.Dispatch<React.SetStateAction<Clips>>;
-};
-
-const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
-  console.log("Timeline Rendered");
-
+const Timeline: React.FC = () => {
+  const { state, dispatch } = useClips();
   /* Boolean that describes if the video is playing. */
   const [isPlaying, setIsPlaying] = useState(false);
   /* The current time in the video edit. */
@@ -66,8 +68,8 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
 
   /* Compute the total time of all clips when it changes. */
   useEffect(() => {
-    setTotalTime(clips.data.reduce((acc, clip) => acc + clip.duration(), 0));
-  }, [clips]);
+    setTotalTime(state.clips.reduce((acc, clip) => acc + clip.duration, 0));
+  }, [state.clips]);
 
   /* Count up until end of video. */
   useEffect(() => {
@@ -86,6 +88,18 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
       };
     }
   }, [isPlaying, currentTime, totalTime]);
+
+  const handleSplitClip = (time: number) => {
+    dispatch({ type: SPLIT_CLIP, payload: { time: time } });
+  };
+
+  const handleDeleteClips = () => {
+    dispatch({ type: DELETE_CLIPS });
+  };
+
+  const handleDuplicateClips = () => {
+    dispatch({ type: DUPLICATE_CLIPS });
+  };
 
   /**
    * Move the screen window on the timeline.
@@ -147,23 +161,25 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
 
   const SplitButton = () => {
     return (
-      <IconButton onClick={() => setClips(clips.split(currentTime))}>
+      <IconButton onClick={() => handleSplitClip(currentTime)}>
         <ContentCutIcon />
       </IconButton>
     );
   };
 
   const DeleteButton = () => {
+    // TODO
     return (
-      <IconButton onClick={() => setClips(clips.deleteSelected())}>
+      <IconButton onClick={() => handleDeleteClips()}>
         <DeleteIcon />
       </IconButton>
     );
   };
 
-  const CopyButton = () => {
+  const DuplicateButton = () => {
+    // TODO
     return (
-      <IconButton onClick={() => setClips(clips.copy())}>
+      <IconButton onClick={() => handleDuplicateClips()}>
         <ContentCopyIcon />
       </IconButton>
     );
@@ -187,7 +203,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
 
   const MoveLeftButton = () => {
     const canMoveLeft = () => {
-      return camLowerBound > 0 && clips.data.length > 0;
+      return camLowerBound > 0 && state.clips.length > 0;
     };
 
     const moveLeft = () => {
@@ -203,7 +219,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
 
   const MoveRightButton = () => {
     const canMoveRight = () => {
-      return camUpperBound < 1 && clips.data.length > 0;
+      return camUpperBound < 1 && state.clips.length > 0;
     };
 
     const moveRight = () => {
@@ -219,7 +235,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
 
   const ZoomOutButton = () => {
     const canZoomOut = () => {
-      return zoomLevel > 0 && clips.data.length > 0;
+      return zoomLevel > 0 && state.clips.length > 0;
     };
 
     const zoomOut = () => {
@@ -239,7 +255,8 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
   const ZoomInButton = () => {
     const canZoomIn = () => {
       return (
-        zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 && clips.data.length > 0
+        zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 &&
+        state.clips.length > 0
       );
     };
 
@@ -328,7 +345,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
           <RedoButton />
           <SplitButton />
           <DeleteButton />
-          <CopyButton />
+          <DuplicateButton />
           <Box flexGrow={1} display="flex" justifyContent="center">
             <PlayPauseButton />
             <Timer />
@@ -362,7 +379,7 @@ const Timeline: React.FC<TimelineProps> = ({ clips, setClips }) => {
           backgroundColor: "#6a9cff",
         }}
       >
-        <TimelineLayer clips={clips} bounds={windowInfo()} />
+        <TimelineArea bounds={windowInfo()} />
       </Box>
     </Paper>
   );

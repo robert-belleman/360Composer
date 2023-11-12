@@ -1,90 +1,78 @@
-/*
-Filename: MediaLibrary.tsx
-Description:
-This file describes media library component of the video editor.
-The library acts as a place to see video assets of the user that
-they want to use in their video edit.
+/**
+ * MediaLibrary.tsx
+ *
+ * Description:
+ * This module describes the MediaLibrary Component of the VideoEditor.
+ *
+ * The MediaLibrary contains the following Components:
+ *   - ImportMediaButton. A Button to add assets, in case the user forgot.
+ *   - A Container filled with all the assets.
+ *
  */
 
-import axios from "axios";
-
-import React, { useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import AddIcon from "@mui/icons-material/Add";
 import {
-  Button,
-  Container,
   Box,
-  Drawer,
+  Button,
+  CircularProgress,
+  Container,
   IconButton,
   ImageList,
   ImageListItem,
   ImageListItemBar,
-  Skeleton,
-  CircularProgress,
 } from "@mui/material";
 
-import AddIcon from "@mui/icons-material/Add";
+import NewAssetDialog from "../ProjectComponents/AssetViewComponents/NewAssetDialog";
 
 import defaultImage from "../../static/images/default.jpg";
-import NewAssetDialog from "../ProjectComponents/AssetViewComponents/NewAssetDialog";
-import Clip from "./Classes/Clip";
-import Clips from "./Classes/Clips";
 import { MEDIA_LIBRARY_COLS, MEDIA_LIBRARY_WIDTH } from "./Constants";
 
-type MediaLibraryProps = {
-  clips: Clips;
-  setClips: React.Dispatch<React.SetStateAction<Clips>>;
-};
+import { Asset, AssetsContext } from "./AssetsContext";
+import { APPEND_CLIP, useClips } from "./ClipsContext";
 
-const MediaLibrary: React.FC<MediaLibraryProps> = ({ clips, setClips }) => {
-  console.log("Media Library Rendered");
+const MediaLibrary: React.FC = () => {
+  const { assets, createClip, loading, fetchAssets } =
+    useContext(AssetsContext)!;
+  const { dispatch } = useClips();
+
+  const [importingAsset, setImportingAsset] = useState(false);
+
   const { projectID } = useParams();
 
-  const [assets, setAssets] = useState<any>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [importingAsset, setImportingAsset] = useState(false);
-  let imageWidth = Math.floor(MEDIA_LIBRARY_WIDTH / 2 - 19);
+  const imageWidth = Math.floor(MEDIA_LIBRARY_WIDTH / 2 - 19);
 
-  /**
-   * Fetch all assets that are in project `projectID`.
-   *
-   * Set the `isLoading` variable to true.
-   * Assign the assets to the `assets` variable.
-   * Set the `isLoading` variable to false.
-   */
-  const fetchAssets = async () => {
-    setIsLoading(true);
-    try {
-      const res = await axios.get(`/api/project/${projectID}/assets`, {});
-      setAssets(res.data);
-      return setIsLoading(false);
-    } catch (e) {
-      return console.log("error while fetching assets", e);
-    }
+  const handleAppendClip = (asset: Asset) => {
+    const newClip = createClip(asset);
+    dispatch({ type: APPEND_CLIP, payload: { clip: newClip } });
   };
 
-  /* Fetch the assets. */
-  useEffect(() => {
-    fetchAssets();
-  }, [projectID]);
-
-  /* Re-render the media library when an asset was imported */
-  const onAssetImport = () => {
-    setImportingAsset(false);
-    fetchAssets();
+  const ImportMediaButton = () => {
+    return (
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<AddIcon />}
+        onClick={() => setImportingAsset(true)}
+        fullWidth
+      >
+        Import Media
+      </Button>
+    );
   };
 
-  /* Convert seconds to minute:seconds */
-  const toTime = (seconds: number) => {
-    let minutes = Math.floor(seconds / 60);
-    let extraSeconds = seconds % 60;
-    let strMinutes = minutes < 10 ? "0" + minutes : minutes;
-    let strSeconds = extraSeconds < 10 ? "0" + extraSeconds : extraSeconds;
-    return `${strMinutes}:${strSeconds}`;
-  };
+  const renderTimestamp = (asset: Asset) => {
+    /* Convert seconds to minute:seconds */
+    const toTime = (seconds: number) => {
+      let minutes = Math.floor(seconds / 60);
+      let extraSeconds = seconds % 60;
+      let strMinutes = minutes < 10 ? "0" + minutes : minutes;
+      let strSeconds = extraSeconds < 10 ? "0" + extraSeconds : extraSeconds;
+      return `${strMinutes}:${strSeconds}`;
+    };
 
-  const renderTimestamp = (asset: any) => {
     return (
       <ImageListItemBar
         sx={{
@@ -98,7 +86,21 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ clips, setClips }) => {
     );
   };
 
-  const renderImg = (asset: any) => {
+  const renderTitle = (asset: Asset) => {
+    return (
+      <ImageListItemBar
+        title={asset ? asset.name : "examplename.mp4"}
+        position="below"
+        actionIcon={
+          <IconButton color="info" onClick={() => handleAppendClip(asset)}>
+            <AddIcon />
+          </IconButton>
+        }
+      />
+    );
+  };
+
+  const renderThumbnail = (asset: Asset) => {
     return (
       <img
         src={
@@ -112,33 +114,15 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ clips, setClips }) => {
     );
   };
 
-  const renderImageTitle = (asset: any) => {
-    return (
-      <ImageListItemBar
-        title={asset ? asset.name : "examplename.mp4"}
-        position="below"
-        actionIcon={
-          <IconButton
-            color="info"
-            onClick={() => setClips(clips.append(new Clip(asset)))}
-          >
-            <AddIcon />
-          </IconButton>
-        }
-      />
-    );
-  };
-
-  /* Describe how to render all assets. */
   const renderAssets = () => {
-    if (isLoading) {
+    if (loading) {
       return <CircularProgress />;
     }
-    return assets.map((asset: any, i: number) => (
+    return assets.map((asset: Asset, i: number) => (
       <ImageListItem key={i} sx={{ width: imageWidth }}>
         {renderTimestamp(asset)}
-        {renderImg(asset)}
-        {renderImageTitle(asset)}
+        {renderThumbnail(asset)}
+        {renderTitle(asset)}
       </ImageListItem>
     ));
   };
@@ -146,22 +130,17 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ clips, setClips }) => {
   return (
     <Box minWidth={MEDIA_LIBRARY_WIDTH} maxWidth={MEDIA_LIBRARY_WIDTH}>
       <Container disableGutters sx={{ padding: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => setImportingAsset(true)}
-          fullWidth
-        >
-          Import Media
-        </Button>
+        <ImportMediaButton />
         <ImageList cols={MEDIA_LIBRARY_COLS}>{renderAssets()}</ImageList>
       </Container>
       <NewAssetDialog
         activeProject={projectID!}
         open={importingAsset}
         closeHandler={() => setImportingAsset(false)}
-        onAssetCreated={onAssetImport}
+        onAssetCreated={() => {
+          setImportingAsset(false);
+          fetchAssets();
+        }}
       />
     </Box>
   );

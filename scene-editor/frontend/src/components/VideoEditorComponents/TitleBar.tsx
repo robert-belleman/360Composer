@@ -1,33 +1,39 @@
-/*
-Filename: TitleBar.tsx
-Description:
-This file describes title bar component of the video editor.
-In the title bar there is a 'back' and 'export' button. There
-also is a text field where the user can change the title of
-the video that they are editing.
+/**
+ * TitleBar.tsx
+ *
+ * Description:
+ * This module describes the TitleBar Component of the VideoEditor.
+ *
+ * The TitleBar contains the following Components:
+ *   - BackButton. A Button that redirects the user to the projects page.
+ *   - TitleTextField. A TextField where the user can change the title.
+ *   - ExportButton. A Button that exports the video edit.
+ *
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { AppBar, Button, TextField, Toolbar } from "@mui/material";
 
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
 
-type TitleBarProps = {
-  title: string;
-  setTitle: React.Dispatch<React.SetStateAction<string>>;
-};
+import { EXPORT_CLIPS, useClips } from "./ClipsContext";
 
-const TitleBar: React.FC<TitleBarProps> = ({ title, setTitle }) => {
-  console.log("Title Bar Rendered");
+const TitleBar: React.FC = () => {
+  const { dispatch } = useClips();
+
+  const [title, setTitle] = useState("Untitled Video");
 
   const { projectID } = useParams();
 
   const navigate = useNavigate();
 
-  /* Button component to go to the previous page. */
+  const handleExportClips = (title: string) => {
+    dispatch({ type: EXPORT_CLIPS, payload: { title: title } });
+  };
+
   const BackButton = () => (
     <Button
       color="success"
@@ -39,7 +45,6 @@ const TitleBar: React.FC<TitleBarProps> = ({ title, setTitle }) => {
     </Button>
   );
 
-  /* TextField component to change the name of the video being edited. */
   const TitleTextField = () => {
     return (
       <TextField
@@ -54,13 +59,12 @@ const TitleBar: React.FC<TitleBarProps> = ({ title, setTitle }) => {
     );
   };
 
-  /* Button component to save the changes made in the editor. */
   const ExportButton = () => (
     <Button
       color="success"
       variant="contained"
       startIcon={<UpgradeIcon />}
-      onClick={() => console.log(title ? title : "Untitled Video")} // TODO: export
+      onClick={() => handleExportClips(title)}
     >
       Export
     </Button>
