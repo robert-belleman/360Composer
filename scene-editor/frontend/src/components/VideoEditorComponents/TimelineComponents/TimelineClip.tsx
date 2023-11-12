@@ -15,7 +15,7 @@ import { Box } from "@mui/material";
 
 import { TIMELINE_CLIP_HEIGHT } from "../Constants";
 
-import { Clip, useClips } from "../ClipsContext";
+import { Clip, thumbnailUrl } from "../ClipsContext";
 
 type TimelineClipProps = {
   clip: Clip;
@@ -23,8 +23,6 @@ type TimelineClipProps = {
 };
 
 const TimelineClip: React.FC<TimelineClipProps> = ({ clip, visibleLength }) => {
-  const { thumbnailUrl } = useClips();
-
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
   const handleClick = (clip: Clip) => {

@@ -39,7 +39,6 @@ const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
     const start = Math.max(startTime, lower);
     const end = Math.min(endTime, upper);
     length = end - start;
-    console.log(lower, upper, start, end, length);
     return length;
   };
 

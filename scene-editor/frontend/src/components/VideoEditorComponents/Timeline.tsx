@@ -43,7 +43,11 @@ import { TIMELINE_HEIGHT } from "./Constants";
 import {
   DELETE_CLIPS,
   DUPLICATE_CLIPS,
+  REDO,
   SPLIT_CLIP,
+  UNDO,
+  canRedo,
+  canUndo,
   useClips,
 } from "./ClipsContext";
 
@@ -88,6 +92,14 @@ const Timeline: React.FC = () => {
       };
     }
   }, [isPlaying, currentTime, totalTime]);
+
+  const handleUndo = () => {
+    dispatch({ type: UNDO });
+  };
+
+  const handleRedo = () => {
+    dispatch({ type: REDO });
+  };
 
   const handleSplitClip = (time: number) => {
     dispatch({ type: SPLIT_CLIP, payload: { time: time } });
@@ -145,7 +157,7 @@ const Timeline: React.FC = () => {
 
   const UndoButton = () => {
     return (
-      <IconButton>
+      <IconButton disabled={!canUndo(state)} onClick={handleUndo}>
         <UndoIcon />
       </IconButton>
     );
@@ -153,7 +165,7 @@ const Timeline: React.FC = () => {
 
   const RedoButton = () => {
     return (
-      <IconButton>
+      <IconButton disabled={!canRedo(state)} onClick={handleRedo}>
         <RedoIcon />
       </IconButton>
     );
