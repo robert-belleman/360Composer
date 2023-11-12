@@ -29,7 +29,7 @@ import React, { ReactNode, createContext, useContext, useReducer } from "react";
 
 import defaultImage from "../../static/images/default.jpg";
 import { Asset } from "./AssetsContext";
-import { MINIMUM_CLIP_LENGTH } from "./Constants";
+import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
 
 export interface Clip {
   asset: Asset; // Reference to an asset.
@@ -111,8 +111,8 @@ const canRedo = (state: State): boolean => {
   return !!(state.future && state.future.length > 0);
 };
 
-const setState = (state: State) => {
-  const newPast = [...state.past, state];
+const setState = (state: State, maxPastStates: number = CLIP_UNDO_STATES) => {
+  const newPast = [...state.past, state].slice(-maxPastStates);
   const newFuture = [] as State[];
   return [newPast, newFuture];
 };

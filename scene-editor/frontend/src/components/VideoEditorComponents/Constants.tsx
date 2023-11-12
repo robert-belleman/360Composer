@@ -12,6 +12,7 @@
  * - MEDIA_LIBRARY_COLS: The number of columns in the media library grid layout.
  * - TIMELINE_CLIP_HEIGHT: The height of individual video clips in the timeline.
  * - MINIMUM_CLIP_LENGTH: The minimum duration (in seconds) allowed for a video clip.
+ * - MAX_UNDO_STATES: The number of states to store for using undo() and redo().
  *
  */
 
@@ -20,3 +21,4 @@ export const MEDIA_LIBRARY_WIDTH = 320;
 export const MEDIA_LIBRARY_COLS = 2;
 export const TIMELINE_CLIP_HEIGHT = 64;
 export const MINIMUM_CLIP_LENGTH = 1;
+export const CLIP_UNDO_STATES = 10;
