@@ -39,8 +39,8 @@ export interface Asset {
 
 interface AssetsContextProps {
   assets: Asset[];
-  createClip: (asset: Asset) => Clip;
   loading: boolean;
+  createClip: (asset: Asset) => Clip;
   fetchAssets: () => Promise<void>;
 }
 
@@ -84,8 +84,8 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
 
   const contextValue: AssetsContextProps = {
     assets,
-    createClip,
     loading,
+    createClip,
     fetchAssets,
   };
 

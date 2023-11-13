@@ -22,7 +22,7 @@ type TimelineLayerProps = {
 };
 
 const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
-  const { state } = useClips();
+  const { clips } = useClips();
 
   const [lower, upper, zoom] = bounds;
 
@@ -43,22 +43,22 @@ const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
   };
 
   const visibleClips = () => {
-    let clips = [];
+    let visibleClips = [];
 
     let elapsedTime = 0;
-    for (let i = 0; i < state.clips.length; i++) {
-      let length = visibleLength(state.clips[i], elapsedTime);
-      clips.push(
+    for (let i = 0; i < clips.data.length; i++) {
+      let length = visibleLength(clips.data[i], elapsedTime);
+      visibleClips.push(
         <TimelineClip
           key={i}
-          clip={state.clips[i]}
-          visibleLength={zoom === 0 ? state.clips[i].duration : length}
+          clip={clips.data[i]}
+          visibleLength={zoom === 0 ? clips.data[i].duration : length}
         />
       );
-      elapsedTime += state.clips[i].duration;
+      elapsedTime += clips.data[i].duration;
     }
 
-    return clips;
+    return visibleClips;
   };
 
   return (

@@ -39,7 +39,7 @@ export interface Clip {
 }
 
 interface State {
-  clips: Clip[];
+  data: Clip[];
   past: State[];
   future: State[];
 }
@@ -66,13 +66,13 @@ type Action =
   | { type: typeof REDO };
 
 interface ContextType {
-  state: State;
+  clips: State;
   dispatch: React.Dispatch<Action>;
 }
 
 const ClipContext = createContext<ContextType | undefined>(undefined);
 
-const initialState: State = { clips: [], past: [], future: [] };
+const initialState: State = { data: [], past: [], future: [] };
 
 /**
  * Find the thumbnail URL of a Clip `clip`.
@@ -93,12 +93,12 @@ const thumbnailUrl = (clip: Clip) => {
  */
 const seekIndex = (state: State, time: number) => {
   let elapsedTime = 0;
-  for (let i = 0; i < state.clips.length; i++) {
-    if (time < elapsedTime + state.clips[i].duration) {
+  for (let i = 0; i < state.data.length; i++) {
+    if (time < elapsedTime + state.data[i].duration) {
       return [i, elapsedTime];
     }
 
-    elapsedTime += state.clips[i].duration;
+    elapsedTime += state.data[i].duration;
   }
   return [null, null];
 };
@@ -123,7 +123,7 @@ const reducer = (state: State, action: Action): State => {
       const [newPast, newFuture] = setState(state);
       const newState = {
         ...state,
-        clips: [...state.clips, action.payload.clip],
+        data: [...state.data, action.payload.clip],
       };
       return { ...newState, past: newPast, future: newFuture };
     }
@@ -133,7 +133,7 @@ const reducer = (state: State, action: Action): State => {
       const { index } = action.payload;
       const newState = {
         ...state,
-        clips: [...state.clips.filter((_, i) => i !== index)],
+        data: [...state.data.filter((_, i) => i !== index)],
       };
       return { ...newState, past: newPast, future: newFuture };
     }
@@ -141,11 +141,11 @@ const reducer = (state: State, action: Action): State => {
     case INSERT_CLIP: {
       const [newPast, newFuture] = setState(state);
       const { index, clip } = action.payload;
-      const clipsBefore = state.clips.slice(0, index);
-      const clipsAfter = state.clips.slice(index);
+      const clipsBefore = state.data.slice(0, index);
+      const clipsAfter = state.data.slice(index);
       const newState = {
         ...state,
-        clips: [...clipsBefore, clip, ...clipsAfter],
+        data: [...clipsBefore, clip, ...clipsAfter],
       };
       return { ...newState, past: newPast, future: newFuture };
     }
@@ -161,12 +161,12 @@ const reducer = (state: State, action: Action): State => {
       }
 
       /* Get the clips before and after the clip at index `index`.  */
-      const clipsBefore = state.clips.slice(0, index);
-      const clipsAfter = state.clips.slice(index + 1);
+      const clipsBefore = state.data.slice(0, index);
+      const clipsAfter = state.data.slice(index + 1);
 
       /* Initialize variables to split the clip at index `index` into.  */
-      let clipA = state.clips[index];
-      let clipB = { ...state.clips[index] };
+      let clipA = state.data[index];
+      let clipB = { ...state.data[index] };
 
       /* If the clip is too short, then do not update state. */
       const secondsIntoClip = time - elapsedTime!;
@@ -182,7 +182,7 @@ const reducer = (state: State, action: Action): State => {
       /* Insert the `clipA` and `clipB` and update the start times. */
       const newState = {
         ...state,
-        clips: [...clipsBefore, clipA, clipB, ...clipsAfter],
+        data: [...clipsBefore, clipA, clipB, ...clipsAfter],
       };
       return { ...newState, past: newPast, future: newFuture };
     }
@@ -192,9 +192,9 @@ const reducer = (state: State, action: Action): State => {
       const { indices } = action.payload || {};
       const newState = {
         ...state,
-        clips: indices
-          ? state.clips.filter((_, index) => !indices.includes(index))
-          : state.clips.filter((clip) => !clip.selected),
+        data: indices
+          ? state.data.filter((_, index) => !indices.includes(index))
+          : state.data.filter((clip) => !clip.selected),
       };
       return { ...newState, past: newPast, future: newFuture };
     }
@@ -203,11 +203,11 @@ const reducer = (state: State, action: Action): State => {
       const [newPast, newFuture] = setState(state);
       const { indices } = action.payload || {};
       const clipsToUpdate = indices
-        ? state.clips.filter((_, index) => indices.includes(index))
-        : state.clips.filter((clip) => clip.selected);
+        ? state.data.filter((_, index) => indices.includes(index))
+        : state.data.filter((clip) => clip.selected);
       const newState = {
         ...state,
-        clips: state.clips
+        data: state.data
           .map((clip) => ({ ...clip, selected: false }))
           .concat(clipsToUpdate),
       };
@@ -249,7 +249,7 @@ const ClipsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
-    <ClipContext.Provider value={{ state, dispatch }}>
+    <ClipContext.Provider value={{ clips: state, dispatch }}>
       {children}
     </ClipContext.Provider>
   );
