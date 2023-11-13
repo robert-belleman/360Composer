@@ -44,8 +44,8 @@ import { ClipsProvider } from "../../components/VideoEditorComponents/ClipsConte
 
 const VideoEditor: React.FC = () => {
   return (
-    <ClipsProvider>
-      <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex" }}>
+      <ClipsProvider>
         <AssetsProvider>
           <MediaLibrary />
         </AssetsProvider>
@@ -61,8 +61,8 @@ const VideoEditor: React.FC = () => {
           <VideoPreview />
           <Timeline />
         </Box>
-      </Box>
-    </ClipsProvider>
+      </ClipsProvider>
+    </Box>
   );
 };
 

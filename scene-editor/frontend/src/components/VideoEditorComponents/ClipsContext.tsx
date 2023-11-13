@@ -2,20 +2,20 @@
  * ClipsContext.tsx
  *
  * Description:
- * This file defines a React context and a corresponding reducer for managing
- * video clips in a timeline. The context, ClipContext, encapsulates the state
- * of video clips and provides a dispatch function for handling different
- * actions, such as appending, removing, inserting, splitting, deleting,
- * duplicating, and exporting clips. The state includes information about
- * each clip, such as its asset details, start time, duration.
+ * This file defines a React Context and a corresponding reducer for managing
+ * clips in a timeline. The context, ClipsContext, encapsulates the state of
+ * clips and provides a dispatch function for handling different actions,
+ * such as appending, removing, inserting, splitting, deleting, duplicating,
+ * and exporting clips. The state includes information about each clip, such
+ * as its asset details, start time, duration.
  *
  * Contents:
  * - Asset: Interface defining the structure of video assets.
- * - Clip: Interface defining the structure of video clips.
+ * - Clip: Interface defining the structure of clips.
  * - State: Interface defining the state structure, including an array of clips.
  * - Action: Type defining the possible actions that can be dispatched to modify the state.
  * - ContextType: Interface defining the shape of the context values.
- * - ClipContext: React context for the application state and dispatch function.
+ * - ClipsContext: React Context for the application state and dispatch function.
  * - initialState: The initial state of the application, containing an empty array of clips.
  * - thumbnailUrl: Function to find the thumbnail URL of a clip.
  * - seekIndex: Function to seek the index of a clip that intersects with a given time.
@@ -25,7 +25,12 @@
  *
  */
 
-import React, { ReactNode, createContext, useContext, useReducer } from "react";
+import React, {
+  ReactNode,
+  createContext,
+  useContext,
+  useReducer
+} from "react";
 
 import defaultImage from "../../static/images/default.jpg";
 import { Asset } from "./AssetsContext";
@@ -44,6 +49,7 @@ interface State {
   future: State[];
 }
 
+/* The state of Clips can be altered using these action types. */
 export const APPEND_CLIP = "APPEND_CLIP";
 export const REMOVE_CLIP = "REMOVE_CLIP";
 export const INSERT_CLIP = "INSERT_CLIP";
@@ -65,12 +71,12 @@ type Action =
   | { type: typeof UNDO }
   | { type: typeof REDO };
 
-interface ContextType {
+interface ClipsContextProps {
   clips: State;
   dispatch: React.Dispatch<Action>;
 }
 
-const ClipContext = createContext<ContextType | undefined>(undefined);
+const ClipsContext = createContext<ClipsContextProps | undefined>(undefined);
 
 const initialState: State = { data: [], past: [], future: [] };
 
@@ -103,14 +109,32 @@ const seekIndex = (state: State, time: number) => {
   return [null, null];
 };
 
+/**
+ * Check if the state can be undone.
+ * Used for disabling buttons in certain situations.
+ * @param state
+ * @returns boolean
+ */
 const canUndo = (state: State): boolean => {
   return !!(state.past && state.past.length > 0);
 };
 
+/**
+ * Check if the state can be redone.
+ * Used for disabling buttons in certain situations.
+ * @param state
+ * @returns boolean
+ */
 const canRedo = (state: State): boolean => {
   return !!(state.future && state.future.length > 0);
 };
 
+/**
+ * Record the current state in the history.
+ * @param state the current state to record.
+ * @param maxPastStates number of states to store at most.
+ * @returns the new states of the past and future.
+ */
 const setState = (state: State, maxPastStates: number = CLIP_UNDO_STATES) => {
   const newPast = [...state.past, state].slice(-maxPastStates);
   const newFuture = [] as State[];
@@ -246,17 +270,22 @@ const reducer = (state: State, action: Action): State => {
 };
 
 const ClipsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [clips, dispatch] = useReducer(reducer, initialState);
+
+  const contextValue: ClipsContextProps = {
+    clips,
+    dispatch,
+  };
 
   return (
-    <ClipContext.Provider value={{ clips: state, dispatch }}>
+    <ClipsContext.Provider value={contextValue}>
       {children}
-    </ClipContext.Provider>
+    </ClipsContext.Provider>
   );
 };
 
-const useClips = (): ContextType => {
-  const context = useContext(ClipContext);
+const useClips = (): ClipsContextProps => {
+  const context = useContext(ClipsContext);
   if (!context) {
     throw new Error("useClips must be used within a ClipsProvider");
   }
