@@ -32,19 +32,26 @@ const TimelineClip: React.FC<TimelineClipProps> = ({ clip, visibleLength }) => {
 
   return (
     <Box
-      onClick={() => handleClick(clip)}
-      sx={{
-        background: `url(${thumbnailUrl(clip)})`,
-        backgroundRepeat: "repeat",
-        backgroundSize: "contain",
-        height: TIMELINE_CLIP_HEIGHT,
-        flexGrow: visibleLength,
-        border: 8,
-        borderRadius: 4,
-        boxSizing: "border-box",
-        borderColor: clip.selected ? "BlueViolet" : "transparent",
-      }}
-    ></Box>
+      boxSizing={"border-box"}
+      height={TIMELINE_CLIP_HEIGHT}
+      flexGrow={visibleLength}
+      flexBasis={0}
+    >
+      <Box
+        width={1}
+        height={1}
+        boxSizing={"border-box"}
+        onClick={() => handleClick(clip)}
+        sx={{
+          background: `url(${thumbnailUrl(clip)})`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "contain",
+          border: 4,
+          borderRadius: 2,
+          borderColor: clip.selected ? "LightGreen" : "transparent",
+        }}
+      ></Box>
+    </Box>
   );
 };
 

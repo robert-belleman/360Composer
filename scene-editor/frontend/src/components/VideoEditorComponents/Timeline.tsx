@@ -78,7 +78,7 @@ const Timeline: React.FC = () => {
   /* Count up until end of video. */
   useEffect(() => {
     if (totalTime < currentTime) {
-      setCurrentTime(totalTime);
+      setCurrentTime(0);
     }
 
     if (isPlaying && currentTime < totalTime) {
@@ -111,6 +111,21 @@ const Timeline: React.FC = () => {
 
   const handleDuplicateClips = () => {
     dispatch({ type: DUPLICATE_CLIPS });
+  };
+
+  const handleTimeChange = (event: Event, time: number | number[]) => {
+    if (typeof time === "number") {
+      setCurrentTime(time);
+      updateCameraBounds(0, 0);
+    }
+  };
+
+  const toTime = (seconds: number) => {
+    let minutes = Math.floor(seconds / 60);
+    let extraSeconds = seconds % 60;
+    let strMinutes = minutes < 10 ? "0" + minutes : minutes;
+    let strSeconds = extraSeconds < 10 ? "0" + extraSeconds : extraSeconds;
+    return `${strMinutes}:${strSeconds}`;
   };
 
   /**
@@ -321,35 +336,6 @@ const Timeline: React.FC = () => {
       );
     };
 
-    const TimeSlider = () => {
-      /* Change current time `currentTime` to slider value. */
-      const handleChange = (event: Event, time: number | number[]) => {
-        if (typeof time === "number") {
-          setCurrentTime(time);
-          updateCameraBounds(0, 0);
-        }
-      };
-
-      return (
-        <Slider
-          max={totalTime}
-          value={currentTime}
-          onChange={handleChange}
-          sx={{
-            "& .MuiSlider-thumb": {
-              color: "red",
-            },
-            "& .MuiSlider-track": {
-              color: "red",
-            },
-            "& .MuiSlider-rail": {
-              color: "white",
-            },
-          }}
-        />
-      );
-    };
-
     return (
       <AppBar position="static">
         <Toolbar variant="dense">
@@ -368,9 +354,6 @@ const Timeline: React.FC = () => {
           <ZoomInButton />
           <ZoomFitButton />
         </Toolbar>
-        <Box overflow="hidden">
-          <TimeSlider />
-        </Box>
       </AppBar>
     );
   };
@@ -379,17 +362,24 @@ const Timeline: React.FC = () => {
     <Paper
       sx={{ height: TIMELINE_HEIGHT, display: "flex", flexFlow: "column" }}
     >
-      <Box width={1} sx={{ display: "content" }}>
+      <Box>
         <TimelineBar />
+        <Box overflow={"hidden"}>
+          <Slider
+            max={totalTime}
+            value={currentTime}
+            onChange={handleTimeChange}
+            valueLabelFormat={(currentTime) => toTime(currentTime)}
+            valueLabelDisplay="auto"
+          />
+        </Box>
       </Box>
       <Box
-        sx={{
-          height: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          backgroundColor: "#6a9cff",
-        }}
+        height={1}
+        display={"flex"}
+        flexDirection={"column"}
+        justifyContent={"center"}
+        sx={{ backgroundColor: "#6a9cff" }}
       >
         <TimelineArea bounds={windowInfo()} />
       </Box>

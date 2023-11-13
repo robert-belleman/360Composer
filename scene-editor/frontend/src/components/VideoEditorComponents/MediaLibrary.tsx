@@ -28,7 +28,11 @@ import {
 import NewAssetDialog from "../ProjectComponents/AssetViewComponents/NewAssetDialog";
 
 import defaultImage from "../../static/images/default.jpg";
-import { MEDIA_LIBRARY_COLS, MEDIA_LIBRARY_WIDTH } from "./Constants";
+import {
+  MEDIA_LIBRARY_COLS,
+  MEDIA_LIBRARY_IMAGE_WIDTH,
+  MEDIA_LIBRARY_WIDTH,
+} from "./Constants";
 
 import { Asset, AssetsContext } from "./AssetsContext";
 import { APPEND_CLIP, useClips } from "./ClipsContext";
@@ -41,8 +45,6 @@ const MediaLibrary: React.FC = () => {
   const [importingAsset, setImportingAsset] = useState(false);
 
   const { projectID } = useParams();
-
-  const imageWidth = Math.floor(MEDIA_LIBRARY_WIDTH / 2 - 19);
 
   const handleAppendClip = (asset: Asset) => {
     const newClip = createClip(asset);
@@ -119,7 +121,7 @@ const MediaLibrary: React.FC = () => {
       return <CircularProgress />;
     }
     return assets.map((asset: Asset, i: number) => (
-      <ImageListItem key={i} sx={{ width: imageWidth }}>
+      <ImageListItem key={i} sx={{ width: MEDIA_LIBRARY_IMAGE_WIDTH }}>
         {renderTimestamp(asset)}
         {renderThumbnail(asset)}
         {renderTitle(asset)}
@@ -128,8 +130,8 @@ const MediaLibrary: React.FC = () => {
   };
 
   return (
-    <Box minWidth={MEDIA_LIBRARY_WIDTH} maxWidth={MEDIA_LIBRARY_WIDTH}>
-      <Container disableGutters sx={{ padding: 2 }}>
+    <Box width={MEDIA_LIBRARY_WIDTH} padding={1}>
+      <Container disableGutters>
         <ImportMediaButton />
         <ImageList cols={MEDIA_LIBRARY_COLS}>{renderAssets()}</ImageList>
       </Container>
