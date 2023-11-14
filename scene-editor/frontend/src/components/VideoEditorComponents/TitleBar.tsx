@@ -19,10 +19,10 @@ import { AppBar, Button, TextField, Toolbar } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
 
-import { EXPORT_CLIPS, useClips } from "./ClipsContext";
+import { EXPORT_CLIPS, useClipsContext } from "./ClipsContext";
 
 const TitleBar: React.FC = () => {
-  const { dispatch } = useClips();
+  const { dispatch } = useClipsContext();
 
   const [title, setTitle] = useState("Untitled Video");
 

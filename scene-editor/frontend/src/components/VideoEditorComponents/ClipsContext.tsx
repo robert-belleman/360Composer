@@ -12,7 +12,7 @@
  * Contents:
  * - Asset: Interface defining the structure of video assets.
  * - Clip: Interface defining the structure of clips.
- * - State: Interface defining the state structure, including an array of clips.
+ * - ClipsState: Interface defining the state structure, including an array of clips.
  * - Action: Type defining the possible actions that can be dispatched to modify the state.
  * - ContextType: Interface defining the shape of the context values.
  * - ClipsContext: React Context for the application state and dispatch function.
@@ -25,12 +25,7 @@
  *
  */
 
-import React, {
-  ReactNode,
-  createContext,
-  useContext,
-  useReducer
-} from "react";
+import React, { ReactNode, createContext, useContext, useReducer } from "react";
 
 import defaultImage from "../../static/images/default.jpg";
 import { Asset } from "./AssetsContext";
@@ -43,10 +38,10 @@ export interface Clip {
   selected: boolean; // Indicate if the clip is selected.
 }
 
-interface State {
-  data: Clip[];
-  past: State[];
-  future: State[];
+interface ClipsState {
+  clips: Clip[];
+  past: ClipsState[];
+  future: ClipsState[];
 }
 
 /* The state of Clips can be altered using these action types. */
@@ -72,13 +67,13 @@ type Action =
   | { type: typeof REDO };
 
 interface ClipsContextProps {
-  clips: State;
+  clipsState: ClipsState;
   dispatch: React.Dispatch<Action>;
 }
 
 const ClipsContext = createContext<ClipsContextProps | undefined>(undefined);
 
-const initialState: State = { data: [], past: [], future: [] };
+const initialState: ClipsState = { clips: [], past: [], future: [] };
 
 /**
  * Find the thumbnail URL of a Clip `clip`.
@@ -93,18 +88,18 @@ const thumbnailUrl = (clip: Clip) => {
 
 /**
  * Seek the index of a Clip that intersects with time `time` in State `state`.
- * @param state state of the clips.
+ * @param clipsState state of the clips.
  * @param time time of intersection.
  * @returns [index, elapsedTime] or [null, null] when no intersection found.
  */
-const seekIndex = (state: State, time: number) => {
+const seekIndex = (clipsState: ClipsState, time: number) => {
   let elapsedTime = 0;
-  for (let i = 0; i < state.data.length; i++) {
-    if (time < elapsedTime + state.data[i].duration) {
+  for (let i = 0; i < clipsState.clips.length; i++) {
+    if (time < elapsedTime + clipsState.clips[i].duration) {
       return [i, elapsedTime];
     }
 
-    elapsedTime += state.data[i].duration;
+    elapsedTime += clipsState.clips[i].duration;
   }
   return [null, null];
 };
@@ -112,90 +107,90 @@ const seekIndex = (state: State, time: number) => {
 /**
  * Check if the state can be undone.
  * Used for disabling buttons in certain situations.
- * @param state
+ * @param clipsState
  * @returns boolean
  */
-const canUndo = (state: State): boolean => {
-  return !!(state.past && state.past.length > 0);
+const canUndo = (clipsState: ClipsState): boolean => {
+  return !!(clipsState.past && clipsState.past.length > 0);
 };
 
 /**
  * Check if the state can be redone.
  * Used for disabling buttons in certain situations.
- * @param state
+ * @param clipsState
  * @returns boolean
  */
-const canRedo = (state: State): boolean => {
-  return !!(state.future && state.future.length > 0);
+const canRedo = (clipsState: ClipsState): boolean => {
+  return !!(clipsState.future && clipsState.future.length > 0);
 };
 
 /**
  * Record the current state in the history.
- * @param state the current state to record.
+ * @param clipsState the current state to record.
  * @param maxPastStates number of states to store at most.
  * @returns the new states of the past and future.
  */
-const setState = (state: State, maxPastStates: number = CLIP_UNDO_STATES) => {
-  const newPast = [...state.past, state].slice(-maxPastStates);
-  const newFuture = [] as State[];
+const setState = (clipsState: ClipsState, maxPastStates: number = CLIP_UNDO_STATES) => {
+  const newPast = [...clipsState.past, clipsState].slice(-maxPastStates);
+  const newFuture = [] as ClipsState[];
   return [newPast, newFuture];
 };
 
-const reducer = (state: State, action: Action): State => {
+const reducer = (clipsState: ClipsState, action: Action): ClipsState => {
   switch (action.type) {
     case APPEND_CLIP: {
-      const [newPast, newFuture] = setState(state);
+      const [newPast, newFuture] = setState(clipsState);
       const newState = {
-        ...state,
-        data: [...state.data, action.payload.clip],
+        ...clipsState,
+        clips: [...clipsState.clips, action.payload.clip],
       };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case REMOVE_CLIP: {
-      const [newPast, newFuture] = setState(state);
+      const [newPast, newFuture] = setState(clipsState);
       const { index } = action.payload;
       const newState = {
-        ...state,
-        data: [...state.data.filter((_, i) => i !== index)],
+        ...clipsState,
+        clips: [...clipsState.clips.filter((_, i) => i !== index)],
       };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case INSERT_CLIP: {
-      const [newPast, newFuture] = setState(state);
+      const [newPast, newFuture] = setState(clipsState);
       const { index, clip } = action.payload;
-      const clipsBefore = state.data.slice(0, index);
-      const clipsAfter = state.data.slice(index);
+      const clipsBefore = clipsState.clips.slice(0, index);
+      const clipsAfter = clipsState.clips.slice(index);
       const newState = {
-        ...state,
-        data: [...clipsBefore, clip, ...clipsAfter],
+        ...clipsState,
+        clips: [...clipsBefore, clip, ...clipsAfter],
       };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case SPLIT_CLIP: {
-      const [newPast, newFuture] = setState(state);
+      const [newPast, newFuture] = setState(clipsState);
       const { time } = action.payload;
 
       /* Find the index of the clip that intersects with time `time`. */
-      const [index, elapsedTime] = seekIndex(state, time);
+      const [index, elapsedTime] = seekIndex(clipsState, time);
       if (index === null) {
-        return { ...state };
+        return { ...clipsState };
       }
 
       /* Get the clips before and after the clip at index `index`.  */
-      const clipsBefore = state.data.slice(0, index);
-      const clipsAfter = state.data.slice(index + 1);
+      const clipsBefore = clipsState.clips.slice(0, index);
+      const clipsAfter = clipsState.clips.slice(index + 1);
 
       /* Initialize variables to split the clip at index `index` into.  */
-      let clipA = state.data[index];
-      let clipB = { ...state.data[index] };
+      let clipA = clipsState.clips[index];
+      let clipB = { ...clipsState.clips[index] };
 
       /* If the clip is too short, then do not update state. */
       const secondsIntoClip = time - elapsedTime!;
       if (secondsIntoClip < MINIMUM_CLIP_LENGTH) {
-        return state;
+        return clipsState;
       }
 
       /* Split the clip at index `index` at time `secondsIntoClip`. */
@@ -205,33 +200,33 @@ const reducer = (state: State, action: Action): State => {
 
       /* Insert the `clipA` and `clipB` and update the start times. */
       const newState = {
-        ...state,
-        data: [...clipsBefore, clipA, clipB, ...clipsAfter],
+        ...clipsState,
+        clips: [...clipsBefore, clipA, clipB, ...clipsAfter],
       };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case DELETE_CLIPS: {
-      const [newPast, newFuture] = setState(state);
+      const [newPast, newFuture] = setState(clipsState);
       const { indices } = action.payload || {};
       const newState = {
-        ...state,
-        data: indices
-          ? state.data.filter((_, index) => !indices.includes(index))
-          : state.data.filter((clip) => !clip.selected),
+        ...clipsState,
+        clips: indices
+          ? clipsState.clips.filter((_, index) => !indices.includes(index))
+          : clipsState.clips.filter((clip) => !clip.selected),
       };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case DUPLICATE_CLIPS: {
-      const [newPast, newFuture] = setState(state);
+      const [newPast, newFuture] = setState(clipsState);
       const { indices } = action.payload || {};
       const clipsToUpdate = indices
-        ? state.data.filter((_, index) => indices.includes(index))
-        : state.data.filter((clip) => clip.selected);
+        ? clipsState.clips.filter((_, index) => indices.includes(index))
+        : clipsState.clips.filter((clip) => clip.selected);
       const newState = {
-        ...state,
-        data: state.data
+        ...clipsState,
+        clips: clipsState.clips
           .map((clip) => ({ ...clip, selected: false }))
           .concat(clipsToUpdate),
       };
@@ -239,41 +234,41 @@ const reducer = (state: State, action: Action): State => {
     }
 
     case EXPORT_CLIPS: {
-      return { ...state }; // TODO: make api call
+      return { ...clipsState }; // TODO: make api call
     }
 
     case UNDO: {
-      if (!canUndo(state)) {
-        return state;
+      if (!canUndo(clipsState)) {
+        return clipsState;
       }
 
-      const newPast = state.past.slice(0, state.past.length - 1);
-      const newState = state.past[state.past.length - 1];
-      const newFuture = [state, ...state.future];
+      const newPast = clipsState.past.slice(0, clipsState.past.length - 1);
+      const newState = clipsState.past[clipsState.past.length - 1];
+      const newFuture = [clipsState, ...clipsState.future];
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case REDO: {
-      if (!canRedo(state)) {
-        return state;
+      if (!canRedo(clipsState)) {
+        return clipsState;
       }
 
-      const newPast = [...state.past, state];
-      const newState = state.future[0];
-      const newFuture = state.future.slice(1);
+      const newPast = [...clipsState.past, clipsState];
+      const newState = clipsState.future[0];
+      const newFuture = clipsState.future.slice(1);
       return { ...newState, past: newPast, future: newFuture };
     }
 
     default:
-      return state;
+      return clipsState;
   }
 };
 
 const ClipsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [clips, dispatch] = useReducer(reducer, initialState);
+  const [clipsState, dispatch] = useReducer(reducer, initialState);
 
   const contextValue: ClipsContextProps = {
-    clips,
+    clipsState,
     dispatch,
   };
 
@@ -284,7 +279,7 @@ const ClipsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   );
 };
 
-const useClips = (): ClipsContextProps => {
+const useClipsContext = (): ClipsContextProps => {
   const context = useContext(ClipsContext);
   if (!context) {
     throw new Error("useClips must be used within a ClipsProvider");
@@ -292,4 +287,4 @@ const useClips = (): ClipsContextProps => {
   return context;
 };
 
-export { ClipsProvider, canRedo, canUndo, thumbnailUrl, useClips };
+export { ClipsProvider, canRedo, canUndo, thumbnailUrl, useClipsContext };

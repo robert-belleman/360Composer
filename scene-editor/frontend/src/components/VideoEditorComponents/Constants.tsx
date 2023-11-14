@@ -16,6 +16,7 @@
  *
  */
 
+/* UI Settings. */
 export const TIMELINE_HEIGHT = 320;
 export const MEDIA_LIBRARY_COLS = 2;
 export const MEDIA_LIBRARY_IMAGE_WIDTH = 160;
@@ -23,5 +24,7 @@ export const MEDIA_LIBRARY_WIDTH =
   MEDIA_LIBRARY_IMAGE_WIDTH * MEDIA_LIBRARY_COLS +
   MEDIA_LIBRARY_COLS * MEDIA_LIBRARY_COLS;
 export const TIMELINE_CLIP_HEIGHT = 64;
+
+/* Performance concering settings. */
 export const MINIMUM_CLIP_LENGTH = 1;
 export const CLIP_UNDO_STATES = 10;

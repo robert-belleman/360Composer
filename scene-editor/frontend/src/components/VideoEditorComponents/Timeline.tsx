@@ -48,7 +48,7 @@ import {
   UNDO,
   canRedo,
   canUndo,
-  useClips,
+  useClipsContext,
 } from "./ClipsContext";
 
 /* The fraction that should be displayed per zoom level. */
@@ -57,7 +57,7 @@ const ZOOM_FRACTIONS_PER_LEVEL = [1, 0.8, 0.6, 0.4, 0.2];
 const CAMERA_WINDOW_TICKS = 0.1;
 
 const Timeline: React.FC = () => {
-  const { clips, dispatch } = useClips();
+  const { clipsState, dispatch } = useClipsContext();
   /* Boolean that describes if the video is playing. */
   const [isPlaying, setIsPlaying] = useState(false);
   /* The current time in the video edit. */
@@ -72,8 +72,8 @@ const Timeline: React.FC = () => {
 
   /* Compute the total time of all clips when it changes. */
   useEffect(() => {
-    setTotalTime(clips.data.reduce((acc, clip) => acc + clip.duration, 0));
-  }, [clips.data]);
+    setTotalTime(clipsState.clips.reduce((acc, clip) => acc + clip.duration, 0));
+  }, [clipsState.clips]);
 
   /* Count up until end of video. */
   useEffect(() => {
@@ -172,7 +172,7 @@ const Timeline: React.FC = () => {
 
   const UndoButton = () => {
     return (
-      <IconButton disabled={!canUndo(clips)} onClick={handleUndo}>
+      <IconButton disabled={!canUndo(clipsState)} onClick={handleUndo}>
         <UndoIcon />
       </IconButton>
     );
@@ -180,7 +180,7 @@ const Timeline: React.FC = () => {
 
   const RedoButton = () => {
     return (
-      <IconButton disabled={!canRedo(clips)} onClick={handleRedo}>
+      <IconButton disabled={!canRedo(clipsState)} onClick={handleRedo}>
         <RedoIcon />
       </IconButton>
     );
@@ -230,7 +230,7 @@ const Timeline: React.FC = () => {
 
   const MoveLeftButton = () => {
     const canMoveLeft = () => {
-      return camLowerBound > 0 && clips.data.length > 0;
+      return camLowerBound > 0 && clipsState.clips.length > 0;
     };
 
     const moveLeft = () => {
@@ -246,7 +246,7 @@ const Timeline: React.FC = () => {
 
   const MoveRightButton = () => {
     const canMoveRight = () => {
-      return camUpperBound < 1 && clips.data.length > 0;
+      return camUpperBound < 1 && clipsState.clips.length > 0;
     };
 
     const moveRight = () => {
@@ -262,7 +262,7 @@ const Timeline: React.FC = () => {
 
   const ZoomOutButton = () => {
     const canZoomOut = () => {
-      return zoomLevel > 0 && clips.data.length > 0;
+      return zoomLevel > 0 && clipsState.clips.length > 0;
     };
 
     const zoomOut = () => {
@@ -282,8 +282,7 @@ const Timeline: React.FC = () => {
   const ZoomInButton = () => {
     const canZoomIn = () => {
       return (
-        zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 &&
-        clips.data.length > 0
+        zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 && clipsState.clips.length > 0
       );
     };
 

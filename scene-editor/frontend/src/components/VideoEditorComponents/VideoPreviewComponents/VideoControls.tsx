@@ -7,13 +7,9 @@
  * IconButton and icons to provide a user interface for controlling video
  * playback.
  *
- * Props:
- *   - videoRef : React.RefObject<HTMLVideoElement>
- *     - Reference to the video element for control.
- *
  */
 
-import React, { useCallback, useState } from "react";
+import React from "react";
 
 import { Box, IconButton } from "@mui/material";
 
@@ -21,50 +17,17 @@ import Forward5Icon from "@mui/icons-material/Forward5";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import Replay5Icon from "@mui/icons-material/Replay5";
+import { useVideoContext } from "../VideoContext";
 
-interface VideoControlsProps {
-  videoRef: React.RefObject<HTMLVideoElement>;
-}
-
-const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
-  const [isPlaying, setIsPlaying] = useState(true);
-
-  const handlePlayPause = useCallback(() => {
-    const { current: videoElement } = videoRef;
-    if (videoElement) {
-      if (isPlaying) {
-        videoElement.pause();
-      } else {
-        videoElement.play().catch((error) => {
-          console.error("Error playing video:", error);
-        });
-      }
-
-      setIsPlaying(!isPlaying);
-    }
-  }, [videoRef, isPlaying]);
-
-  // TODO: handle < 0.
-  const handleRewind5 = useCallback(() => {
-    const { current: videoElement } = videoRef;
-    if (videoElement) {
-      videoElement.currentTime -= 5;
-    }
-  }, [videoRef]);
-
-  // TODO: handle exceed video time.
-  const handleForward5 = useCallback(() => {
-    const { current: videoElement } = videoRef;
-    if (videoElement) {
-      videoElement.currentTime += 5;
-    }
-  }, [videoRef]);
+const VideoControls: React.FC = () => {
+  const { isPlaying, togglePlaybackState, adjustCurrentClipTimeByDelta } =
+    useVideoContext();
 
   const RewindIconButton = React.memo(() => {
     return (
       <IconButton
         id="rewindButton"
-        onClick={handleRewind5}
+        onClick={() => adjustCurrentClipTimeByDelta(-5)}
         color="primary"
         size="large"
         aria-label="Rewind 5 seconds"
@@ -78,7 +41,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
     return (
       <IconButton
         id="playPauseButton"
-        onClick={handlePlayPause}
+        onClick={togglePlaybackState}
         color="primary"
         size="large"
         aria-label={isPlaying ? "Pause" : "Play"}
@@ -92,7 +55,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
     return (
       <IconButton
         id="forwardButton"
-        onClick={handleForward5}
+        onClick={() => adjustCurrentClipTimeByDelta(5)}
         color="primary"
         size="large"
         aria-label="Forward 5 seconds"

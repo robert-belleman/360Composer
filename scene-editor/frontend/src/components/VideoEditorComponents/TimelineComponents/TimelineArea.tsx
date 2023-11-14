@@ -14,7 +14,7 @@ import React from "react";
 
 import { Box } from "@mui/material";
 
-import { Clip, useClips } from "../ClipsContext";
+import { Clip, useClipsContext } from "../ClipsContext";
 import TimelineClip from "./TimelineClip";
 
 type TimelineLayerProps = {
@@ -22,7 +22,7 @@ type TimelineLayerProps = {
 };
 
 const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
-  const { clips } = useClips();
+  const { clipsState } = useClipsContext();
 
   const [lower, upper, zoom] = bounds;
 
@@ -46,16 +46,16 @@ const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
     let visibleClips = [];
 
     let elapsedTime = 0;
-    for (let i = 0; i < clips.data.length; i++) {
-      let length = visibleLength(clips.data[i], elapsedTime);
+    for (let i = 0; i < clipsState.clips.length; i++) {
+      let length = visibleLength(clipsState.clips[i], elapsedTime);
       visibleClips.push(
         <TimelineClip
           key={i}
-          clip={clips.data[i]}
-          visibleLength={zoom === 0 ? clips.data[i].duration : length}
+          clip={clipsState.clips[i]}
+          visibleLength={zoom === 0 ? clipsState.clips[i].duration : length}
         />
       );
-      elapsedTime += clips.data[i].duration;
+      elapsedTime += clipsState.clips[i].duration;
     }
 
     return visibleClips;

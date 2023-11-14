@@ -10,25 +10,27 @@
  * In the files related to the video editor will use the following terms:
  *   - Asset, an asset stored in the file system.
  *   - Clip, an asset with a start time and a duration.
- *   - Video edit, an ordered list of clips that may have parts cut off.
+ *   - Video, the current Clip played on the VideoPreview Component.
+ *   - Video edit, an array of Clips that are played in order.
  *
  * The Video Editor has four main Components:
  *   - Title Bar
- *     - A Component where the user can change the title of their video edit.
- *     - Includes a button that allows the user to export their video edit.
+ *     - Change the title of the video edit.
+ *     - Export the video edit.
  *   - Media Library
- *     - A library showing all assets belonging to the user.
- *     - A Component where the user can convert assets to clips.
+ *     - Show assets in this project of the user.
+ *     - Add assets as clips to the timeline.
  *   - Timeline
- *     - A place where the user can edit their clips.
+ *     - Edit clips by cutting, trimming, etc.
  *     - Provides an overview of the ordering of all clips.
- *   - Video Player
- *     - A place where the current video edit is displayed.
+ *   - Video Preview
+ *     - Preview the current video edit.
  *
  * There are multiple custom Context modules used in this VideoEditor
  * Component. The Context modules are for:
  *   - Assets. Handles actions such as fetching or the conversion to clips.
  *   - Clips. Handles actions that manipulate a clip or the ordering of them.
+ *   - Video. Handles actions that concern the current clip played.
  *
  */
 
@@ -41,6 +43,7 @@ import VideoPreview from "../../components/VideoEditorComponents/VideoPreview";
 
 import { AssetsProvider } from "../../components/VideoEditorComponents/AssetsContext";
 import { ClipsProvider } from "../../components/VideoEditorComponents/ClipsContext";
+import { VideoProvider } from "../../components/VideoEditorComponents/VideoContext";
 
 const VideoEditor: React.FC = () => {
   return (
@@ -58,8 +61,10 @@ const VideoEditor: React.FC = () => {
           }}
         >
           <TitleBar />
-          <VideoPreview />
-          <Timeline />
+          <VideoProvider>
+            <VideoPreview />
+            <Timeline />
+          </VideoProvider>
         </Box>
       </ClipsProvider>
     </Box>
