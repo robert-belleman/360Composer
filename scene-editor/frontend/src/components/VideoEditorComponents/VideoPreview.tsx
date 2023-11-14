@@ -21,15 +21,12 @@ import VideoControls from "./VideoPreviewComponents/VideoControls";
 import { useVideoContext } from "./VideoContext";
 
 const VideoPreview: React.FC = () => {
-  const { videoRef, currentClip } = useVideoContext();
-
-  /* Check if there is a clip to preview. */
-  const clipAvailable = currentClip !== null;
+  const { videoRef, isValidClipIndex } = useVideoContext();
 
   return (
     <Stack flexGrow={1} sx={{ backgroundColor: "slategray" }}>
       <Box flexGrow={1} border={2} borderColor="lightgreen">
-        {clipAvailable && (
+        {isValidClipIndex() && (
           <Scene embedded width="100%" height="100%">
             <Assets>
               <video

@@ -28,15 +28,15 @@ import React, {
 
 import Hls from "hls.js";
 import { HlsContext } from "../../App";
-import { Asset } from "./AssetsContext";
 import { useClipsContext } from "./ClipsContext";
 
 interface VideoContextProps {
   videoRef: React.RefObject<HTMLVideoElement>;
-  currentClip: Asset | null;
-  currentClipTime: number;
   isPlaying: boolean;
   togglePlaybackState: () => void;
+  currentClipIndex: number;
+  isValidClipIndex: (index?: number) => boolean;
+  currentClipTime: number;
   adjustCurrentClipTimeByDelta: (delta: number) => void;
 }
 
@@ -45,11 +45,15 @@ const VideoContext = createContext<VideoContextProps | undefined>(undefined);
 export const VideoProvider: React.FC = ({ children }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentClip, setCurrentClip] = useState<Asset | null>(null);
+  const [currentClipIndex, setCurrentClipIndex] = useState(-1);
   const [currentClipTime, setCurrentClipTime] = useState(0);
 
   const hls = useContext<Hls | undefined>(HlsContext);
   const { clipsState } = useClipsContext();
+
+  const isValidClipIndex = (index: number = currentClipIndex) => {
+    return 0 <= index && index < clipsState.clips.length;
+  };
 
   /**
    * Stop or resume video playback of the clip in videoRef.
@@ -98,7 +102,7 @@ export const VideoProvider: React.FC = ({ children }) => {
   // Set the currentClip based on clips
   useEffect(() => {
     if (clipsState.clips.length > 0) {
-      setCurrentClip(clipsState.clips[clipsState.clips.length - 1].asset);
+      setCurrentClipIndex(currentClipIndex + 1);
     }
   }, [clipsState.clips.length]);
 
@@ -128,14 +132,14 @@ export const VideoProvider: React.FC = ({ children }) => {
     const { current: videoElem } = videoRef;
 
     /* If there is no source to load, then stop. */
-    if (!currentClip) {
+    if (!isValidClipIndex()) {
       return;
     }
 
     if (!videoElem || !hls) {
       console.error(
         "Error loading video: Video element or HLS not available. Clip: ",
-        currentClip
+        clipsState.clips[currentClipIndex]
       );
       return;
     }
@@ -149,7 +153,8 @@ export const VideoProvider: React.FC = ({ children }) => {
       }
     };
 
-    const hlsSource = `/assets/${currentClip?.path}`;
+    const currentClip = clipsState.clips[currentClipIndex];
+    const hlsSource = `/assets/${currentClip.asset.path}`;
 
     if (!hlsSource) {
       console.error(
@@ -168,16 +173,17 @@ export const VideoProvider: React.FC = ({ children }) => {
     }
 
     console.log("Loaded HLS source:", hlsSource);
-  }, [currentClip, hls]);
+  }, [currentClipIndex, hls]);
 
   return (
     <VideoContext.Provider
       value={{
         videoRef,
-        currentClip,
-        currentClipTime,
         isPlaying,
         togglePlaybackState,
+        currentClipIndex,
+        isValidClipIndex,
+        currentClipTime,
         adjustCurrentClipTimeByDelta,
       }}
     >
