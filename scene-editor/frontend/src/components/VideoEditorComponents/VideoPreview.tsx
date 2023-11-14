@@ -1,159 +1,118 @@
 /**
  * VideoPreview.tsx
- *
  * Description:
- * This module describes the VideoPreview Component of the VideoEditor.
+ * This file defines the VideoPreview component, which displays a video preview
+ * using A-Frame and MUI components.
  *
- * The VideoPreview contains the following Components:
- *   - TODO
+ * Components:
+ * - VideoPreview: The main component rendering the video preview using
+ *   A-Frame, MUI, and HLS.js. It loads and plays videos based on the
+ *   clips provided by the ClipsContext.
+ *
+ * Dependencies:
+ * - @belivvr/aframe-react: A-Frame library for building virtual reality experiences.
+ * - hls.js: JavaScript library for HTTP Live Streaming (HLS).
+ * - @mui/material: Material-UI components for the user interface.
  *
  */
 
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-import {
-  FreeCamera,
-  HemisphericLight,
-  Vector3,
-  VideoDome,
-} from "@babylonjs/core";
-import "@babylonjs/loaders";
-
-import { Box } from "@mui/material";
+import { Assets, Scene, Sky } from "@belivvr/aframe-react";
 
 import Hls from "hls.js";
 import { HlsContext } from "../../App";
 
-import SceneComponent from "../../components/VideoEditorComponents/testComponent";
+import { Box, Stack, Typography } from "@mui/material";
 
+import VideoControls from "./VideoPreviewComponents/VideoControls";
+
+import { Asset } from "./AssetsContext";
 import { useClips } from "./ClipsContext";
 
 const VideoPreview: React.FC = () => {
   const hls = useContext<Hls | undefined>(HlsContext);
-  const [video, setVideo]: any = useState(undefined);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const { clips } = useClips();
+  const [video, setVideo] = useState<Asset>();
 
   useEffect(() => {
+    // TODO: remove this and setVideo based on currentTime.
     if (clips.data.length > 0) {
       setVideo(clips.data[clips.data.length - 1].asset);
     }
   }, [clips.data.length]);
 
-  // babylon variables
-  const [babylonScene, setBabylonScene]: any = useState(undefined);
-  const [babylonCamera, setBabylonCamera]: any = useState(undefined);
-  var [videoDome, setVideoDome]: any = useState(undefined);
-
-  // loads video when we have fetched the video data
-  useEffect(() => {
-    if (video !== undefined) loadVideo();
-  }, [video]);
-
   const onVideoElemRef = useCallback(
-    (videoElem) => {
-      if (hls == undefined) {
-        console.warn("HLS not available");
+    (videoElem: HTMLVideoElement | null) => {
+      if (!videoElem || !hls) {
+        console.warn("Video element or HLS not available");
         return;
       }
 
-      if (video !== undefined) {
-        const hlsSource = `/assets/${video.path}`;
-        if (Hls.isSupported()) {
+      if (video === undefined) {
+        return;
+      }
+
+      const hlsSource = `/assets/${video.path}`;
+
+      if (Hls.isSupported()) {
+        try {
           hls.loadSource(hlsSource);
           hls.attachMedia(videoElem);
-        } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
-          videoElem.src = hlsSource;
-        } else {
-          console.error("No HLS support");
+        } catch (error) {
+          console.error("Error loading video:", error);
         }
-
-        loadVideoBabylon(videoElem);
+      } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
+        videoElem.src = hlsSource;
+      } else {
+        console.error("No HLS support");
       }
     },
-    [hls, video]
+    [video, hls]
   );
 
-  const loadVideo = () => {
-    return <video hidden ref={onVideoElemRef}></video>;
-  };
-
-  const loadVideoBabylon = (videoElem: HTMLVideoElement) => {
-    if (videoDome !== undefined) {
-      videoDome.dispose();
+  // Load and play the video when the component mounts or the video prop changes
+  useEffect(() => {
+    if (videoRef.current) {
+      onVideoElemRef(videoRef.current);
+      videoRef.current.play().catch((error) => {
+        console.error("Error playing video:", error);
+      });
     }
+  }, [onVideoElemRef, video]);
 
-    const posterURL = `/api/asset/${video.id}/thumbnail`;
-    videoDome = new VideoDome(
-      "videoDome",
-      videoElem,
-      {
-        resolution: 32,
-        clickToPlay: false,
-        autoPlay: false,
-        poster: posterURL,
-        loop: true,
-      },
-      babylonScene
-    );
-    setVideoDome(videoDome);
-
-    // make sure playback is updated
-    videoDome.videoTexture.video.ontimeupdate = (event: any) => {};
-
-    videoDome.videoTexture.video.onloadedmetadata = (event: any) => {
-      setStereoscopic(video.view_type);
-    };
-  };
-
-  const setStereoscopic = (mode: string) => {
-    switch (mode) {
-      case "ViewType.toptobottom":
-        videoDome.videomode = VideoDome.MODE_TOPBOTTOM;
-        break;
-      case "ViewType.sidetoside":
-        videoDome.videomode = VideoDome.MODE_SIDEBYSIDE;
-        break;
-      case "ViewType.mono":
-        videoDome.videomode = VideoDome.MODE_MONOSCOPIC;
-        break;
-    }
-  };
-
-  // runs whenever the seen has been set up
-  const onSceneReady = (scene: any) => {
-    // keep track of scene to use it later
-    setBabylonScene(scene);
-
-    var camera = new FreeCamera("camera1", new Vector3(0, 0, 3), scene);
-    // This targets the camera to scene origin
-    camera.setTarget(new Vector3(0, 0, 0));
-    camera.speed *= 0.2;
-    const canvas = scene.getEngine().getRenderingCanvas();
-    // This attaches the camera to the canvas
-    camera.attachControl(canvas, true);
-    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-    let light = new HemisphericLight("light", new Vector3(0, 4, 0), scene);
-    light.intensity = 1;
-
-    setBabylonCamera(camera);
-  };
-
-  // gets called everytime a frame is rendered
-  const onRender = (scene: any) => {};
+  if (video === undefined) {
+    return <Typography>no clips added</Typography>;
+  }
 
   return (
-    <Box flexGrow={1} border={2}>
-      <div id="video-player">
-        {loadVideo()}
-        <SceneComponent
-          antialias
-          onSceneReady={onSceneReady}
-          onRender={onRender}
-          id="editorCanvas"
-        ></SceneComponent>
-      </div>
-    </Box>
+    <Stack flexGrow={1} sx={{ backgroundColor: "slategray" }}>
+      <Box flexGrow={1} border={2} borderColor="lightgreen">
+        <Scene embedded width="100%" height="100%">
+          <Assets>
+            <video
+              id="360Video"
+              ref={videoRef}
+              autoPlay
+              loop
+              crossOrigin="anonymous"
+            />
+          </Assets>
+
+          <Sky src="#360Video" />
+        </Scene>
+      </Box>
+
+      <VideoControls videoRef={videoRef} />
+    </Stack>
   );
 };
 

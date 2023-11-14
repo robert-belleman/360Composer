@@ -379,7 +379,7 @@ const Timeline: React.FC = () => {
         display={"flex"}
         flexDirection={"column"}
         justifyContent={"center"}
-        sx={{ backgroundColor: "#6a9cff" }}
+        sx={{ backgroundColor: "cornflowerblue" }}
       >
         <TimelineArea bounds={windowInfo()} />
       </Box>
