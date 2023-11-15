@@ -241,7 +241,7 @@ const reducer = (state: State, action: Action): State => {
     case DELETE_CLIPS: {
       const [newPast, newFuture] = setState(state);
       const durationLost = state.clips.deleteNodes(isSelected, getElapsedTime);
-      const newDuration = state.totalDuration + durationLost;
+      const newDuration = state.totalDuration - durationLost;
       const newState = { ...state, clips: state.clips };
       return {
         ...newState,

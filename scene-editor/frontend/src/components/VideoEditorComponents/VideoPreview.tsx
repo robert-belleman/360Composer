@@ -35,12 +35,14 @@ const VideoPreview: React.FC = () => {
 
   const {
     isPlaying,
+    isSeeking,
     currentNode,
     currentTime,
     currentDuration,
     videoClipTime,
     videoClipTimePlayed,
     setIsPlaying,
+    setIsSeeking,
     setCurrentNode,
     setCurrentTime,
     setVideoClipTime,
@@ -140,8 +142,7 @@ const VideoPreview: React.FC = () => {
 
     loadSrc(hlsSource);
 
-    /* Start at the time specified by the clip. */
-    videoElem.currentTime = currentClip.startTime;
+    if (!isSeeking) videoElem.currentTime = currentClip.startTime;
 
     /* Only check if clip ended in onTimeUpdate if it is early enough. */
     const delta = currentNode.data.duration - videoElem.duration;
@@ -178,14 +179,24 @@ const VideoPreview: React.FC = () => {
    */
   const onEnded = () => {
     const { current: videoElem } = videoRef;
-
     if (!videoElem) {
       console.error("Error: Video element not available");
       return;
     }
-
     playNextVideoClip();
   };
+
+  /**
+   * If someone seeks a specific time in the slider, go to it.
+   */
+  useEffect(() => {
+    const { current: videoElem } = videoRef;
+
+    if (isSeeking && videoElem) {
+      videoElem.currentTime = videoClipTime;
+      setIsSeeking(false);
+    }
+  }, [isSeeking]);
 
   return (
     <Stack flexGrow={1} sx={{ backgroundColor: "slategray" }}>

@@ -59,12 +59,14 @@ const WINDOW_TICKS = 0.1;
 const Timeline: React.FC = () => {
   const {
     isPlaying,
+    isSeeking,
     currentNode,
     currentTime,
     currentDuration,
     videoClipTime,
     videoClipTimePlayed,
     setIsPlaying,
+    setIsSeeking,
     setCurrentNode,
     setCurrentTime,
     setVideoClipTime,
@@ -79,15 +81,15 @@ const Timeline: React.FC = () => {
   const [upperBound, setUpperBound] = useState(1);
 
   /**
-   * Convert seconds to a user friendly display format MM:SS.
+   * Convert seconds to a user friendly display format.
    * @param totalSeconds Total amount of seconds to convert.
-   * @returns time format in `MM:SS`.
+   * @returns The time string.
    */
   const toDisplayTime = (totalSeconds: number) => {
-    let minutes = Math.floor(totalSeconds / 60);
-    let seconds = Math.round(totalSeconds % 60);
-    let strMinutes = minutes < 10 ? "0" + minutes : minutes;
-    let strSeconds = seconds < 10 ? "0" + seconds : seconds;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = (totalSeconds % 60).toFixed(2);
+    const strMinutes = minutes < 10 ? "0" + minutes : minutes.toString();
+    const strSeconds = seconds.padStart(5, "0");
     return `${strMinutes}:${strSeconds}`;
   };
 
@@ -141,6 +143,7 @@ const Timeline: React.FC = () => {
     if (typeof time === "number") {
       const result = seekClip(clipsState, time);
       if (result.node) {
+        setIsSeeking(true);
         setVideoClipTimePlayed(time - result.offset);
         setVideoClipTime(result.offset);
         setCurrentNode(result.node);
