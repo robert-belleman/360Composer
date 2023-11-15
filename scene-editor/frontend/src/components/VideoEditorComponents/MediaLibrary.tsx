@@ -35,12 +35,12 @@ import {
 } from "./Constants";
 
 import { Asset, AssetsContext } from "./AssetsContext";
-import { APPEND_CLIP, useClipsContext } from "./ClipsContext";
+import { APPEND_CLIP, SPLIT_CLIP, printClips, useClipsContext } from "./ClipsContext";
 
 const MediaLibrary: React.FC = () => {
   const { assets, createClip, loading, fetchAssets } =
     useContext(AssetsContext)!;
-  const { dispatch } = useClipsContext();
+  const { state, dispatch } = useClipsContext();
 
   const [importingAsset, setImportingAsset] = useState(false);
 

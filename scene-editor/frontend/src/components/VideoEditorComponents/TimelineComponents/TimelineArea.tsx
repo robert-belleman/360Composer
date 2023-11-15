@@ -14,7 +14,7 @@ import React from "react";
 
 import { Box } from "@mui/material";
 
-import { Clip, useClipsContext } from "../ClipsContext";
+import { useClipsContext, visibleClipLengths } from "../ClipsContext";
 import TimelineClip from "./TimelineClip";
 
 type TimelineLayerProps = {
@@ -22,40 +22,28 @@ type TimelineLayerProps = {
 };
 
 const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
-  const { clipsState } = useClipsContext();
+  const { state: clipsState } = useClipsContext();
 
   const [lower, upper, zoom] = bounds;
 
-  const visibleLength = (clip: Clip, startTime: number) => {
-    let length = 0;
-
-    /* If the clip is not in range [lower, upper], return 0. */
-    const endTime = startTime + clip.duration;
-    if (endTime < lower || startTime > upper) {
-      return length;
-    }
-
-    /* Otherwise, compute the visible length. */
-    const start = Math.max(startTime, lower);
-    const end = Math.min(endTime, upper);
-    length = end - start;
-    return length;
-  };
+  const visibleLengths = visibleClipLengths(clipsState, lower, upper);
 
   const visibleClips = () => {
     let visibleClips = [];
 
-    let elapsedTime = 0;
-    for (let i = 0; i < clipsState.clips.length; i++) {
-      let length = visibleLength(clipsState.clips[i], elapsedTime);
+    let index = 0;
+    let current = clipsState.clips.head;
+    while (current) {
+      const length = visibleLengths[index];
       visibleClips.push(
         <TimelineClip
-          key={i}
-          clip={clipsState.clips[i]}
-          visibleLength={zoom === 0 ? clipsState.clips[i].duration : length}
+          key={index}
+          clip={current.data}
+          visibleLength={zoom === 0 ? current.data.duration : length}
         />
       );
-      elapsedTime += clipsState.clips[i].duration;
+      current = current.next;
+      index++;
     }
 
     return visibleClips;

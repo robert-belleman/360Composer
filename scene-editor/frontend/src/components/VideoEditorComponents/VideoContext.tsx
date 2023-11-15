@@ -49,7 +49,7 @@ export const VideoProvider: React.FC = ({ children }) => {
   const [currentClipTime, setCurrentClipTime] = useState(0);
 
   const hls = useContext<Hls | undefined>(HlsContext);
-  const { clipsState } = useClipsContext();
+  const { state: clipsState } = useClipsContext();
 
   const isValidClipIndex = (index: number = currentClipIndex) => {
     return 0 <= index && index < clipsState.clips.length;

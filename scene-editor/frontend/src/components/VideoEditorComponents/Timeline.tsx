@@ -57,7 +57,7 @@ const ZOOM_FRACTIONS_PER_LEVEL = [1, 0.8, 0.6, 0.4, 0.2];
 const CAMERA_WINDOW_TICKS = 0.1;
 
 const Timeline: React.FC = () => {
-  const { clipsState, dispatch } = useClipsContext();
+  const { state: clipsState, dispatch } = useClipsContext();
   /* Boolean that describes if the video is playing. */
   const [isPlaying, setIsPlaying] = useState(false);
   /* The current time in the video edit. */
@@ -72,7 +72,7 @@ const Timeline: React.FC = () => {
 
   /* Compute the total time of all clips when it changes. */
   useEffect(() => {
-    setTotalTime(clipsState.clips.reduce((acc, clip) => acc + clip.duration, 0));
+    setTotalTime(clipsState.clips.sum((clip) => clip.duration));
   }, [clipsState.clips]);
 
   /* Count up until end of video. */

@@ -30,6 +30,7 @@ import React, { ReactNode, createContext, useContext, useReducer } from "react";
 import defaultImage from "../../static/images/default.jpg";
 import { Asset } from "./AssetsContext";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
+import { DoublyLinkedList } from "./DoublyLinkedList";
 
 export interface Clip {
   asset: Asset; // Reference to an asset.
@@ -38,16 +39,14 @@ export interface Clip {
   selected: boolean; // Indicate if the clip is selected.
 }
 
-interface ClipsState {
-  clips: Clip[];
-  past: ClipsState[];
-  future: ClipsState[];
+interface State {
+  clips: DoublyLinkedList<Clip>;
+  past: State[];
+  future: State[];
 }
 
 /* The state of Clips can be altered using these action types. */
 export const APPEND_CLIP = "APPEND_CLIP";
-export const REMOVE_CLIP = "REMOVE_CLIP";
-export const INSERT_CLIP = "INSERT_CLIP";
 export const SPLIT_CLIP = "SPLIT_CLIP";
 export const DELETE_CLIPS = "DELETE_CLIPS";
 export const DUPLICATE_CLIPS = "DUPLICATE_CLIPS";
@@ -57,23 +56,39 @@ export const REDO = "REDO";
 
 type Action =
   | { type: typeof APPEND_CLIP; payload: { clip: Clip } }
-  | { type: typeof REMOVE_CLIP; payload: { index: number } }
-  | { type: typeof INSERT_CLIP; payload: { index: number; clip: Clip } }
   | { type: typeof SPLIT_CLIP; payload: { time: number } }
-  | { type: typeof DELETE_CLIPS; payload?: { indices: number[] } }
-  | { type: typeof DUPLICATE_CLIPS; payload?: { indices: number[] } }
+  | { type: typeof DELETE_CLIPS }
+  | { type: typeof DUPLICATE_CLIPS }
   | { type: typeof EXPORT_CLIPS; payload: { title: string } }
   | { type: typeof UNDO }
   | { type: typeof REDO };
 
 interface ClipsContextProps {
-  clipsState: ClipsState;
+  state: State;
   dispatch: React.Dispatch<Action>;
 }
 
 const ClipsContext = createContext<ClipsContextProps | undefined>(undefined);
 
-const initialState: ClipsState = { clips: [], past: [], future: [] };
+const initialState: State = {
+  clips: new DoublyLinkedList<Clip>(),
+  past: [],
+  future: [],
+};
+
+const printClips = (
+  state: State,
+  printAsset: boolean = false,
+  printStartTime: boolean = false,
+  printDuration: boolean = false
+) => {
+  console.log("All Clip Information");
+  state.clips.print((clip: Clip) => {
+    if (printAsset) console.log(`Asset: ${clip.asset}`);
+    if (printStartTime) console.log(`startTime: ${clip.startTime}`);
+    if (printDuration) console.log(`Duration: ${clip.duration}`);
+  });
+};
 
 /**
  * Find the thumbnail URL of a Clip `clip`.
@@ -87,188 +102,164 @@ const thumbnailUrl = (clip: Clip) => {
 };
 
 /**
- * Seek the index of a Clip that intersects with time `time` in State `state`.
- * @param clipsState state of the clips.
- * @param time time of intersection.
- * @returns [index, elapsedTime] or [null, null] when no intersection found.
+ * Indicate what the numerical value of a Clip `clip` is.
+ * @param clip Clip to know the numerical value of.
+ * @returns The duration of the clip.
  */
-const seekIndex = (clipsState: ClipsState, time: number) => {
-  let elapsedTime = 0;
-  for (let i = 0; i < clipsState.clips.length; i++) {
-    if (time < elapsedTime + clipsState.clips[i].duration) {
-      return [i, elapsedTime];
+const computeElapsedTime = (clip: Clip) => {
+  return clip.duration;
+};
+
+/**
+ * Split a Clip `clip` at `time` seconds.
+ * @param clipA Clip to split.
+ * @param time Time to split.
+ * @returns Return a dictionary with the first part and second part.
+ */
+const splitClip = (clipA: Clip, time: number) => {
+  if (time < 0 || clipA.duration < time) {
+    return { firstPart: clipA, secondPart: null };
+  }
+
+  let clipB: Clip = { ...clipA };
+
+  clipA.duration = time;
+  clipB.startTime += time;
+  clipB.duration -= time;
+
+  return { firstPart: clipA, secondPart: clipB };
+};
+
+/**
+ * Indicate when a Clip `clip` is selected.
+ * @param clip Clip to check.
+ * @returns boolean.
+ */
+const isSelected = (clip: Clip) => {
+  return clip.selected;
+};
+
+const visibleClipLengths = (state: State, lower: number, upper: number) => {
+  const visibleLength = (clip: Clip, startTime: number) => {
+    let length = 0;
+
+    /* If the clip is not in range [lower, upper], return 0. */
+    const endTime = startTime + clip.duration;
+    if (endTime < lower || startTime > upper) {
+      return length;
     }
 
-    elapsedTime += clipsState.clips[i].duration;
-  }
-  return [null, null];
+    /* Otherwise, compute the visible length. */
+    const start = Math.max(startTime, lower);
+    const end = Math.min(endTime, upper);
+    length = end - start;
+    return length;
+  };
+
+  return state.clips.mapWithAccumulatedSum(visibleLength, computeElapsedTime);
 };
 
 /**
  * Check if the state can be undone.
  * Used for disabling buttons in certain situations.
- * @param clipsState
+ * @param state
  * @returns boolean
  */
-const canUndo = (clipsState: ClipsState): boolean => {
-  return !!(clipsState.past && clipsState.past.length > 0);
+const canUndo = (state: State): boolean => {
+  return !!(state.past && state.past.length > 0);
 };
 
 /**
  * Check if the state can be redone.
  * Used for disabling buttons in certain situations.
- * @param clipsState
+ * @param state
  * @returns boolean
  */
-const canRedo = (clipsState: ClipsState): boolean => {
-  return !!(clipsState.future && clipsState.future.length > 0);
+const canRedo = (state: State): boolean => {
+  return !!(state.future && state.future.length > 0);
 };
 
 /**
  * Record the current state in the history.
- * @param clipsState the current state to record.
+ * @param state the current state to record.
  * @param maxPastStates number of states to store at most.
  * @returns the new states of the past and future.
  */
-const setState = (clipsState: ClipsState, maxPastStates: number = CLIP_UNDO_STATES) => {
-  const newPast = [...clipsState.past, clipsState].slice(-maxPastStates);
-  const newFuture = [] as ClipsState[];
+const setState = (state: State, maxPastStates: number = CLIP_UNDO_STATES) => {
+  const newPast = [...state.past, state].slice(-maxPastStates);
+  const newFuture = [] as State[];
   return [newPast, newFuture];
 };
 
-const reducer = (clipsState: ClipsState, action: Action): ClipsState => {
+const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case APPEND_CLIP: {
-      const [newPast, newFuture] = setState(clipsState);
-      const newState = {
-        ...clipsState,
-        clips: [...clipsState.clips, action.payload.clip],
-      };
-      return { ...newState, past: newPast, future: newFuture };
-    }
+      const [newPast, newFuture] = setState(state);
 
-    case REMOVE_CLIP: {
-      const [newPast, newFuture] = setState(clipsState);
-      const { index } = action.payload;
-      const newState = {
-        ...clipsState,
-        clips: [...clipsState.clips.filter((_, i) => i !== index)],
-      };
-      return { ...newState, past: newPast, future: newFuture };
-    }
+      state.clips.append(action.payload.clip);
+      const newState = { ...state, clips: state.clips };
 
-    case INSERT_CLIP: {
-      const [newPast, newFuture] = setState(clipsState);
-      const { index, clip } = action.payload;
-      const clipsBefore = clipsState.clips.slice(0, index);
-      const clipsAfter = clipsState.clips.slice(index);
-      const newState = {
-        ...clipsState,
-        clips: [...clipsBefore, clip, ...clipsAfter],
-      };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case SPLIT_CLIP: {
-      const [newPast, newFuture] = setState(clipsState);
+      const [newPast, newFuture] = setState(state);
       const { time } = action.payload;
-
-      /* Find the index of the clip that intersects with time `time`. */
-      const [index, elapsedTime] = seekIndex(clipsState, time);
-      if (index === null) {
-        return { ...clipsState };
-      }
-
-      /* Get the clips before and after the clip at index `index`.  */
-      const clipsBefore = clipsState.clips.slice(0, index);
-      const clipsAfter = clipsState.clips.slice(index + 1);
-
-      /* Initialize variables to split the clip at index `index` into.  */
-      let clipA = clipsState.clips[index];
-      let clipB = { ...clipsState.clips[index] };
-
-      /* If the clip is too short, then do not update state. */
-      const secondsIntoClip = time - elapsedTime!;
-      if (secondsIntoClip < MINIMUM_CLIP_LENGTH) {
-        return clipsState;
-      }
-
-      /* Split the clip at index `index` at time `secondsIntoClip`. */
-      clipA.duration = secondsIntoClip;
-      clipB.startTime = secondsIntoClip;
-      clipB.duration = clipB.duration - secondsIntoClip;
-
-      /* Insert the `clipA` and `clipB` and update the start times. */
-      const newState = {
-        ...clipsState,
-        clips: [...clipsBefore, clipA, clipB, ...clipsAfter],
-      };
+      state.clips.split(time, computeElapsedTime, splitClip);
+      const newState = { ...state, clips: state.clips };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case DELETE_CLIPS: {
-      const [newPast, newFuture] = setState(clipsState);
-      const { indices } = action.payload || {};
-      const newState = {
-        ...clipsState,
-        clips: indices
-          ? clipsState.clips.filter((_, index) => !indices.includes(index))
-          : clipsState.clips.filter((clip) => !clip.selected),
-      };
+      const [newPast, newFuture] = setState(state);
+      state.clips.deleteSelectedNodes(isSelected);
+      const newState = { ...state, clips: state.clips };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case DUPLICATE_CLIPS: {
-      const [newPast, newFuture] = setState(clipsState);
-      const { indices } = action.payload || {};
-      const clipsToUpdate = indices
-        ? clipsState.clips.filter((_, index) => indices.includes(index))
-        : clipsState.clips.filter((clip) => clip.selected);
-      const newState = {
-        ...clipsState,
-        clips: clipsState.clips
-          .map((clip) => ({ ...clip, selected: false }))
-          .concat(clipsToUpdate),
-      };
+      const [newPast, newFuture] = setState(state);
+      state.clips.appendSelectedNodes(isSelected);
+      const newState = { ...state, clips: state.clips };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case EXPORT_CLIPS: {
-      return { ...clipsState }; // TODO: make api call
+      return { ...state }; // TODO: make api call
     }
 
     case UNDO: {
-      if (!canUndo(clipsState)) {
-        return clipsState;
+      if (!canUndo(state)) {
+        return state;
       }
 
-      const newPast = clipsState.past.slice(0, clipsState.past.length - 1);
-      const newState = clipsState.past[clipsState.past.length - 1];
-      const newFuture = [clipsState, ...clipsState.future];
+      const newPast = state.past.slice(0, state.past.length - 1);
+      const newState = state.past[state.past.length - 1];
+      const newFuture = [state, ...state.future];
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case REDO: {
-      if (!canRedo(clipsState)) {
-        return clipsState;
+      if (!canRedo(state)) {
+        return state;
       }
 
-      const newPast = [...clipsState.past, clipsState];
-      const newState = clipsState.future[0];
-      const newFuture = clipsState.future.slice(1);
+      const newPast = [...state.past, state];
+      const newState = state.future[0];
+      const newFuture = state.future.slice(1);
       return { ...newState, past: newPast, future: newFuture };
     }
 
     default:
-      return clipsState;
+      return state;
   }
 };
 
 const ClipsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [clipsState, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const contextValue: ClipsContextProps = {
-    clipsState,
+    state,
     dispatch,
   };
 
@@ -287,4 +278,12 @@ const useClipsContext = (): ClipsContextProps => {
   return context;
 };
 
-export { ClipsProvider, canRedo, canUndo, thumbnailUrl, useClipsContext };
+export {
+  ClipsProvider,
+  canRedo,
+  canUndo,
+  thumbnailUrl,
+  useClipsContext,
+  printClips,
+  visibleClipLengths,
+};
