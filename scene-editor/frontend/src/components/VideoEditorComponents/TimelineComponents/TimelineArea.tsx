@@ -19,24 +19,24 @@ import TimelineClip from "./TimelineClip";
 import { DLLNode } from "../DoublyLinkedList";
 
 type TimelineLayerProps = {
-  bounds: number[];
+  bounds: { lowerBound: number; upperBound: number };
 };
 
 const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
   const { state: clipsState } = useClipsContext();
 
-  const [lower, upper, zoom] = bounds;
-
   const renderVisibleClips = () => {
-    const components = visibleClips(clipsState, lower, upper).map(
-      (result: { node: DLLNode<Clip>; length: number }) => (
-        <TimelineClip
-          key={result.node.id}
-          clip={result.node.data}
-          visibleLength={result.length}
-        />
-      )
-    );
+    const components = visibleClips(
+      clipsState,
+      bounds.lowerBound,
+      bounds.upperBound
+    ).map((result: { node: DLLNode<Clip>; length: number }) => (
+      <TimelineClip
+        key={result.node.id}
+        clip={result.node.data}
+        visibleLength={result.length}
+      />
+    ));
     return components;
   };
 

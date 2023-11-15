@@ -21,7 +21,7 @@
  * - seekIndex: Function to seek the index of a clip that intersects with a given time.
  * - reducer: Reducer function responsible for handling state modifications based on dispatched actions.
  * - ClipsProvider: Context provider component to wrap the application and make the state and dispatch accessible.
- * - useClips: Custom hook for conveniently accessing the context values.
+ * - useClipsContext: Custom hook for conveniently accessing the context values.
  *
  */
 
@@ -303,7 +303,7 @@ const ClipsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 const useClipsContext = (): ClipsContextProps => {
   const context = useContext(ClipsContext);
   if (!context) {
-    throw new Error("useClips must be used within a ClipsProvider");
+    throw new Error("useClipsContext must be used within a ClipsProvider");
   }
   return context;
 };

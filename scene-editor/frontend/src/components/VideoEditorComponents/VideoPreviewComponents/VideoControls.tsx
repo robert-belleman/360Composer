@@ -19,15 +19,54 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import Replay5Icon from "@mui/icons-material/Replay5";
 import { useVideoContext } from "../VideoContext";
 
-const VideoControls: React.FC = () => {
-  const { isPlaying, togglePlaybackState, adjustCurrentClipTimeByDelta } =
-    useVideoContext();
+type VideoControlsProps = {
+  videoRef: React.RefObject<HTMLVideoElement>;
+  play: (videoElem: HTMLVideoElement) => void;
+};
+
+const VideoControls: React.FC<VideoControlsProps> = ({ videoRef, play }) => {
+  const { isPlaying, setIsPlaying } = useVideoContext();
+
+  /**
+   * Pause or resume playback of the video.
+   */
+  const togglePlayback = () => {
+    const { current: videoElem } = videoRef;
+    if (videoElem) {
+      if (isPlaying) {
+        videoElem.pause();
+      } else {
+        play(videoElem);
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  /**
+   * Add or subtract a number of seconds to the current time.
+   * @param delta The number of seconds to add or subtract.
+   */
+  const addTime = (delta: number) => {
+    const { current: videoElement } = videoRef;
+    if (videoElement) {
+      const newTime = videoElement.currentTime + delta;
+      const exceedClipEnd = newTime > videoElement.duration;
+      const exceedClipStart = newTime < 0;
+      if (exceedClipEnd) {
+        // TODO: Handle exceed clip end
+      } else if (exceedClipStart) {
+        // TODO: Handle exceed clip start
+      } else {
+        videoElement.currentTime = newTime;
+      }
+    }
+  };
 
   const RewindIconButton = React.memo(() => {
     return (
       <IconButton
         id="rewindButton"
-        onClick={() => adjustCurrentClipTimeByDelta(-5)}
+        onClick={() => addTime(-5)}
         color="primary"
         size="large"
         aria-label="Rewind 5 seconds"
@@ -41,7 +80,7 @@ const VideoControls: React.FC = () => {
     return (
       <IconButton
         id="playPauseButton"
-        onClick={togglePlaybackState}
+        onClick={togglePlayback}
         color="primary"
         size="large"
         aria-label={isPlaying ? "Pause" : "Play"}
@@ -55,7 +94,7 @@ const VideoControls: React.FC = () => {
     return (
       <IconButton
         id="forwardButton"
-        onClick={() => adjustCurrentClipTimeByDelta(5)}
+        onClick={() => addTime(5)}
         color="primary"
         size="large"
         aria-label="Forward 5 seconds"

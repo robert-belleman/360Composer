@@ -29,8 +29,6 @@ import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
 import DeleteIcon from "@mui/icons-material/Delete";
-import PauseIcon from "@mui/icons-material/Pause";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
@@ -54,12 +52,91 @@ import { useVideoContext } from "./VideoContext";
 
 /* The fraction that should be displayed per zoom level. */
 const ZOOM_FRACTIONS_PER_LEVEL = [1, 0.8, 0.6, 0.4, 0.2];
-/* The fraction to move the camera when moving left or right. */
-const CAMERA_WINDOW_TICKS = 0.1;
+/* The fraction to move the window when moving left or right. */
+const WINDOW_TICKS = 0.1;
 
 const Timeline: React.FC = () => {
+  const {
+    isPlaying,
+    currentNode,
+    currentTime,
+    currentDuration,
+    setIsPlaying,
+    setCurrentNode,
+    setCurrentTime,
+  } = useVideoContext();
+
   const { state: clipsState, dispatch } = useClipsContext();
-  const {  } = useVideoContext();
+
+  /* State of the timeline window that determines what is displayed. */
+  const [zoomLevel, setZoomLevel] = useState(0);
+  const [lowerBound, setLowerBound] = useState(0);
+  const [upperBound, setUpperBound] = useState(1);
+
+  /**
+   * Convert seconds to a user friendly display format MM:SS.
+   * @param totalSeconds Total amount of seconds to convert.
+   * @returns time format in `MM:SS`.
+   */
+  const toDisplayTime = (totalSeconds: number) => {
+    let minutes = Math.floor(totalSeconds / 60);
+    let seconds = Math.round(totalSeconds % 60);
+    let strMinutes = minutes < 10 ? "0" + minutes : minutes;
+    let strSeconds = seconds < 10 ? "0" + seconds : seconds;
+    return `${strMinutes}:${strSeconds}`;
+  };
+
+  /**
+   * Convert the fractions of the window bounds to seconds.
+   * @returns Object with attributes `lowerBound` and `upperBound`.
+   */
+  const frac2Seconds = () => {
+    const lower = Math.floor(lowerBound * currentDuration);
+    const upper = Math.ceil(upperBound * currentDuration);
+    return { lowerBound: lower, upperBound: upper };
+  };
+
+  /**
+   * Move the window left or right by delta.
+   * @param delta negative if moving left, positive if moving right.
+   */
+  const moveWindow = (delta: number) => {
+    /* If the delta moves the lower too far, delta the upper bound. */
+    if (lowerBound + delta < 0) {
+      setLowerBound(0);
+      setUpperBound(upperBound + delta - (lowerBound + delta));
+      /* If the delta moves the upper too far, delta the lower bound. */
+    } else if (upperBound + delta > 1) {
+      setLowerBound(lowerBound + delta - (upperBound + delta - 1));
+      setUpperBound(1);
+    } else {
+      setLowerBound(lowerBound + delta);
+      setUpperBound(upperBound + delta);
+    }
+  };
+
+  /**
+   * Zoom the window in or out.
+   * @param delta 1 if zooming in, 0 if zooming out.
+   */
+  const zoomWindow = (delta: number) => {
+    /* Fraction of total video edit length visible. */
+    let f = ZOOM_FRACTIONS_PER_LEVEL[zoomLevel + delta];
+    const lo = f / 2;
+    const hi = 1 - lo;
+    let mid = currentTime / currentDuration;
+
+    const lower = mid < lo ? 0 : mid > hi ? 1 - f : mid - lo;
+    const upper = mid < lo ? f : mid > hi ? 1 : mid + lo;
+    setLowerBound(lower);
+    setUpperBound(upper);
+  };
+
+  const handleTimeChange = (event: Event, time: number | number[]) => {
+    if (typeof time === "number") {
+      setCurrentTime(time);
+    }
+  };
 
   const UndoButton = () => {
     const handleUndo = () => {
@@ -119,49 +196,85 @@ const Timeline: React.FC = () => {
     );
   };
 
-  const PlayPauseButton = () => {
-    return (
-      <IconButton>
-        {/* {isPlaying ? <PauseIcon /> : <PlayArrowIcon />} */}
-      </IconButton>
-    );
-  };
-
   const MoveLeftButton = () => {
+    const canMoveLeft = () => {
+      return lowerBound > 0 && clipsState.clips.length > 0;
+    };
+
+    const moveLeft = () => moveWindow(-WINDOW_TICKS);
+
     return (
-      <IconButton>
+      <IconButton disabled={!canMoveLeft()} onClick={moveLeft}>
         <ArrowBackIosNewIcon />
       </IconButton>
     );
   };
 
   const MoveRightButton = () => {
+    const canMoveRight = () => {
+      return upperBound < 1 && clipsState.clips.length > 0;
+    };
+
+    const moveRight = () => moveWindow(WINDOW_TICKS);
+
     return (
-      <IconButton>
+      <IconButton disabled={!canMoveRight()} onClick={moveRight}>
         <ArrowForwardIosIcon />
       </IconButton>
     );
   };
 
   const ZoomOutButton = () => {
+    const canZoomOut = () => {
+      return zoomLevel > 0 && clipsState.clips.length > 0;
+    };
+
+    const zoomOut = () => {
+      if (canZoomOut()) {
+        setZoomLevel(zoomLevel - 1);
+        zoomWindow(-1);
+      }
+    };
+
     return (
-      <IconButton>
+      <IconButton disabled={!canZoomOut()} onClick={zoomOut}>
         <ZoomOutIcon />
       </IconButton>
     );
   };
 
   const ZoomInButton = () => {
+    const canZoomIn = () => {
+      return (
+        zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 &&
+        clipsState.clips.length > 0
+      );
+    };
+
+    const zoomIn = () => {
+      if (canZoomIn()) {
+        setZoomLevel(zoomLevel + 1);
+        zoomWindow(1);
+      }
+    };
+
     return (
-      <IconButton>
+      <IconButton disabled={!canZoomIn()} onClick={zoomIn}>
         <ZoomInIcon />
       </IconButton>
     );
   };
 
   const ZoomFitButton = () => {
+    const resetZoom = () => {
+      const zoomLvl = 0;
+      setZoomLevel(zoomLvl);
+      setLowerBound(0);
+      setUpperBound(1);
+    };
+
     return (
-      <IconButton>
+      <IconButton disabled={zoomLevel === 0} onClick={() => resetZoom()}>
         <CloseFullscreenIcon />
       </IconButton>
     );
@@ -169,20 +282,9 @@ const Timeline: React.FC = () => {
 
   const TimelineBar = () => {
     const Timer = () => {
-      /* Convert seconds to minute:seconds */
-      const toTime = (seconds: number) => {
-        let minutes = Math.floor(seconds / 60);
-        let extraSeconds = seconds % 60;
-        let strMinutes = minutes < 10 ? "0" + minutes : minutes;
-        let strSeconds = extraSeconds < 10 ? "0" + extraSeconds : extraSeconds;
-        return `${strMinutes}:${strSeconds}`;
-      };
-
-      let strCurrentTime = toTime(currentTime);
-      let strTotalTime = toTime(totalTime);
       return (
         <Typography display="flex" alignItems="center" color={"black"}>
-          {strCurrentTime}/{strTotalTime}
+          {toDisplayTime(currentTime)}/{toDisplayTime(currentDuration)}
         </Typography>
       );
     };
@@ -196,7 +298,6 @@ const Timeline: React.FC = () => {
           <DeleteButton />
           <DuplicateButton />
           <Box flexGrow={1} display="flex" justifyContent="center">
-            <PlayPauseButton />
             <Timer />
           </Box>
           <MoveLeftButton />
@@ -216,13 +317,13 @@ const Timeline: React.FC = () => {
       <Box>
         <TimelineBar />
         <Box overflow={"hidden"}>
-          {/* <Slider
-            max={totalTime}
+          <Slider
+            max={currentDuration}
             value={currentTime}
             onChange={handleTimeChange}
-            valueLabelFormat={(currentTime) => toTime(currentTime)}
+            valueLabelFormat={(currentTime) => toDisplayTime(currentTime)}
             valueLabelDisplay="auto"
-          /> */}
+          />
         </Box>
       </Box>
       <Box
@@ -232,7 +333,7 @@ const Timeline: React.FC = () => {
         justifyContent={"center"}
         sx={{ backgroundColor: "cornflowerblue" }}
       >
-        {/* <TimelineArea bounds={windowInfo()} /> */}
+        <TimelineArea bounds={frac2Seconds()} />
       </Box>
     </Paper>
   );

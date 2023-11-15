@@ -63,7 +63,7 @@ const VideoEditor: React.FC = () => {
           <TitleBar />
           <VideoProvider>
             <VideoPreview />
-            {/* <Timeline /> */}
+            <Timeline />
           </VideoProvider>
         </Box>
       </ClipsProvider>
