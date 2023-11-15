@@ -32,17 +32,19 @@ const VideoPreview: React.FC = () => {
   const { state: clipsState } = useClipsContext();
 
   const [checkEnded, setCheckEnded] = useState(false);
-  const [videoClipTime, setVideoClipTime] = useState(0);
-  const [videoClipTimePlayed, setVideoClipTimePlayed] = useState(0);
 
   const {
     isPlaying,
     currentNode,
     currentTime,
     currentDuration,
+    videoClipTime,
+    videoClipTimePlayed,
     setIsPlaying,
     setCurrentNode,
     setCurrentTime,
+    setVideoClipTime,
+    setVideoClipTimePlayed,
   } = useVideoContext();
 
   /* Play the video clip. */

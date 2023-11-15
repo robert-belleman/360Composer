@@ -16,9 +16,13 @@ interface VideoContextProps {
   currentNode: DLLNode<Clip> | undefined;
   currentTime: number;
   currentDuration: number;
+  videoClipTime: number;
+  videoClipTimePlayed: number;
   setIsPlaying: Dispatch<SetStateAction<boolean>>;
   setCurrentNode: Dispatch<SetStateAction<DLLNode<Clip> | undefined>>;
   setCurrentTime: Dispatch<SetStateAction<number>>;
+  setVideoClipTime: Dispatch<SetStateAction<number>>;
+  setVideoClipTimePlayed: Dispatch<SetStateAction<number>>;
 }
 
 const VideoContext = createContext<VideoContextProps | undefined>(undefined);
@@ -28,6 +32,9 @@ export const VideoProvider: React.FC = ({ children }) => {
   const [currentNode, setCurrentNode] = useState<DLLNode<Clip>>();
   const [currentTime, setCurrentTime] = useState(0);
   const [currentDuration, setCurrentDuration] = useState(0);
+
+  const [videoClipTime, setVideoClipTime] = useState(0);
+  const [videoClipTimePlayed, setVideoClipTimePlayed] = useState(0);
 
   const { state: clipsState } = useClipsContext();
 
@@ -46,9 +53,13 @@ export const VideoProvider: React.FC = ({ children }) => {
     currentNode,
     currentTime,
     currentDuration,
+    videoClipTime,
+    videoClipTimePlayed,
     setIsPlaying,
     setCurrentNode,
     setCurrentTime,
+    setVideoClipTime,
+    setVideoClipTimePlayed,
   };
 
   return (

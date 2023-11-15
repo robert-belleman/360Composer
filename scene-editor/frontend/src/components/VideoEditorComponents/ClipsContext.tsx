@@ -93,6 +93,16 @@ const printClips = (
 };
 
 /**
+ * Given a time, find the clip that intersects with it.
+ * @param state Clips to iterate over.
+ * @param time Time to find clip at.
+ * @returns Object with attributes `node` and `offset`.
+ */
+const seekClip = (state: State, time: number) => {
+  return state.clips.findNodeByAccumulatedSum(time, getElapsedTime);
+};
+
+/**
  * Find the thumbnail URL of a Clip `clip`.
  * @param clip Clip to find the thumbnail URL of.
  * @returns thumbnail URL or defaultImage when not found.
@@ -316,4 +326,5 @@ export {
   useClipsContext,
   printClips,
   visibleClips,
+  seekClip,
 };

@@ -46,6 +46,7 @@ import {
   UNDO,
   canRedo,
   canUndo,
+  seekClip,
   useClipsContext,
 } from "./ClipsContext";
 import { useVideoContext } from "./VideoContext";
@@ -61,9 +62,13 @@ const Timeline: React.FC = () => {
     currentNode,
     currentTime,
     currentDuration,
+    videoClipTime,
+    videoClipTimePlayed,
     setIsPlaying,
     setCurrentNode,
     setCurrentTime,
+    setVideoClipTime,
+    setVideoClipTimePlayed,
   } = useVideoContext();
 
   const { state: clipsState, dispatch } = useClipsContext();
@@ -134,7 +139,13 @@ const Timeline: React.FC = () => {
 
   const handleTimeChange = (event: Event, time: number | number[]) => {
     if (typeof time === "number") {
-      setCurrentTime(time);
+      const result = seekClip(clipsState, time);
+      if (result.node) {
+        setVideoClipTimePlayed(time - result.offset);
+        setVideoClipTime(result.offset);
+        setCurrentNode(result.node);
+        setCurrentTime(time);
+      }
     }
   };
 
