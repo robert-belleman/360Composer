@@ -26,6 +26,14 @@ def get_duration(path):
     return int(float(result.stdout))
 
 
+def get_channel_layout(path):
+    result = subprocess.run(["ffprobe", "-select_streams", "a", "-show_entries",
+                             "stream=channel_layout", "-of", "csv=p=0", path],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.DEVNULL)
+    return str(result.stdout)
+
+
 @dataclass
 class HlsProfile:
     width: int
@@ -43,6 +51,8 @@ HLS_PROFILES = (
 
 
 def create_hls(inp_path: Path, output_dir: Path) -> None:
+    channel_layout = get_channel_layout(inp_path)
+    use_ambisonic = "ambisonic" in channel_layout # hack to convert ambisonic videos into mono for now...
     args = ('ffmpeg',
             '-hide_banner',
             '-i', inp_path.as_posix(),
@@ -54,6 +64,8 @@ def create_hls(inp_path: Path, output_dir: Path) -> None:
     var_stream_map = []
     for i, prof in enumerate(HLS_PROFILES):
         args += ('-map', '0:0', '-map', '0:1')
+        if use_ambisonic:
+            args += (f'-filter:a:{i}', f'pan=mono|c0=FL')
         args += (f'-filter:v:{i}', f'scale={prof.width}:{prof.height}:force_original_aspect_ratio=decrease',
                  f'-c:v:{i}', 'libx264',
                  f'-b:v:{i}', f'{prof.video_bitrate}k',
