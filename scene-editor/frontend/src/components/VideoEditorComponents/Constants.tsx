@@ -28,3 +28,8 @@ export const TIMELINE_CLIP_HEIGHT = 64;
 /* Performance concering settings. */
 export const MINIMUM_CLIP_LENGTH = 1;
 export const CLIP_UNDO_STATES = 10;
+
+
+// TODO: bounds in timeline clip
+//  update video context
+//  reimplement zoom

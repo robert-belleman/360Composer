@@ -41,6 +41,7 @@ const TimelineClip: React.FC<TimelineClipProps> = ({ clip, visibleLength }) => {
         width={1}
         height={1}
         boxSizing={"border-box"}
+        border={3}
         onClick={() => handleClick(clip)}
         sx={{
           background: `url(${thumbnailUrl(clip)})`,

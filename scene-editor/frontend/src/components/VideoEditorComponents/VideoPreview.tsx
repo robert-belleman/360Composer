@@ -21,12 +21,12 @@ import VideoControls from "./VideoPreviewComponents/VideoControls";
 import { useVideoContext } from "./VideoContext";
 
 const VideoPreview: React.FC = () => {
-  const { videoRef, isValidClipIndex } = useVideoContext();
+  const { videoRef, currentClipNode, onTimeUpdate, onEnded } = useVideoContext();
 
   return (
     <Stack flexGrow={1} sx={{ backgroundColor: "slategray" }}>
       <Box flexGrow={1} border={2} borderColor="lightgreen">
-        {isValidClipIndex() && (
+        {currentClipNode && (
           <Scene embedded width="100%" height="100%">
             <Assets>
               <video
@@ -35,6 +35,8 @@ const VideoPreview: React.FC = () => {
                 autoPlay={false}
                 loop={false}
                 crossOrigin="anonymous"
+                onTimeUpdate={onTimeUpdate}
+                onEnded={onEnded}
               />
             </Assets>
 

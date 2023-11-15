@@ -14,8 +14,9 @@ import React from "react";
 
 import { Box } from "@mui/material";
 
-import { useClipsContext, visibleClipLengths } from "../ClipsContext";
+import { Clip, useClipsContext, visibleClips } from "../ClipsContext";
 import TimelineClip from "./TimelineClip";
+import { DLLNode } from "../DoublyLinkedList";
 
 type TimelineLayerProps = {
   bounds: number[];
@@ -26,32 +27,22 @@ const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
 
   const [lower, upper, zoom] = bounds;
 
-  const visibleLengths = visibleClipLengths(clipsState, lower, upper);
-
-  const visibleClips = () => {
-    let visibleClips = [];
-
-    let index = 0;
-    let current = clipsState.clips.head;
-    while (current) {
-      const length = visibleLengths[index];
-      visibleClips.push(
+  const renderVisibleClips = () => {
+    const components = visibleClips(clipsState, lower, upper).map(
+      (result: { node: DLLNode<Clip>; length: number }) => (
         <TimelineClip
-          key={index}
-          clip={current.data}
-          visibleLength={zoom === 0 ? current.data.duration : length}
+          key={result.node.id}
+          clip={result.node.data}
+          visibleLength={result.length}
         />
-      );
-      current = current.next;
-      index++;
-    }
-
-    return visibleClips;
+      )
+    );
+    return components;
   };
 
   return (
     <Box width={1} sx={{ display: "flex", flexDirection: "row" }}>
-      {visibleClips()}
+      {renderVisibleClips()}
     </Box>
   );
 };

@@ -43,6 +43,7 @@ interface State {
   clips: DoublyLinkedList<Clip>;
   past: State[];
   future: State[];
+  totalDuration: number;
 }
 
 /* The state of Clips can be altered using these action types. */
@@ -74,6 +75,7 @@ const initialState: State = {
   clips: new DoublyLinkedList<Clip>(),
   past: [],
   future: [],
+  totalDuration: 0,
 };
 
 const printClips = (
@@ -106,7 +108,7 @@ const thumbnailUrl = (clip: Clip) => {
  * @param clip Clip to know the numerical value of.
  * @returns The duration of the clip.
  */
-const computeElapsedTime = (clip: Clip) => {
+const getElapsedTime = (clip: Clip) => {
   return clip.duration;
 };
 
@@ -139,7 +141,7 @@ const isSelected = (clip: Clip) => {
   return clip.selected;
 };
 
-const visibleClipLengths = (state: State, lower: number, upper: number) => {
+const visibleClips = (state: State, lower: number, upper: number) => {
   const visibleLength = (clip: Clip, startTime: number) => {
     let length = 0;
 
@@ -156,7 +158,17 @@ const visibleClipLengths = (state: State, lower: number, upper: number) => {
     return length;
   };
 
-  return state.clips.mapWithAccumulatedSum(visibleLength, computeElapsedTime);
+  let elapsedTime = 0;
+  let current = state.clips.head;
+  const results: any[] = [];
+  while (current) {
+    let length = visibleLength(current.data, elapsedTime);
+    results.push({ node: current, length: length });
+    elapsedTime += getElapsedTime(current.data);
+    current = current.next;
+  }
+
+  return results;
 };
 
 /**
@@ -195,33 +207,51 @@ const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case APPEND_CLIP: {
       const [newPast, newFuture] = setState(state);
-
-      state.clips.append(action.payload.clip);
+      const { clip } = action.payload;
+      state.clips.append(clip);
       const newState = { ...state, clips: state.clips };
+      const newDuration = state.totalDuration + clip.duration;
 
-      return { ...newState, past: newPast, future: newFuture };
+      return {
+        ...newState,
+        past: newPast,
+        future: newFuture,
+        totalDuration: newDuration,
+      };
     }
 
     case SPLIT_CLIP: {
       const [newPast, newFuture] = setState(state);
       const { time } = action.payload;
-      state.clips.split(time, computeElapsedTime, splitClip);
+      state.clips.split(time, getElapsedTime, splitClip);
       const newState = { ...state, clips: state.clips };
       return { ...newState, past: newPast, future: newFuture };
     }
 
     case DELETE_CLIPS: {
       const [newPast, newFuture] = setState(state);
-      state.clips.deleteSelectedNodes(isSelected);
+      const durationLost = state.clips.deleteNodes(isSelected, getElapsedTime);
+      const newDuration = state.totalDuration + durationLost;
       const newState = { ...state, clips: state.clips };
-      return { ...newState, past: newPast, future: newFuture };
+      return {
+        ...newState,
+        past: newPast,
+        future: newFuture,
+        totalDuration: newDuration,
+      };
     }
 
     case DUPLICATE_CLIPS: {
       const [newPast, newFuture] = setState(state);
-      state.clips.appendSelectedNodes(isSelected);
+      const durationAdded = state.clips.appendNodes(isSelected, getElapsedTime);
+      const newDuration = state.totalDuration + durationAdded;
       const newState = { ...state, clips: state.clips };
-      return { ...newState, past: newPast, future: newFuture };
+      return {
+        ...newState,
+        past: newPast,
+        future: newFuture,
+        totalDuration: newDuration,
+      };
     }
 
     case EXPORT_CLIPS: {
@@ -285,5 +315,5 @@ export {
   thumbnailUrl,
   useClipsContext,
   printClips,
-  visibleClipLengths,
+  visibleClips,
 };

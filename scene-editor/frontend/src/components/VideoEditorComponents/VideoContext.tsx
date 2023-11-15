@@ -5,9 +5,9 @@
  * the state and behavior related to video playback within the VideoEditor.
  *
  * Components:
- * - VideoContext: A React context that provides the video-related state and functions.
- * - VideoProvider: A React component that wraps the application and provides the VideoContext.
- * - useVideoContext: A custom hook to access the VideoContext within functional components.
+ * - VideoContext: Context that provides the video-related state and functions.
+ * - VideoProvider: Component that wraps the application and provides the VideoContext.
+ * - useVideoContext: Hook to access the VideoContext within functional components.
  *
  * Functionality:
  * - Manages video playback state, current clip, and current playback time.
@@ -28,134 +28,141 @@ import React, {
 
 import Hls from "hls.js";
 import { HlsContext } from "../../App";
-import { useClipsContext } from "./ClipsContext";
+import { Clip, useClipsContext } from "./ClipsContext";
+import { DLLNode } from "./DoublyLinkedList";
 
 interface VideoContextProps {
   videoRef: React.RefObject<HTMLVideoElement>;
+  currentClipNode: DLLNode<Clip> | undefined;
   isPlaying: boolean;
   togglePlaybackState: () => void;
-  currentClipIndex: number;
-  isValidClipIndex: (index?: number) => boolean;
-  currentClipTime: number;
   adjustCurrentClipTimeByDelta: (delta: number) => void;
+  onTimeUpdate: () => void;
+  onEnded: () => void;
 }
 
 const VideoContext = createContext<VideoContextProps | undefined>(undefined);
 
+/**
+ * Get the source of a Clip `clip`.
+ * @param clip Clip to get the source of.
+ * @returns Source of the Clip `clip`.
+ */
+const getClipSource = (clip: Clip) => `/assets/${clip.asset.path}`;
+
+/**
+ * Load a source into a HTMLVideoElement using Hls.
+ * @param videoElem HTML element to load the source into.
+ * @param hls Hls class instance
+ * @param source Source to load into the HTML element.
+ */
+const loadClipSourceWithHls = (
+  videoElem: HTMLVideoElement,
+  hls: Hls,
+  source: string
+) => {
+  try {
+    hls.loadSource(source);
+    hls.attachMedia(videoElem);
+    console.log("Loaded HLS source:", source);
+  } catch (error) {
+    console.error("Error loading video:", error);
+  }
+};
+
 export const VideoProvider: React.FC = ({ children }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentClipIndex, setCurrentClipIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
+
+  /* State variables for the video edit (all clips combined). */
+  const [currentTotalTime, setCurrentTotalTime] = useState(0);
+  const [currentTotalDuration, setCurrentTotalDuration] = useState(0);
+  const [currentTotalTimePlayed, setCurrentTotalTimePlayed] = useState(0);
+
+  /* State variables for a single clip. */
+  const [currentClipNode, setCurrentClipNode] = useState<DLLNode<Clip>>();
   const [currentClipTime, setCurrentClipTime] = useState(0);
 
   const hls = useContext<Hls | undefined>(HlsContext);
   const { state: clipsState } = useClipsContext();
 
-  const isValidClipIndex = (index: number = currentClipIndex) => {
-    return 0 <= index && index < clipsState.clips.length;
+  /**
+   * Start playback of the video element.
+   * @param videoElem Element to start playback of.
+   */
+  const play = (videoElem: HTMLVideoElement) => {
+    // Now you can safely call videoElem.play()
+    videoElem.play().catch((error) => {
+      console.error("Error playing video:", error);
+    });
+  };
+
+  /* Update state variabels when loading a new Clip `clip`. */
+  const loadNewClipNode = (
+    videoElem: HTMLVideoElement,
+    node: DLLNode<Clip>
+  ) => {
+    videoElem.currentTime = node.data.startTime;
+    setCurrentClipNode(node);
+    setCurrentClipTime(0);
+
+    /* If it was playing, continue playing. */
+    if (isPlaying) play(videoElem);
+  };
+
+  const loadNextClip = (videoElem: HTMLVideoElement) => {
+    if (currentClipNode && currentClipNode.next) {
+      const timePlayed = currentClipNode.data.duration;
+      setCurrentTotalTimePlayed(currentTotalTimePlayed + timePlayed);
+      loadNewClipNode(videoElem, currentClipNode.next);
+    } else {
+      setIsPlaying(false);
+
+      /* If the video edit finished, rewind to the start of the video edit. */
+      if (currentTotalDuration <= currentTotalTime) {
+        setCurrentTotalTimePlayed(0);
+        setCurrentClipNode(clipsState.clips.head!);
+      }
+    }
   };
 
   /**
-   * Stop or resume video playback of the clip in videoRef.
+   * Load a source into a HTMLVideoElement.
+   * @param videoElem HTML element to load the source into.
+   * @param hls Hls class instance to load with Hls when it is supported.
+   * @param source Source to load into the HTML element.
    */
-  const togglePlaybackState = useCallback(() => {
-    const { current: videoElement } = videoRef;
-    if (videoElement) {
-      if (isPlaying) {
-        videoElement.pause();
-      } else {
-        videoElement.play().catch((error) => {
-          console.error("Error playing video:", error);
-        });
-      }
+  const loadClipSource = (
+    videoElem: HTMLVideoElement,
+    hls: Hls,
+    source: string
+  ) => {
+    setIsLoading(true);
 
-      setIsPlaying(!isPlaying);
-    }
-  }, [videoRef, isPlaying]);
-
-  /**
-   * Add the delta to the current time. If the new time is over the duration
-   * of the video or negative, try to change to a different clip. If that is
-   * not possible, stay in the bounds of the video length.
-   */
-  const adjustCurrentClipTimeByDelta = useCallback(
-    (delta: number) => {
-      const { current: videoElement } = videoRef;
-
-      if (videoElement) {
-        const newTime = videoElement.currentTime + delta;
-        const exceedClipEnd = newTime > videoElement.duration;
-        const exceedClipStart = newTime < 0;
-
-        if (exceedClipEnd) {
-          // TODO: Handle exceed clip end
-        } else if (exceedClipStart) {
-          // TODO: Handle exceed clip start
-        } else {
-          videoElement.currentTime = newTime;
-        }
-      }
-    },
-    [videoRef]
-  );
-
-  // Set the currentClip based on clips
-  useEffect(() => {
-    if (clipsState.clips.length > 0) {
-      setCurrentClipIndex(currentClipIndex + 1);
-    }
-  }, [clipsState.clips.length]);
-
-  /* Set the currentClipTime based on video time. */
-  useEffect(() => {
-    const { current: videoElement } = videoRef;
-
-    const handleTimeUpdate = () => {
-      if (videoElement) {
-        setCurrentClipTime(videoElement.currentTime);
-      }
-    };
-
-    if (videoElement) {
-      videoElement.addEventListener("timeupdate", handleTimeUpdate);
+    if (Hls.isSupported()) {
+      loadClipSourceWithHls(videoElem, hls, source);
+    } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
+      videoElem.src = source;
+    } else {
+      console.error("No HLS support");
     }
 
-    return () => {
-      if (videoElement) {
-        videoElement.removeEventListener("timeupdate", handleTimeUpdate);
-      }
-    };
-  }, [videoRef, setCurrentClipTime]);
+    setIsLoading(false);
+  };
 
-  /* Load the source of the Clip `clip` with HLS whenever it changes. */
+  /* When a new clip is played, load the source and settings. */
   useEffect(() => {
     const { current: videoElem } = videoRef;
 
-    /* If there is no source to load, then stop. */
-    if (!isValidClipIndex()) {
+    if (!currentClipNode || !videoElem || !hls) {
+      console.error("Error loading video: Video element or HLS not available.");
       return;
     }
 
-    if (!videoElem || !hls) {
-      console.error(
-        "Error loading video: Video element or HLS not available. Clip: ",
-        clipsState.clips[currentClipIndex]
-      );
-      return;
-    }
-
-    const loadHlsSource = (source: string) => {
-      try {
-        hls.loadSource(source);
-        hls.attachMedia(videoElem);
-      } catch (error) {
-        console.error("Error loading video:", error);
-      }
-    };
-
-    const currentClip = clipsState.clips[currentClipIndex];
-    const hlsSource = `/assets/${currentClip.asset.path}`;
-
+    const currentClip = currentClipNode.data;
+    const hlsSource = getClipSource(currentClip);
     if (!hlsSource) {
       console.error(
         "Error loading video: HLS source URL is empty or undefined"
@@ -163,28 +170,94 @@ export const VideoProvider: React.FC = ({ children }) => {
       return;
     }
 
-    /* Check if HLS is supported and load the video source. */
-    if (Hls.isSupported()) {
-      loadHlsSource(hlsSource);
-    } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
-      videoElem.src = hlsSource;
-    } else {
-      console.error("No HLS support");
+    loadClipSource(videoElem, hls, hlsSource);
+    loadNewClipNode(videoElem, currentClipNode);
+  }, [currentClipNode, hls]);
+
+  /* Whenever a change is made to the video edit, update the total duration. */
+  useEffect(() => {
+    setCurrentTotalDuration(clipsState.totalDuration);
+  }, [clipsState]);
+
+  const onEnded = () => {
+    const { current: videoElem } = videoRef;
+
+    if (!videoElem) {
+      console.error("OnEnded Error: Video element not available");
+      return;
     }
 
-    console.log("Loaded HLS source:", hlsSource);
-  }, [currentClipIndex, hls]);
+    loadNextClip(videoElem);
+  };
+
+  /* On every time update, update the time state variables. */
+  const onTimeUpdate = () => {
+    const { current: videoElem } = videoRef;
+
+    if (!videoElem || !currentClipNode) {
+      console.error("TimeUpdate Error: Video element not available");
+      return;
+    }
+
+    /* Update state variables for time. */
+    setCurrentClipTime(videoElem.currentTime);
+    setCurrentTotalTime(currentTotalTimePlayed + videoElem.currentTime);
+
+    /* If there is a next clip, play it. */
+    const currentClipDuration = currentClipNode.data.duration;
+    if (currentClipDuration <= currentClipTime) loadNextClip(videoElem);
+  };
+
+  const togglePlaybackState = useCallback(() => {
+    const { current: videoElem } = videoRef;
+    if (videoElem) {
+      if (isPlaying) {
+        videoElem.pause();
+      } else {
+        play(videoElem);
+      }
+
+      setIsPlaying(!isPlaying);
+    }
+  }, [videoRef, isPlaying]);
+
+  const adjustCurrentClipTimeByDelta = useCallback(
+    (delta: number) => {
+      // const { current: videoElement } = videoRef;
+      // if (videoElement) {
+      //   const newTime = videoElement.currentTime + delta;
+      //   const exceedClipEnd = newTime > videoElement.duration;
+      //   const exceedClipStart = newTime < 0;
+      //   if (exceedClipEnd) {
+      //     // TODO: Handle exceed clip end
+      //   } else if (exceedClipStart) {
+      //     // TODO: Handle exceed clip start
+      //   } else {
+      //     videoElement.currentTime = newTime;
+      //   }
+      // }
+    },
+    [videoRef]
+  );
+
+  // Set the currentClip based on clips
+  useEffect(() => {
+    if (clipsState.clips.length == 1) {
+      setCurrentClipNode(clipsState.clips.head!);
+      setCurrentClipTime(0);
+    }
+  }, [clipsState.clips.length]);
 
   return (
     <VideoContext.Provider
       value={{
         videoRef,
         isPlaying,
+        currentClipNode,
         togglePlaybackState,
-        currentClipIndex,
-        isValidClipIndex,
-        currentClipTime,
         adjustCurrentClipTimeByDelta,
+        onTimeUpdate,
+        onEnded,
       }}
     >
       {children}

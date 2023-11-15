@@ -12,14 +12,18 @@
  */
 
 export class DLLNode<T> {
+  id: number;
   data: T;
   prev: DLLNode<T> | null;
   next: DLLNode<T> | null;
+
+  private static counter = 0;
 
   constructor(data: T) {
     this.data = data;
     this.prev = null;
     this.next = null;
+    this.id = DLLNode.counter++;
   }
 }
 
@@ -77,10 +81,19 @@ export class DoublyLinkedList<T> {
   }
 
   /**
-   * Delete all selected nodes in the doubly linked list.
+   * Delete all selected nodes in the doubly linked list that satisfy the
+   * condition `satisfies`. Compute the total amount of value removed using
+   * the `value` function and return it.
+   * @param satisfies Function to check if the node satisfies the condition.
+   * @param value Function to compute the value of the data.
+   * @returns The total amount of value removed from the doubly linked list.
    */
-  deleteSelectedNodes(satisfies: (data: T) => boolean): void {
+  deleteNodes(
+    satisfies: (data: T) => boolean,
+    value: (data: T) => number
+  ): number {
     let current = this.head;
+    let valueRemoved = 0;
 
     while (current) {
       if (satisfies(current.data)) {
@@ -97,26 +110,41 @@ export class DoublyLinkedList<T> {
         }
 
         this.length--;
+
+        valueRemoved += value(current.data);
       }
 
       current = current.next;
     }
+    return valueRemoved;
   }
 
   /**
-   * Append a copy of all selected nodes to the end of the doubly linked list.
+   * Append all selected nodes in the doubly linked list that satisfy the
+   * condition `satisfies`. Compute the total amount of value added using
+   * the `value` function and return it.
+   * @param satisfies Function to check if the node satisfies the condition.
+   * @param value Function to compute the value of the data.
+   * @returns The total amount of value added to the doubly linked list.
    */
-  appendSelectedNodes(satisfies: (data: T) => boolean): void {
+  appendNodes(
+    satisfies: (data: T) => boolean,
+    value: (data: T) => number
+  ): number {
     let current = this.head;
+    let valueAdded = 0;
 
     while (current) {
       if (satisfies(current.data)) {
         // Make a copy of the node's data and append it to the list
         this.append({ ...current.data });
+        valueAdded += value(current.data);
       }
 
       current = current.next;
     }
+
+    return valueAdded;
   }
 
   /**
@@ -223,28 +251,6 @@ export class DoublyLinkedList<T> {
         this.length++;
       }
     }
-  }
-
-  /**
-   * Map a function over all nodes in the doubly linked list while keeping track of the accumulated sum.
-   * @param mapper A function to map over the nodes, taking both data and accumulated sum.
-   * @returns An array containing the result of applying the mapper function to each node.
-   */
-  mapWithAccumulatedSum(
-    mapper: (data: T, accumulatedSum: number) => any,
-    value: (data: T) => number
-  ): any[] {
-    let current = this.head;
-    let accumulatedSum = 0;
-    const results: any[] = [];
-
-    while (current) {
-      results.push(mapper(current.data, accumulatedSum));
-      accumulatedSum += value(current.data);
-      current = current.next;
-    }
-
-    return results;
   }
 
   print(printFunction: (data: T) => void): void {
