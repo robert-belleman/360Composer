@@ -8,6 +8,11 @@
  * - VideoPreview: The main Component rendering the video preview using A-Frame.
  * - VideoControls: A Component containing video playback controls.
  *
+ * TODO potential performance improvements
+ *  - lazy loading
+ *  - optimize video size and resolution
+ *  - caching
+ *
  */
 
 import React, { useContext, useEffect, useRef, useState } from "react";

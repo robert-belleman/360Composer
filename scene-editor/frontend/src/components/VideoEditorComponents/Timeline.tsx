@@ -13,6 +13,7 @@
 
 import React, { useEffect, useState } from "react";
 
+/* Third Party Imports */
 import {
   AppBar,
   Box,
@@ -22,7 +23,6 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
@@ -34,14 +34,13 @@ import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 
+/* Project Specific Imports */
 import TimelineArea from "./TimelineComponents/TimelineArea";
-
 import {
   MINIMUM_CLIP_LENGTH,
   TIMELINE_HEIGHT,
   TIMELINE_SLIDER_STEP,
 } from "./Constants";
-
 import {
   DELETE_CLIPS,
   DUPLICATE_CLIPS,
@@ -49,6 +48,7 @@ import {
   SPLIT_CLIP,
   UNDO,
   canRedo,
+  canSplit,
   canUndo,
   seekClip,
   useClipsContext,
@@ -59,6 +59,31 @@ import { useVideoContext } from "./VideoContext";
 const ZOOM_FRACTIONS_PER_LEVEL = [1, 0.8, 0.6, 0.4, 0.2];
 /* The fraction to move the window when moving left or right. */
 const WINDOW_TICKS = 0.1;
+
+/**
+ * Convert seconds to a user friendly display format.
+ * @param totalSeconds Total amount of seconds to convert.
+ * @returns The time string.
+ */
+const toDisplayTime = (totalSeconds: number) => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = (totalSeconds % 60).toFixed(2);
+  const strMinutes = minutes < 10 ? "0" + minutes : minutes.toString();
+  const strSeconds = seconds.padStart(5, "0");
+  return `${strMinutes}:${strSeconds}`;
+};
+
+const TimelineButton: React.FC<{
+  disabled: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+}> = ({ disabled, onClick, icon }) => {
+  return (
+    <IconButton disabled={disabled} onClick={onClick}>
+      {icon}
+    </IconButton>
+  );
+};
 
 const Timeline: React.FC = () => {
   const {
@@ -87,16 +112,21 @@ const Timeline: React.FC = () => {
   const [upperBound, setUpperBound] = useState(1);
 
   /**
-   * Convert seconds to a user friendly display format.
-   * @param totalSeconds Total amount of seconds to convert.
-   * @returns The time string.
+   * Change the video time whenever the Slider value changes.
+   * @param event
+   * @param time
    */
-  const toDisplayTime = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = (totalSeconds % 60).toFixed(2);
-    const strMinutes = minutes < 10 ? "0" + minutes : minutes.toString();
-    const strSeconds = seconds.padStart(5, "0");
-    return `${strMinutes}:${strSeconds}`;
+  const handleTimeChange = (event: Event, time: number | number[]) => {
+    if (typeof time === "number") {
+      const result = seekClip(clipsState, time);
+      if (result.node) {
+        setIsSeeking(true);
+        setVideoClipTimePlayed(time - result.offset);
+        setVideoClipTime(result.offset);
+        setCurrentNode(result.node);
+        setCurrentTime(time);
+      }
+    }
   };
 
   /**
@@ -145,189 +175,72 @@ const Timeline: React.FC = () => {
     setUpperBound(upper);
   };
 
-  const handleTimeChange = (event: Event, time: number | number[]) => {
-    if (typeof time === "number") {
-      const result = seekClip(clipsState, time);
-      if (result.node) {
-        setIsSeeking(true);
-        setVideoClipTimePlayed(time - result.offset);
-        setVideoClipTime(result.offset);
-        setCurrentNode(result.node);
-        setCurrentTime(time);
-      }
+  const anySelected = () => {
+    return selectedNodes.length == 0; // TODO: not checking for selected.
+  };
+
+  /* Clip manipulation functions. */
+  const handleUndo = () => dispatch({ type: UNDO });
+  const handleRedo = () => dispatch({ type: REDO });
+  const handleSplitClip = () => {
+    dispatch({ type: SPLIT_CLIP, payload: { time: currentTime } });
+  };
+  const handleDuplicateClips = () => {
+    const amountSelected = selectedNodes.length;
+    dispatch({ type: DUPLICATE_CLIPS, payload: { indices: selectedNodes } });
+
+    /* Select the newly added nodes. */
+    let current = clipsState.clips.tail;
+    let newNodes = [];
+    for (let i = 0; i < amountSelected; i++) {
+      newNodes.push(current!.id);
+      current = current!.prev;
+    }
+    setSelectedNodes(newNodes);
+  };
+  const handleDeleteClips = () => {
+    const resetCurrentNode = currentNode?.selected || false;
+    dispatch({ type: DELETE_CLIPS, payload: { indices: selectedNodes } });
+    if (resetCurrentNode) setCurrentNode(clipsState.clips.head || undefined);
+
+    /* Deselect all nodes */
+    setSelectedNodes([]);
+  };
+
+  /* Window manipulation functions. */
+  const canMoveLeft = () => lowerBound > 0 && clipsState.clips.length > 0;
+  const canMoveRight = () => upperBound < 1 && clipsState.clips.length > 0;
+  const canZoomOut = () => zoomLevel > 0 && clipsState.clips.length > 0;
+  const canZoomIn = () => {
+    return (
+      zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 &&
+      clipsState.clips.length > 0
+    );
+  };
+  const canResetZoom = () => zoomLevel !== 0;
+  const moveLeft = () => moveWindow(-WINDOW_TICKS);
+  const moveRight = () => moveWindow(WINDOW_TICKS);
+  const zoomOut = () => {
+    if (canZoomOut()) {
+      setZoomLevel(zoomLevel - 1);
+      zoomWindow(-1);
     }
   };
-
-  const UndoButton = () => {
-    const handleUndo = () => {
-      dispatch({ type: UNDO });
-    };
-    return (
-      <IconButton disabled={!canUndo(clipsState)} onClick={handleUndo}>
-        <UndoIcon />
-      </IconButton>
-    );
+  const zoomIn = () => {
+    if (canZoomIn()) {
+      setZoomLevel(zoomLevel + 1);
+      zoomWindow(1);
+    }
   };
-
-  const RedoButton = () => {
-    const handleRedo = () => {
-      dispatch({ type: REDO });
-    };
-
-    return (
-      <IconButton disabled={!canRedo(clipsState)} onClick={handleRedo}>
-        <RedoIcon />
-      </IconButton>
-    );
-  };
-
-  const SplitButton = () => {
-    const canSplit = () => {
-      return MINIMUM_CLIP_LENGTH < currentDuration;
-    };
-
-    const handleSplitClip = (time: number) => {
-      dispatch({ type: SPLIT_CLIP, payload: { time: time } });
-    };
-    return (
-      <IconButton
-        disabled={!canSplit()}
-        onClick={() => handleSplitClip(currentTime)}
-      >
-        <ContentCutIcon />
-      </IconButton>
-    );
-  };
-
-  const DeleteButton = () => {
-    const handleDeleteClips = () => {
-      const resetCurrentNode = currentNode?.selected || false;
-      dispatch({ type: DELETE_CLIPS, payload: { indices: selectedNodes } });
-      if (resetCurrentNode) setCurrentNode(clipsState.clips.head || undefined);
-
-      /* Deselect all nodes */
-      setSelectedNodes([]);
-    };
-    return (
-      <IconButton
-        disabled={selectedNodes.length == 0}
-        onClick={() => handleDeleteClips()}
-      >
-        <DeleteIcon />
-      </IconButton>
-    );
-  };
-
-  const DuplicateButton = () => {
-    const handleDuplicateClips = () => {
-      const amountSelected = selectedNodes.length;
-      dispatch({ type: DUPLICATE_CLIPS, payload: { indices: selectedNodes } });
-
-      /* Select the newly added nodes. */
-      let current = clipsState.clips.tail;
-      let newNodes = [];
-      for (let i = 0; i < amountSelected; i++) {
-        newNodes.push(current!.id);
-        current = current!.prev;
-      }
-      setSelectedNodes(newNodes);
-    };
-    return (
-      <IconButton
-        disabled={selectedNodes.length == 0}
-        onClick={() => handleDuplicateClips()}
-      >
-        <ContentCopyIcon />
-      </IconButton>
-    );
-  };
-
-  const MoveLeftButton = () => {
-    const canMoveLeft = () => {
-      return lowerBound > 0 && clipsState.clips.length > 0;
-    };
-
-    const moveLeft = () => moveWindow(-WINDOW_TICKS);
-
-    return (
-      <IconButton disabled={!canMoveLeft()} onClick={moveLeft}>
-        <ArrowBackIosNewIcon />
-      </IconButton>
-    );
-  };
-
-  const MoveRightButton = () => {
-    const canMoveRight = () => {
-      return upperBound < 1 && clipsState.clips.length > 0;
-    };
-
-    const moveRight = () => moveWindow(WINDOW_TICKS);
-
-    return (
-      <IconButton disabled={!canMoveRight()} onClick={moveRight}>
-        <ArrowForwardIosIcon />
-      </IconButton>
-    );
-  };
-
-  const ZoomOutButton = () => {
-    const canZoomOut = () => {
-      return zoomLevel > 0 && clipsState.clips.length > 0;
-    };
-
-    const zoomOut = () => {
-      if (canZoomOut()) {
-        setZoomLevel(zoomLevel - 1);
-        zoomWindow(-1);
-      }
-    };
-
-    return (
-      <IconButton disabled={!canZoomOut()} onClick={zoomOut}>
-        <ZoomOutIcon />
-      </IconButton>
-    );
-  };
-
-  const ZoomInButton = () => {
-    const canZoomIn = () => {
-      return (
-        zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 &&
-        clipsState.clips.length > 0
-      );
-    };
-
-    const zoomIn = () => {
-      if (canZoomIn()) {
-        setZoomLevel(zoomLevel + 1);
-        zoomWindow(1);
-      }
-    };
-
-    return (
-      <IconButton disabled={!canZoomIn()} onClick={zoomIn}>
-        <ZoomInIcon />
-      </IconButton>
-    );
-  };
-
-  const ZoomFitButton = () => {
-    const resetZoom = () => {
-      const zoomLvl = 0;
-      setZoomLevel(zoomLvl);
-      setLowerBound(0);
-      setUpperBound(1);
-    };
-
-    return (
-      <IconButton disabled={zoomLevel === 0} onClick={() => resetZoom()}>
-        <CloseFullscreenIcon />
-      </IconButton>
-    );
+  const resetZoom = () => {
+    const zoomLvl = 0;
+    setZoomLevel(zoomLvl);
+    setLowerBound(0);
+    setUpperBound(1);
   };
 
   const TimelineBar = () => {
-    const Timer = () => {
+    const DisplayTime = () => {
       return (
         <Typography display="flex" alignItems="center" color={"black"}>
           {toDisplayTime(currentTime)}/{toDisplayTime(currentDuration)}
@@ -338,19 +251,59 @@ const Timeline: React.FC = () => {
     return (
       <AppBar position="static">
         <Toolbar variant="dense">
-          <UndoButton />
-          <RedoButton />
-          <SplitButton />
-          <DeleteButton />
-          <DuplicateButton />
+          <TimelineButton
+            disabled={!canUndo(clipsState)}
+            onClick={handleUndo}
+            icon={<UndoIcon />}
+          />
+          <TimelineButton
+            disabled={!canRedo(clipsState)}
+            onClick={handleRedo}
+            icon={<RedoIcon />}
+          />
+          <TimelineButton
+            disabled={!canSplit(clipsState)}
+            onClick={handleSplitClip}
+            icon={<ContentCutIcon />}
+          />
+          <TimelineButton
+            disabled={!anySelected()}
+            onClick={handleDeleteClips}
+            icon={<DeleteIcon />}
+          />
+          <TimelineButton
+            disabled={!anySelected()}
+            onClick={handleDuplicateClips}
+            icon={<ContentCopyIcon />}
+          />
           <Box flexGrow={1} display="flex" justifyContent="center">
-            <Timer />
+            <DisplayTime />
           </Box>
-          <MoveLeftButton />
-          <MoveRightButton />
-          <ZoomOutButton />
-          <ZoomInButton />
-          <ZoomFitButton />
+          <TimelineButton
+            disabled={!canMoveLeft()}
+            onClick={moveLeft}
+            icon={<ArrowBackIosNewIcon />}
+          />
+          <TimelineButton
+            disabled={!canMoveRight()}
+            onClick={moveRight}
+            icon={<ArrowForwardIosIcon />}
+          />
+          <TimelineButton
+            disabled={!canZoomOut()}
+            onClick={zoomOut}
+            icon={<ZoomOutIcon />}
+          />
+          <TimelineButton
+            disabled={!canZoomIn()}
+            onClick={zoomIn}
+            icon={<ZoomInIcon />}
+          />
+          <TimelineButton
+            disabled={!canResetZoom()}
+            onClick={resetZoom}
+            icon={<CloseFullscreenIcon />}
+          />
         </Toolbar>
       </AppBar>
     );

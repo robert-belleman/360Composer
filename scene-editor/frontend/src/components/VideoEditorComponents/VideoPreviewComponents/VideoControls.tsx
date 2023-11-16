@@ -24,6 +24,51 @@ type VideoControlsProps = {
   play: (videoElem: HTMLVideoElement) => void;
 };
 
+const RewindIconButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  return (
+    <IconButton
+      id="rewindButton"
+      onClick={onClick}
+      color="primary"
+      size="large"
+      aria-label="Rewind 5 seconds"
+    >
+      <Replay5Icon />
+    </IconButton>
+  );
+};
+
+const PlayPauseIconButton: React.FC<{
+  onClick: () => void;
+  isPlaying: boolean;
+}> = ({ onClick, isPlaying }) => {
+  return (
+    <IconButton
+      id="playPauseButton"
+      onClick={onClick}
+      color="primary"
+      size="large"
+      aria-label={isPlaying ? "Pause" : "Play"}
+    >
+      {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+    </IconButton>
+  );
+};
+
+const ForwardIconButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  return (
+    <IconButton
+      id="forwardButton"
+      onClick={onClick}
+      color="primary"
+      size="large"
+      aria-label="Forward 5 seconds"
+    >
+      <Forward5Icon />
+    </IconButton>
+  );
+};
+
 const VideoControls: React.FC<VideoControlsProps> = ({ videoRef, play }) => {
   const { isPlaying, setIsPlaying } = useVideoContext();
 
@@ -47,68 +92,26 @@ const VideoControls: React.FC<VideoControlsProps> = ({ videoRef, play }) => {
    * @param delta The number of seconds to add or subtract.
    */
   const addTime = (delta: number) => {
-    const { current: videoElement } = videoRef;
-    if (videoElement) {
-      const newTime = videoElement.currentTime + delta;
-      const exceedClipEnd = newTime > videoElement.duration;
+    const { current: videoElem } = videoRef;
+    if (videoElem) {
+      const newTime = videoElem.currentTime + delta;
+      const exceedClipEnd = newTime > videoElem.duration;
       const exceedClipStart = newTime < 0;
       if (exceedClipEnd) {
         // TODO: Handle exceed clip end
       } else if (exceedClipStart) {
         // TODO: Handle exceed clip start
       } else {
-        videoElement.currentTime = newTime;
+        videoElem.currentTime = newTime;
       }
     }
   };
 
-  const RewindIconButton = React.memo(() => {
-    return (
-      <IconButton
-        id="rewindButton"
-        onClick={() => addTime(-5)}
-        color="primary"
-        size="large"
-        aria-label="Rewind 5 seconds"
-      >
-        <Replay5Icon />
-      </IconButton>
-    );
-  });
-
-  const PlayPauseIconButton = React.memo(() => {
-    return (
-      <IconButton
-        id="playPauseButton"
-        onClick={togglePlayback}
-        color="primary"
-        size="large"
-        aria-label={isPlaying ? "Pause" : "Play"}
-      >
-        {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-      </IconButton>
-    );
-  });
-
-  const ForwardIconButton = React.memo(() => {
-    return (
-      <IconButton
-        id="forwardButton"
-        onClick={() => addTime(5)}
-        color="primary"
-        size="large"
-        aria-label="Forward 5 seconds"
-      >
-        <Forward5Icon />
-      </IconButton>
-    );
-  });
-
   return (
     <Box height="auto" display="flex" justifyContent="center">
-      <RewindIconButton />
-      <PlayPauseIconButton />
-      <ForwardIconButton />
+      <RewindIconButton onClick={() => addTime(-5)} />
+      <PlayPauseIconButton isPlaying={isPlaying} onClick={togglePlayback} />
+      <ForwardIconButton onClick={() => addTime(5)} />
     </Box>
   );
 };

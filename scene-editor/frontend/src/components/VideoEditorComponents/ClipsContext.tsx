@@ -204,6 +204,17 @@ const canRedo = (state: State): boolean => {
 };
 
 /**
+ * Check if the clip can be split.
+ * Used for disabling buttons in certain situations.
+ * @param state
+ * @returns boolean
+ */
+const canSplit = (state: State) => {
+  return MINIMUM_CLIP_LENGTH < state.totalDuration;
+};
+
+
+/**
  * Record the current state in the history.
  * @param state the current state to record.
  * @param maxPastStates number of states to store at most.
@@ -322,6 +333,7 @@ export {
   ClipsProvider,
   canRedo,
   canUndo,
+  canSplit,
   thumbnailUrl,
   useClipsContext,
   printClips,
