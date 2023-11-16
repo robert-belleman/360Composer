@@ -1,15 +1,23 @@
-// VideoContext.tsx
+/**
+ * VideoContext.tsx
+ *
+ * Description:
+ * This file defines a React Context for the video, which is all the video
+ * clips in the timeline combined. The context, VideoContext, encapsulates
+ * the state of video clips between different files.
+ *
+ */
 
 import React, {
-  createContext,
-  useContext,
-  useState,
   Dispatch,
   SetStateAction,
+  createContext,
+  useContext,
   useEffect,
+  useState,
 } from "react";
 import { DLLNode } from "../../components/VideoEditorComponents/DoublyLinkedList";
-import { Clip, useClipsContext } from "./ClipsContext";
+import { Clip, seekClip, useClipsContext } from "./ClipsContext";
 
 interface VideoContextProps {
   isPlaying: boolean;
@@ -25,11 +33,12 @@ interface VideoContextProps {
   setCurrentTime: Dispatch<SetStateAction<number>>;
   setVideoClipTime: Dispatch<SetStateAction<number>>;
   setVideoClipTimePlayed: Dispatch<SetStateAction<number>>;
+  seek: (time: number) => void;
 }
 
 const VideoContext = createContext<VideoContextProps | undefined>(undefined);
 
-export const VideoProvider: React.FC = ({ children }) => {
+const VideoProvider: React.FC = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
   const [currentNode, setCurrentNode] = useState<DLLNode<Clip>>();
@@ -51,6 +60,45 @@ export const VideoProvider: React.FC = ({ children }) => {
     setCurrentDuration(clipsState.totalDuration);
   }, [clipsState.totalDuration]);
 
+  /**
+   * Go to a specific time in the entire video (all clips).
+   * @param time time to got to.
+   */
+  const seek = (time: number) => {
+    const result = seekClip(clipsState, time);
+
+    if (result.node) {
+      /* If `time` is in range, go to it. */
+      setIsSeeking(true);
+      setVideoClipTimePlayed(time - result.offset);
+      setVideoClipTime(result.offset);
+      setCurrentNode(result.node);
+      setCurrentTime(time);
+      return;
+    }
+
+    if (time < 0) {
+      setIsSeeking(true);
+      setVideoClipTimePlayed(0);
+      setVideoClipTime(0);
+      setCurrentTime(0);
+      if (clipsState.clips.head) setCurrentNode(clipsState.clips.head);
+      return;
+    }
+
+    if (time > clipsState.totalDuration) {
+      setIsSeeking(true);
+      setCurrentTime(clipsState.totalDuration);
+      if (clipsState.clips.tail) {
+        const lastClip = clipsState.clips.tail.data;
+        setVideoClipTimePlayed(clipsState.totalDuration - lastClip.duration);
+        setVideoClipTime(lastClip.duration);
+        setCurrentNode(clipsState.clips.tail);
+      }
+      return;
+    }
+  };
+
   const value: VideoContextProps = {
     isPlaying,
     isSeeking,
@@ -65,6 +113,7 @@ export const VideoProvider: React.FC = ({ children }) => {
     setCurrentTime,
     setVideoClipTime,
     setVideoClipTimePlayed,
+    seek,
   };
 
   return (
@@ -72,10 +121,12 @@ export const VideoProvider: React.FC = ({ children }) => {
   );
 };
 
-export const useVideoContext = (): VideoContextProps => {
+const useVideoContext = (): VideoContextProps => {
   const context = useContext(VideoContext);
   if (!context) {
     throw new Error("useVideoContext must be used within a VideoProvider");
   }
   return context;
 };
+
+export { VideoProvider, useVideoContext };

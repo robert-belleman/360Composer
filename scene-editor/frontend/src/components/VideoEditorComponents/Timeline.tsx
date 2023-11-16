@@ -19,13 +19,10 @@ import React from "react";
 import { Box, Paper, Slider } from "@mui/material";
 
 /* Project Specific Imports */
-import { seekClip, useClipsContext } from "./ClipsContext";
+import { useClipsContext } from "./ClipsContext";
 import { TIMELINE_HEIGHT, TIMELINE_SLIDER_STEP } from "./Constants";
 import TimelineArea from "./TimelineComponents/TimelineArea";
-import {
-  toDisplayTime,
-  useTimelineContext,
-} from "./TimelineComponents/TimelineContext";
+import { useTimelineContext } from "./TimelineComponents/TimelineContext";
 import TimelineControls from "./TimelineComponents/TimelineControls";
 import { useVideoContext } from "./VideoContext";
 
@@ -40,6 +37,7 @@ const Timeline: React.FC = () => {
     setCurrentTime,
     setVideoClipTime,
     setVideoClipTimePlayed,
+    seek,
   } = useVideoContext();
 
   /**
@@ -48,16 +46,7 @@ const Timeline: React.FC = () => {
    * @param time
    */
   const handleTimeChange = (event: Event, time: number | number[]) => {
-    if (typeof time === "number") {
-      const result = seekClip(clipsState, time);
-      if (result.node) {
-        setIsSeeking(true);
-        setVideoClipTimePlayed(time - result.offset);
-        setVideoClipTime(result.offset);
-        setCurrentNode(result.node);
-        setCurrentTime(time);
-      }
-    }
+    if (typeof time === "number") seek(time);
   };
 
   /**
@@ -82,8 +71,6 @@ const Timeline: React.FC = () => {
             step={TIMELINE_SLIDER_STEP}
             value={currentTime}
             onChange={handleTimeChange}
-            valueLabelFormat={(currentTime) => toDisplayTime(currentTime)}
-            valueLabelDisplay="auto"
           />
         </Box>
       </Box>

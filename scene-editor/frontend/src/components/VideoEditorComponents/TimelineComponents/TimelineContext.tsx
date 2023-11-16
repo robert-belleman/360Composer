@@ -60,17 +60,4 @@ const useTimelineContext = (): TimelineSettings => {
   return context;
 };
 
-/**
- * Convert seconds to a user friendly display format.
- * @param totalSeconds Total amount of seconds to convert.
- * @returns The time string.
- */
-const toDisplayTime = (totalSeconds: number) => {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = (totalSeconds % 60).toFixed(2);
-  const strMinutes = minutes < 10 ? "0" + minutes : minutes.toString();
-  const strSeconds = seconds.padStart(5, "0");
-  return `${strMinutes}:${strSeconds}`;
-};
-
-export { TimelineSettingsProvider, toDisplayTime, useTimelineContext };
+export { TimelineSettingsProvider, useTimelineContext };

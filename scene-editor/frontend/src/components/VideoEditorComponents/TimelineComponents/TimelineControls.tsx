@@ -37,7 +37,7 @@ import {
   useClipsContext,
 } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
-import { toDisplayTime, useTimelineContext } from "./TimelineContext";
+import { useTimelineContext } from "./TimelineContext";
 
 /* The fraction that should be displayed per zoom level. */
 const ZOOM_FRACTIONS_PER_LEVEL = [1, 0.8, 0.6, 0.4, 0.2];
@@ -160,6 +160,19 @@ const TimelineControls: React.FC = () => {
       setZoomLevel(zoomLevel + 1);
       zoomWindow(1);
     }
+  };
+
+  /**
+   * Convert seconds to a user friendly display format. Note that the fractional
+   * part of the seconds is not shown as the duratino is stored as an integer.
+   * @param totalSeconds Total amount of seconds to convert.
+   * @returns The time string.
+   */
+  const toDisplayTime = (totalSeconds: number) => {
+    const clamped = Math.min(Math.max(totalSeconds, 0), currentDuration);
+    const minutes = String(Math.floor(clamped / 60)).padStart(2, "0");
+    const seconds = String(Math.floor(clamped % 60)).padStart(2, "0");
+    return `${minutes}:${seconds}`;
   };
 
   const DisplayTime = () => {

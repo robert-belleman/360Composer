@@ -15,7 +15,7 @@
  *
  */
 
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 
 import { Assets, Scene, Sky } from "@belivvr/aframe-react";
 
@@ -35,8 +35,6 @@ const VideoPreview: React.FC = () => {
 
   const hls = useContext<Hls | undefined>(HlsContext);
   const { state: clipsState } = useClipsContext();
-
-  const [checkEnded, setCheckEnded] = useState(false);
 
   const {
     isPlaying,
@@ -84,10 +82,9 @@ const VideoPreview: React.FC = () => {
     /* If there is no next video clip, then stop. */
     if (!currentNode || !currentNode.next) {
       setIsPlaying(false);
+      videoElem.pause();
       return;
     }
-
-    // TODO: fix Error playing video: DOMException: The play() request was interrupted by a new load request.
 
     const timePlayed = currentNode.data.duration;
     setVideoClipTimePlayed(videoClipTimePlayed + timePlayed);
@@ -149,10 +146,6 @@ const VideoPreview: React.FC = () => {
 
     if (!isSeeking) videoElem.currentTime = currentClip.startTime;
 
-    /* Only check if clip ended in onTimeUpdate if it is early enough. */
-    const delta = currentNode.data.duration - videoElem.duration;
-    setCheckEnded(MINIMUM_CLIP_LENGTH < delta);
-
     if (isPlaying) playVideoClip(videoElem);
   }, [currentNode, hls]);
 
@@ -171,11 +164,13 @@ const VideoPreview: React.FC = () => {
     setVideoClipTime(videoElem.currentTime);
     setCurrentTime(videoElem.currentTime + videoClipTimePlayed);
 
-    /* Ensure that it does not chain with onEnded(). */
-    if (checkEnded) {
-      /* If clip ended before source ended, play the next one. */
-      const clipDuration = currentNode.data.duration;
-      if (clipDuration <= videoClipTime) playNextVideoClip();
+    const currentClip = currentNode.data;
+    /* If the duration of the clip has been exceeded, play the next clip. */
+    if (currentClip.duration <= videoElem.currentTime) {
+      /* Try not to overlap with the onEnded() function. */
+      const delta = currentClip.asset.duration - currentClip.duration;
+      const overlapping = delta < MINIMUM_CLIP_LENGTH;
+      if (!overlapping) playNextVideoClip();
     }
   };
 
@@ -198,6 +193,7 @@ const VideoPreview: React.FC = () => {
     const { current: videoElem } = videoRef;
 
     if (isSeeking && videoElem) {
+      /* Is already on startTime by useEffect with [currentNode, hls] */
       videoElem.currentTime = videoClipTime;
       setIsSeeking(false);
     }

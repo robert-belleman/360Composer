@@ -70,7 +70,8 @@ const ForwardIconButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
 };
 
 const VideoControls: React.FC<VideoControlsProps> = ({ videoRef, play }) => {
-  const { isPlaying, setIsPlaying } = useVideoContext();
+  const { isPlaying, setIsPlaying, currentNode, currentTime, seek } =
+    useVideoContext();
 
   /**
    * Pause or resume playback of the video.
@@ -97,10 +98,8 @@ const VideoControls: React.FC<VideoControlsProps> = ({ videoRef, play }) => {
       const newTime = videoElem.currentTime + delta;
       const exceedClipEnd = newTime > videoElem.duration;
       const exceedClipStart = newTime < 0;
-      if (exceedClipEnd) {
-        // TODO: Handle exceed clip end
-      } else if (exceedClipStart) {
-        // TODO: Handle exceed clip start
+      if (exceedClipEnd || exceedClipStart) {
+        if (currentNode) seek(currentTime + delta);
       } else {
         videoElem.currentTime = newTime;
       }

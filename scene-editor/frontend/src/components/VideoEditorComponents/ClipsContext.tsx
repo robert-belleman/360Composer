@@ -331,5 +331,5 @@ export {
   seekClip,
   thumbnailUrl,
   useClipsContext,
-  visibleClips,
+  visibleClips
 };
