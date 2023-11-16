@@ -15,16 +15,20 @@ import React from "react";
 import { Box } from "@mui/material";
 
 import { Clip, useClipsContext, visibleClips } from "../ClipsContext";
-import TimelineClip from "./TimelineClip";
 import { DLLNode } from "../DoublyLinkedList";
+import TimelineClip from "./TimelineClip";
 
 type TimelineLayerProps = {
   bounds: { lowerBound: number; upperBound: number };
-  selected: number[];
-  setSelected: React.Dispatch<React.SetStateAction<number[]>>
+  selected: number;
+  setSelected: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds, selected, setSelected }) => {
+const TimelineArea: React.FC<TimelineLayerProps> = ({
+  bounds,
+  selected,
+  setSelected,
+}) => {
   const { state: clipsState } = useClipsContext();
 
   const renderVisibleClips = () => {

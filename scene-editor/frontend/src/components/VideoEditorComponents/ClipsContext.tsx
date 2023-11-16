@@ -30,7 +30,7 @@ import React, { ReactNode, createContext, useContext, useReducer } from "react";
 import defaultImage from "../../static/images/default.jpg";
 import { Asset } from "./AssetsContext";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
-import { DoublyLinkedList } from "./DoublyLinkedList";
+import { DLLNode, DoublyLinkedList } from "./DoublyLinkedList";
 
 export interface Clip {
   asset: Asset; // Reference to an asset.
@@ -56,8 +56,8 @@ export const REDO = "REDO";
 type Action =
   | { type: typeof APPEND_CLIP; payload: { clip: Clip } }
   | { type: typeof SPLIT_CLIP; payload: { time: number } }
-  | { type: typeof DELETE_CLIPS; payload: { indices: number[] } }
-  | { type: typeof DUPLICATE_CLIPS; payload: { indices: number[] } }
+  | { type: typeof DELETE_CLIPS }
+  | { type: typeof DUPLICATE_CLIPS }
   | { type: typeof UNDO }
   | { type: typeof REDO };
 
@@ -78,14 +78,15 @@ const initialState: State = {
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case APPEND_CLIP: {
-      const [newPast, newFuture] = setState(state);
       const { clip } = action.payload;
-      state.clips.append(clip);
-      const newState = { ...state, clips: state.clips };
+      let newClips = state.clips.copy();
+      newClips.append(clip);
+      const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);
+      const newFuture = [] as State[];
       const newDuration = state.totalDuration + clip.duration;
-
       return {
-        ...newState,
+        ...state,
+        clips: newClips,
         past: newPast,
         future: newFuture,
         totalDuration: newDuration,
@@ -93,21 +94,25 @@ const reducer = (state: State, action: Action): State => {
     }
 
     case SPLIT_CLIP: {
-      const [newPast, newFuture] = setState(state);
       const { time } = action.payload;
-      state.clips.split(time, getElapsedTime, splitClip);
-      const newState = { ...state, clips: state.clips };
-      return { ...newState, past: newPast, future: newFuture };
+      let newClips = state.clips.copy();
+      if (!newClips.split(time, getElapsedTime, splitClip)) {
+        return state;
+      }
+      const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);
+      const newFuture = [] as State[];
+      return { ...state, clips: newClips, past: newPast, future: newFuture };
     }
 
     case DELETE_CLIPS: {
-      const [newPast, newFuture] = setState(state);
-      const { indices } = action.payload;
-      const durationLost = state.clips.deleteNodes(indices, getElapsedTime);
+      let newClips = state.clips.copy();
+      const durationLost = newClips.deleteNodes(isSelected, getElapsedTime);
+      const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);
+      const newFuture = [] as State[];
       const newDuration = state.totalDuration - durationLost;
-      const newState = { ...state, clips: state.clips };
       return {
-        ...newState,
+        ...state,
+        clips: newClips,
         past: newPast,
         future: newFuture,
         totalDuration: newDuration,
@@ -115,13 +120,14 @@ const reducer = (state: State, action: Action): State => {
     }
 
     case DUPLICATE_CLIPS: {
-      const [newPast, newFuture] = setState(state);
-      const { indices } = action.payload;
-      const durationAdded = state.clips.appendNodes(indices, getElapsedTime);
+      let newClips = state.clips.copy();
+      const durationAdded = newClips.appendNodes(isSelected, getElapsedTime);
+      const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);
+      const newFuture = [] as State[];
       const newDuration = state.totalDuration + durationAdded;
-      const newState = { ...state, clips: state.clips };
       return {
-        ...newState,
+        ...state,
+        clips: newClips,
         past: newPast,
         future: newFuture,
         totalDuration: newDuration,
@@ -134,7 +140,7 @@ const reducer = (state: State, action: Action): State => {
       }
 
       const newPast = state.past.slice(0, state.past.length - 1);
-      const newState = state.past[state.past.length - 1];
+      const newState = { ...state.past[state.past.length - 1] };
       const newFuture = [state, ...state.future];
       return { ...newState, past: newPast, future: newFuture };
     }
@@ -178,18 +184,8 @@ const useClipsContext = (): ClipsContextProps => {
   return context;
 };
 
-const printClips = (
-  state: State,
-  printAsset: boolean = false,
-  printStartTime: boolean = false,
-  printDuration: boolean = false
-) => {
-  console.log("All Clip Information");
-  state.clips.print((clip: Clip) => {
-    if (printAsset) console.log(`Asset: ${clip.asset}`);
-    if (printStartTime) console.log(`startTime: ${clip.startTime}`);
-    if (printDuration) console.log(`Duration: ${clip.duration}`);
-  });
+const durationToString = (state: State, sep: string = " ") => {
+  return state.clips.toString((clip: Clip) => clip.duration.toFixed(2), sep);
 };
 
 /**
@@ -211,6 +207,15 @@ const thumbnailUrl = (clip: Clip) => {
   return clip.asset.thumbnail_path
     ? `/api/asset/${clip.asset.id}/thumbnail`
     : defaultImage;
+};
+
+/**
+ * Indicate if the node is selected.
+ * @param node node to check.
+ * @returns boolean.
+ */
+const isSelected = (node: DLLNode<Clip>) => {
+  return node.selected;
 };
 
 /**
@@ -316,27 +321,15 @@ const canSplit = (state: State) => {
   return MINIMUM_CLIP_LENGTH < state.totalDuration;
 };
 
-/**
- * Record the current state in the history.
- * @param state the current state to record.
- * @param maxPastStates number of states to store at most.
- * @returns the new states of the past and future.
- */
-const setState = (state: State, maxPastStates: number = CLIP_UNDO_STATES) => {
-  const newPast = [...state.past, state].slice(-maxPastStates);
-  const newFuture = [] as State[];
-  return [newPast, newFuture];
-};
-
 export {
   ClipsProvider,
   canRedo,
   canSplit,
   canUndo,
+  durationToString,
   exportClips,
-  printClips,
   seekClip,
   thumbnailUrl,
   useClipsContext,
-  visibleClips
+  visibleClips,
 };

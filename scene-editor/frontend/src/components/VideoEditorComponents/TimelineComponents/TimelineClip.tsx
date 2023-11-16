@@ -9,7 +9,7 @@
  *
  */
 
-import React, { useReducer } from "react";
+import React from "react";
 
 import { Box } from "@mui/material";
 
@@ -21,8 +21,8 @@ import { DLLNode } from "../DoublyLinkedList";
 type TimelineClipProps = {
   node: DLLNode<Clip>;
   visibleLength: number;
-  selected: number[];
-  setSelected: React.Dispatch<React.SetStateAction<number[]>>;
+  selected: number;
+  setSelected: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const TimelineClip: React.FC<TimelineClipProps> = ({
@@ -32,11 +32,12 @@ const TimelineClip: React.FC<TimelineClipProps> = ({
   setSelected,
 }) => {
   const handleClick = (node: DLLNode<Clip>) => {
-    if (selected.includes(node.id)) {
-      setSelected(selected.filter((id) => id !== node.id));
+    if (node.selected) {
+      setSelected(selected - 1);
     } else {
-      setSelected([...selected, node.id]);
+      setSelected(selected + 1);
     }
+    node.selected = !node.selected;
   };
 
   return (
@@ -58,9 +59,7 @@ const TimelineClip: React.FC<TimelineClipProps> = ({
           backgroundSize: "contain",
           border: 4,
           borderRadius: 2,
-          borderColor: selected.includes(node.id)
-            ? "LightGreen"
-            : "transparent",
+          borderColor: node.selected ? "LightGreen" : "transparent",
         }}
       ></Box>
     </Box>

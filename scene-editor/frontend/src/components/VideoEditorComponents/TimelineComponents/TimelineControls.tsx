@@ -9,7 +9,7 @@
  *
  */
 
-import React from "react";
+import React, { memo } from "react";
 
 /* Third Party Imports */
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -48,24 +48,24 @@ const TimelineButton: React.FC<{
   disabled: boolean;
   onClick: () => void;
   icon: React.ReactNode;
-}> = ({ disabled, onClick, icon }) => {
+}> = memo(({ disabled, onClick, icon }) => {
   return (
     <IconButton disabled={disabled} onClick={onClick}>
       {icon}
     </IconButton>
   );
-};
+});
 
 const TimelineControls: React.FC = () => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { currentNode, currentTime, currentDuration, setCurrentNode } =
     useVideoContext();
   const {
-    selectedNodes,
+    selected,
     lowerBound,
     upperBound,
     zoomLevel,
-    setSelectedNodes,
+    setSelected,
     setLowerBound,
     setUpperBound,
     setZoomLevel,
@@ -107,10 +107,6 @@ const TimelineControls: React.FC = () => {
     setUpperBound(upper);
   };
 
-  const anySelected = () => {
-    return selectedNodes.length !== 0; // TODO: not checking for selected.
-  };
-
   /* Clip manipulation functions. */
   const handleUndo = () => {
     dispatch({ type: UNDO });
@@ -122,25 +118,15 @@ const TimelineControls: React.FC = () => {
     dispatch({ type: SPLIT_CLIP, payload: { time: currentTime } });
   };
   const handleDuplicateClips = () => {
-    const amountSelected = selectedNodes.length;
-    dispatch({ type: DUPLICATE_CLIPS, payload: { indices: selectedNodes } });
-
-    /* Select the newly added nodes. */
-    let current = clipsState.clips.tail;
-    let newNodes = [];
-    for (let i = 0; i < amountSelected; i++) {
-      newNodes.push(current!.id);
-      current = current!.prev;
-    }
-    setSelectedNodes(newNodes);
+    dispatch({ type: DUPLICATE_CLIPS });
   };
   const handleDeleteClips = () => {
     const resetCurrentNode = currentNode?.selected || false;
-    dispatch({ type: DELETE_CLIPS, payload: { indices: selectedNodes } });
+    dispatch({ type: DELETE_CLIPS });
     if (resetCurrentNode) setCurrentNode(clipsState.clips.head || undefined);
 
     /* Deselect all nodes */
-    setSelectedNodes([]);
+    setSelected(0);
   };
 
   /* Window manipulation functions. */
@@ -202,12 +188,12 @@ const TimelineControls: React.FC = () => {
           icon={<ContentCutIcon />}
         />
         <TimelineButton
-          disabled={!anySelected()}
+          disabled={selected === 0}
           onClick={handleDeleteClips}
           icon={<DeleteIcon />}
         />
         <TimelineButton
-          disabled={!anySelected()}
+          disabled={selected === 0}
           onClick={handleDuplicateClips}
           icon={<ContentCopyIcon />}
         />

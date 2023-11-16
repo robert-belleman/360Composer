@@ -29,7 +29,7 @@ import { useVideoContext } from "./VideoContext";
 
 const Timeline: React.FC = () => {
   const { state: clipsState } = useClipsContext();
-  const { selectedNodes, lowerBound, upperBound, setSelectedNodes } =
+  const { selected, lowerBound, upperBound, setSelected } =
     useTimelineContext();
   const {
     currentTime,
@@ -95,8 +95,8 @@ const Timeline: React.FC = () => {
       >
         <TimelineArea
           bounds={frac2Seconds()}
-          selected={selectedNodes}
-          setSelected={setSelectedNodes}
+          selected={selected}
+          setSelected={setSelected}
         />
       </Box>
     </Paper>

@@ -20,12 +20,12 @@ export class DLLNode<T> {
 
   private static counter = 0;
 
-  constructor(data: T) {
+  constructor(data: T, select: boolean = false) {
     this.data = data;
     this.prev = null;
     this.next = null;
     this.id = DLLNode.counter++;
-    this.selected = false;
+    this.selected = select;
   }
 }
 
@@ -38,6 +38,42 @@ export class DoublyLinkedList<T> {
     this.head = null;
     this.tail = null;
     this.length = 0;
+  }
+
+  /**
+   * Create a shallow copy of a linked list and all its nodes.
+   * @returns the shallow copy.
+   */
+  copy(): DoublyLinkedList<T> {
+    let copy = new DoublyLinkedList<T>();
+
+    let current = this.head;
+    while (current) {
+      const newNode = new DLLNode({ ...current.data }, current.selected);
+      copy.appendNode(newNode); // Pass by value instead of reference.
+      current = current.next;
+    }
+
+    return copy;
+  }
+
+  /**
+   * Append a node to the end of the list.
+   * @param node the node to be stored.
+   */
+  appendNode(newNode: DLLNode<T>): void {
+    if (!this.head) {
+      // The list is empty
+      this.head = newNode;
+      this.tail = newNode;
+    } else {
+      // Append the new node to the end of the list
+      newNode.prev = this.tail;
+      this.tail!.next = newNode;
+      this.tail = newNode;
+    }
+
+    this.length++;
   }
 
   /**
@@ -62,38 +98,20 @@ export class DoublyLinkedList<T> {
   }
 
   /**
-   * Prepend a new node with data to the beginning of the list.
-   * @param data The data to be stored in the new node.
+   * Delete all nodes that satisfy the condition given by `satisfies`.
+   * @param satisfies the condition to delete a node.
+   * @param value function to indicate how to get the value of data.
+   * @returns the total value removed from the doubly linked list.
    */
-  prepend(data: T): void {
-    const newNode = new DLLNode(data);
-
-    if (!this.head) {
-      // The list is empty
-      this.head = newNode;
-      this.tail = newNode;
-    } else {
-      // Prepend the new node to the beginning of the list
-      newNode.next = this.head;
-      this.head!.prev = newNode;
-      this.head = newNode;
-    }
-
-    this.length++;
-  }
-
-  /**
-   * Delete all selected nodes in the doubly linked list. Compute the total
-   * amount of value removed using the `value` function and return it.
-   * @param value Function to compute the value of the data.
-   * @returns The total amount of value removed from the doubly linked list.
-   */
-  deleteNodes(indices: number[], value: (data: T) => number): number {
+  deleteNodes(
+    satisfies: (node: DLLNode<T>) => boolean,
+    value: (data: T) => number
+  ): number {
     let current = this.head;
     let valueRemoved = 0;
 
     while (current) {
-      if (indices.includes(current.id)) {
+      if (satisfies(current)) {
         if (current.prev) {
           current.prev.next = current.next;
         } else {
@@ -117,20 +135,31 @@ export class DoublyLinkedList<T> {
   }
 
   /**
-   * Append all selected nodes in the doubly linked list. Compute the total
-   * amount of value added using the `value` function and return it.
-   * @param value Function to compute the value of the data.
-   * @returns The total amount of value added to the doubly linked list.
+   * Append all nodes that satisfy the condition given by `satisfies`.
+   * @param satisfies the condition to append a node.
+   * @param value function to indicate how to get the value of data.
+   * @returns the total value appended from the doubly linked list.
    */
-  appendNodes(indices: number[], value: (data: T) => number): number {
+  appendNodes(
+    satisfies: (node: DLLNode<T>) => boolean,
+    value: (data: T) => number
+  ): number {
+    /* Prevent infinite loop. */
+    const startingLength = this.length;
+    let index = 0;
+
     let current = this.head;
     let valueAdded = 0;
 
-    while (current) {
-      if (indices.includes(current.id)) {
+    while (current && index++ < startingLength) {
+      if (satisfies(current)) {
         // Make a copy of the node's data and append it to the list
-        this.append({ ...current.data });
+        // this.append({ ...current.data });
+        const newNode = new DLLNode({ ...current.data }, current.selected);
+        this.appendNode(newNode); // Pass by value instead of reference.
         valueAdded += value(current.data);
+
+        current.selected = false;
       }
 
       current = current.next;
@@ -154,24 +183,6 @@ export class DoublyLinkedList<T> {
     }
 
     return accumulatedSum;
-  }
-
-  /**
-   * Find an ID in the doubly linked list.
-   * @param targetId ID to find.
-   * @returns the node with the given ID `targetId`.
-   */
-  findID(targetId: number): DLLNode<T> | null {
-    let current = this.head;
-
-    while (current) {
-      if (current.id === targetId) {
-        return current;
-      }
-      current = current.next;
-    }
-
-    return null;
   }
 
   /**
@@ -234,22 +245,20 @@ export class DoublyLinkedList<T> {
    * @param targetSum The target sum to find the node for splitting.
    * @param value A function to calculate the value of the node.
    * @param split A function to split the node into two parts.
+   * @returns true if split, false if targetSum not found.
    */
   split(
     targetSum: number,
     value: (data: T) => number,
-    split: (
+    divide: (
       data: T,
       splitIndex: number
     ) => { firstPart: T; secondPart: T } | { firstPart: T; secondPart: null }
-  ): void {
-    const { node, offset: exceededBy } = this.findNodeByAccumulatedSum(
-      targetSum,
-      value
-    );
+  ): boolean {
+    const { node, offset } = this.findNodeByAccumulatedSum(targetSum, value);
 
     if (node) {
-      const splitResult = split(node.data, exceededBy);
+      const splitResult = divide(node.data, offset);
 
       if (splitResult.secondPart !== null) {
         // Update the original node's data with the second part of the split data
@@ -258,9 +267,10 @@ export class DoublyLinkedList<T> {
         // Insert the new node before the original node
         this.insertNode(splitResult.firstPart, node);
 
-        this.length++;
+        return true;
       }
     }
+    return false;
   }
 
   /**
@@ -301,19 +311,15 @@ export class DoublyLinkedList<T> {
     return true;
   }
 
-  print(printFunction: (data: T) => void): void {
+  toString(stringify: (data: T) => string, sep: string): string {
+    let msg = "";
+
     let current = this.head;
     while (current) {
-      printFunction(current.data);
+      msg += stringify(current.data) + sep;
       current = current.next;
     }
-  }
 
-  printReverse(printFunction: (data: T) => void): void {
-    let current = this.tail;
-    while (current) {
-      printFunction(current.data);
-      current = current.prev;
-    }
+    return msg;
   }
 }
