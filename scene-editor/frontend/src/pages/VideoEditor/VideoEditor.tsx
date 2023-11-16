@@ -34,15 +34,19 @@
  *
  */
 
+/* Third Party Imports */
 import { Box } from "@mui/material";
 
+/* Component Imports */
 import MediaLibrary from "../../components/VideoEditorComponents/MediaLibrary";
 import Timeline from "../../components/VideoEditorComponents/Timeline";
 import TitleBar from "../../components/VideoEditorComponents/TitleBar";
 import VideoPreview from "../../components/VideoEditorComponents/VideoPreview";
 
+/* Context Imports */
 import { AssetsProvider } from "../../components/VideoEditorComponents/AssetsContext";
 import { ClipsProvider } from "../../components/VideoEditorComponents/ClipsContext";
+import { TimelineSettingsProvider } from "../../components/VideoEditorComponents/TimelineComponents/TimelineContext";
 import { VideoProvider } from "../../components/VideoEditorComponents/VideoContext";
 
 const VideoEditor: React.FC = () => {
@@ -63,7 +67,9 @@ const VideoEditor: React.FC = () => {
           <TitleBar />
           <VideoProvider>
             <VideoPreview />
-            <Timeline />
+            <TimelineSettingsProvider>
+              <Timeline />
+            </TimelineSettingsProvider>
           </VideoProvider>
         </Box>
       </ClipsProvider>
