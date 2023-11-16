@@ -40,7 +40,6 @@ export interface Asset {
 interface AssetsContextProps {
   assets: Asset[];
   loading: boolean;
-  createClip: (asset: Asset) => Clip;
   fetchAssets: () => Promise<void>;
 }
 
@@ -50,20 +49,19 @@ interface AssetsProviderProps {
   children: ReactNode;
 }
 
+const createClip = (asset: Asset): Clip => {
+  const newClip: Clip = {
+    asset: asset,
+    startTime: 0,
+    duration: asset.duration,
+  };
+  return newClip;
+};
+
 const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const { projectID } = useParams();
-
-  const createClip = (asset: Asset): Clip => {
-    const newClip: Clip = {
-      asset: asset,
-      startTime: 0,
-      duration: asset.duration,
-      selected: false,
-    };
-    return newClip;
-  };
 
   const fetchAssets = async () => {
     try {
@@ -85,7 +83,6 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   const contextValue: AssetsContextProps = {
     assets,
     loading,
-    createClip,
     fetchAssets,
   };
 
@@ -96,4 +93,4 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   );
 };
 
-export { AssetsContext, AssetsProvider };
+export { AssetsContext, AssetsProvider, createClip };
