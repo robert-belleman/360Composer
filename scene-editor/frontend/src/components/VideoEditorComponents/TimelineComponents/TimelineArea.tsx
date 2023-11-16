@@ -20,15 +20,9 @@ import TimelineClip from "./TimelineClip";
 
 type TimelineLayerProps = {
   bounds: { lowerBound: number; upperBound: number };
-  selected: number;
-  setSelected: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const TimelineArea: React.FC<TimelineLayerProps> = ({
-  bounds,
-  selected,
-  setSelected,
-}) => {
+const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
   const { state: clipsState } = useClipsContext();
 
   const renderVisibleClips = () => {
@@ -41,8 +35,6 @@ const TimelineArea: React.FC<TimelineLayerProps> = ({
         key={result.node.id}
         node={result.node}
         visibleLength={result.length}
-        selected={selected}
-        setSelected={setSelected}
       />
     ));
     return components;

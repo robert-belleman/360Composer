@@ -17,20 +17,16 @@ import { TIMELINE_CLIP_HEIGHT } from "../Constants";
 
 import { Clip, thumbnailUrl } from "../ClipsContext";
 import { DLLNode } from "../DoublyLinkedList";
+import { useTimelineContext } from "./TimelineContext";
 
 type TimelineClipProps = {
   node: DLLNode<Clip>;
   visibleLength: number;
-  selected: number;
-  setSelected: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const TimelineClip: React.FC<TimelineClipProps> = ({
-  node,
-  visibleLength,
-  selected,
-  setSelected,
-}) => {
+const TimelineClip: React.FC<TimelineClipProps> = ({ node, visibleLength }) => {
+  const { selected, setSelected } = useTimelineContext();
+
   const handleClick = (node: DLLNode<Clip>) => {
     if (node.selected) {
       setSelected(selected - 1);

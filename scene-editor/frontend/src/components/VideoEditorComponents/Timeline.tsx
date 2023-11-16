@@ -9,6 +9,8 @@
  *   - TimelineControls. Bar with options to control timeline.
  *   - TimelineArea. A Box showing multiple clips and their edits.
  *
+ * TODO: make slider use onChangeCommitted on low resource devices
+ *
  */
 
 import React from "react";
@@ -29,8 +31,7 @@ import { useVideoContext } from "./VideoContext";
 
 const Timeline: React.FC = () => {
   const { state: clipsState } = useClipsContext();
-  const { selected, lowerBound, upperBound, setSelected } =
-    useTimelineContext();
+  const { lowerBound, upperBound } = useTimelineContext();
   const {
     currentTime,
     currentDuration,
@@ -93,11 +94,7 @@ const Timeline: React.FC = () => {
         justifyContent={"center"}
         sx={{ backgroundColor: "cornflowerblue" }}
       >
-        <TimelineArea
-          bounds={frac2Seconds()}
-          selected={selected}
-          setSelected={setSelected}
-        />
+        <TimelineArea bounds={frac2Seconds()} />
       </Box>
     </Paper>
   );

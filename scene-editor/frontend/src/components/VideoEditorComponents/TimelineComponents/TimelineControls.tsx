@@ -49,8 +49,9 @@ const TimelineButton: React.FC<{
   onClick: () => void;
   icon: React.ReactNode;
 }> = memo(({ disabled, onClick, icon }) => {
+  const { isSeeking } = useVideoContext();
   return (
-    <IconButton disabled={disabled} onClick={onClick}>
+    <IconButton disabled={disabled || isSeeking} onClick={onClick}>
       {icon}
     </IconButton>
   );
