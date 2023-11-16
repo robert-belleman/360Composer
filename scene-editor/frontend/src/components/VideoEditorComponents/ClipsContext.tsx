@@ -128,7 +128,16 @@ const getElapsedTime = (clip: Clip) => {
  * @returns Return a dictionary with the first part and second part.
  */
 const splitClip = (clipA: Clip, time: number) => {
-  if (time < 0 || clipA.duration < time) {
+  /* If the time is not within the bounds of clipA, then do not split. */
+  const timeInBounds = 0 < time && time < clipA.duration;
+  if (!timeInBounds) {
+    return { firstPart: clipA, secondPart: null };
+  }
+
+  /* If the clips are too short, then do not split. */
+  const firstPartInvalid = time < MINIMUM_CLIP_LENGTH;
+  const secondPartInvalid = clipA.duration - time < MINIMUM_CLIP_LENGTH;
+  if (firstPartInvalid || secondPartInvalid) {
     return { firstPart: clipA, secondPart: null };
   }
 
@@ -220,7 +229,6 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
-    // TODO: do not split if too short.
     case SPLIT_CLIP: {
       const [newPast, newFuture] = setState(state);
       const { time } = action.payload;

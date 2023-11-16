@@ -36,7 +36,11 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 
 import TimelineArea from "./TimelineComponents/TimelineArea";
 
-import { MINIMUM_CLIP_LENGTH, TIMELINE_HEIGHT } from "./Constants";
+import {
+  MINIMUM_CLIP_LENGTH,
+  TIMELINE_HEIGHT,
+  TIMELINE_SLIDER_STEP,
+} from "./Constants";
 
 import {
   DELETE_CLIPS,
@@ -361,6 +365,7 @@ const Timeline: React.FC = () => {
         <Box overflow={"hidden"}>
           <Slider
             max={currentDuration}
+            step={TIMELINE_SLIDER_STEP}
             value={currentTime}
             onChange={handleTimeChange}
             valueLabelFormat={(currentTime) => toDisplayTime(currentTime)}

@@ -26,5 +26,6 @@ export const MEDIA_LIBRARY_WIDTH =
 export const TIMELINE_CLIP_HEIGHT = 64;
 
 /* Performance concering settings. */
+export const TIMELINE_SLIDER_STEP = 0.1
 export const MINIMUM_CLIP_LENGTH = 1;
 export const CLIP_UNDO_STATES = 10;
