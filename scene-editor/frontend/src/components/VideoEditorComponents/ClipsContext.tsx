@@ -50,7 +50,6 @@ export const APPEND_CLIP = "APPEND_CLIP";
 export const SPLIT_CLIP = "SPLIT_CLIP";
 export const DELETE_CLIPS = "DELETE_CLIPS";
 export const DUPLICATE_CLIPS = "DUPLICATE_CLIPS";
-export const EXPORT_CLIPS = "EXPORT_CLIPS";
 export const UNDO = "UNDO";
 export const REDO = "REDO";
 
@@ -59,7 +58,6 @@ type Action =
   | { type: typeof SPLIT_CLIP; payload: { time: number } }
   | { type: typeof DELETE_CLIPS; payload: { indices: number[] } }
   | { type: typeof DUPLICATE_CLIPS; payload: { indices: number[] } }
-  | { type: typeof EXPORT_CLIPS; payload: { title: string } }
   | { type: typeof UNDO }
   | { type: typeof REDO };
 
@@ -180,6 +178,11 @@ const visibleClips = (state: State, lower: number, upper: number) => {
   return results;
 };
 
+const exportClips = (clips: DoublyLinkedList<Clip>, title: string) => {
+  console.log("Exporting clips as: ", title)
+  // TODO api call to export clips.
+}
+
 /**
  * Check if the state can be undone.
  * Used for disabling buttons in certain situations.
@@ -265,10 +268,6 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
-    case EXPORT_CLIPS: {
-      return { ...state }; // TODO: make api call
-    }
-
     case UNDO: {
       if (!canUndo(state)) {
         return state;
@@ -328,4 +327,5 @@ export {
   printClips,
   visibleClips,
   seekClip,
+  exportClips,
 };
