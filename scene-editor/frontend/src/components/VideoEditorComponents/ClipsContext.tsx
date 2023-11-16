@@ -36,7 +36,6 @@ export interface Clip {
   asset: Asset; // Reference to an asset.
   startTime: number; // Start time within the asset.
   duration: number; // Duration of the clip in seconds.
-  selected: boolean; // Indicate if the clip is selected.
 }
 
 interface State {
@@ -58,8 +57,8 @@ export const REDO = "REDO";
 type Action =
   | { type: typeof APPEND_CLIP; payload: { clip: Clip } }
   | { type: typeof SPLIT_CLIP; payload: { time: number } }
-  | { type: typeof DELETE_CLIPS }
-  | { type: typeof DUPLICATE_CLIPS }
+  | { type: typeof DELETE_CLIPS; payload: { indices: number[] } }
+  | { type: typeof DUPLICATE_CLIPS; payload: { indices: number[] } }
   | { type: typeof EXPORT_CLIPS; payload: { title: string } }
   | { type: typeof UNDO }
   | { type: typeof REDO };
@@ -142,15 +141,6 @@ const splitClip = (clipA: Clip, time: number) => {
   return { firstPart: clipA, secondPart: clipB };
 };
 
-/**
- * Indicate when a Clip `clip` is selected.
- * @param clip Clip to check.
- * @returns boolean.
- */
-const isSelected = (clip: Clip) => {
-  return clip.selected;
-};
-
 const visibleClips = (state: State, lower: number, upper: number) => {
   const visibleLength = (clip: Clip, startTime: number) => {
     let length = 0;
@@ -230,6 +220,7 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
+    // TODO: do not split if too short.
     case SPLIT_CLIP: {
       const [newPast, newFuture] = setState(state);
       const { time } = action.payload;
@@ -240,7 +231,8 @@ const reducer = (state: State, action: Action): State => {
 
     case DELETE_CLIPS: {
       const [newPast, newFuture] = setState(state);
-      const durationLost = state.clips.deleteNodes(isSelected, getElapsedTime);
+      const { indices } = action.payload;
+      const durationLost = state.clips.deleteNodes(indices, getElapsedTime);
       const newDuration = state.totalDuration - durationLost;
       const newState = { ...state, clips: state.clips };
       return {
@@ -253,7 +245,8 @@ const reducer = (state: State, action: Action): State => {
 
     case DUPLICATE_CLIPS: {
       const [newPast, newFuture] = setState(state);
-      const durationAdded = state.clips.appendNodes(isSelected, getElapsedTime);
+      const { indices } = action.payload;
+      const durationAdded = state.clips.appendNodes(indices, getElapsedTime);
       const newDuration = state.totalDuration + durationAdded;
       const newState = { ...state, clips: state.clips };
       return {

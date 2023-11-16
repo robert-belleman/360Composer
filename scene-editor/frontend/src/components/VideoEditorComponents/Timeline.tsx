@@ -36,7 +36,7 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 
 import TimelineArea from "./TimelineComponents/TimelineArea";
 
-import { TIMELINE_HEIGHT } from "./Constants";
+import { MINIMUM_CLIP_LENGTH, TIMELINE_HEIGHT } from "./Constants";
 
 import {
   DELETE_CLIPS,
@@ -74,6 +74,8 @@ const Timeline: React.FC = () => {
   } = useVideoContext();
 
   const { state: clipsState, dispatch } = useClipsContext();
+
+  const [selectedNodes, setSelectedNodes] = useState<number[]>([]);
 
   /* State of the timeline window that determines what is displayed. */
   const [zoomLevel, setZoomLevel] = useState(0);
@@ -176,35 +178,61 @@ const Timeline: React.FC = () => {
   };
 
   const SplitButton = () => {
+    const canSplit = () => {
+      return MINIMUM_CLIP_LENGTH < currentDuration;
+    };
+
     const handleSplitClip = (time: number) => {
       dispatch({ type: SPLIT_CLIP, payload: { time: time } });
     };
     return (
-      <IconButton onClick={() => handleSplitClip(currentTime)}>
+      <IconButton
+        disabled={!canSplit()}
+        onClick={() => handleSplitClip(currentTime)}
+      >
         <ContentCutIcon />
       </IconButton>
     );
   };
 
   const DeleteButton = () => {
-    // TODO disable if nothing selected
     const handleDeleteClips = () => {
-      dispatch({ type: DELETE_CLIPS });
+      const resetCurrentNode = currentNode?.selected || false;
+      dispatch({ type: DELETE_CLIPS, payload: { indices: selectedNodes } });
+      if (resetCurrentNode) setCurrentNode(clipsState.clips.head || undefined);
+
+      /* Deselect all nodes */
+      setSelectedNodes([]);
     };
     return (
-      <IconButton onClick={() => handleDeleteClips()}>
+      <IconButton
+        disabled={selectedNodes.length == 0}
+        onClick={() => handleDeleteClips()}
+      >
         <DeleteIcon />
       </IconButton>
     );
   };
 
   const DuplicateButton = () => {
-    // TODO disable if nothing selected
     const handleDuplicateClips = () => {
-      dispatch({ type: DUPLICATE_CLIPS });
+      const amountSelected = selectedNodes.length;
+      dispatch({ type: DUPLICATE_CLIPS, payload: { indices: selectedNodes } });
+
+      /* Select the newly added nodes. */
+      let current = clipsState.clips.tail;
+      let newNodes = [];
+      for (let i = 0; i < amountSelected; i++) {
+        newNodes.push(current!.id);
+        current = current!.prev;
+      }
+      setSelectedNodes(newNodes);
     };
     return (
-      <IconButton onClick={() => handleDuplicateClips()}>
+      <IconButton
+        disabled={selectedNodes.length == 0}
+        onClick={() => handleDuplicateClips()}
+      >
         <ContentCopyIcon />
       </IconButton>
     );
@@ -347,7 +375,11 @@ const Timeline: React.FC = () => {
         justifyContent={"center"}
         sx={{ backgroundColor: "cornflowerblue" }}
       >
-        <TimelineArea bounds={frac2Seconds()} />
+        <TimelineArea
+          bounds={frac2Seconds()}
+          selected={selectedNodes}
+          setSelected={setSelectedNodes}
+        />
       </Box>
     </Paper>
   );

@@ -16,6 +16,7 @@ export class DLLNode<T> {
   data: T;
   prev: DLLNode<T> | null;
   next: DLLNode<T> | null;
+  selected: boolean;
 
   private static counter = 0;
 
@@ -24,6 +25,7 @@ export class DLLNode<T> {
     this.prev = null;
     this.next = null;
     this.id = DLLNode.counter++;
+    this.selected = false;
   }
 }
 
@@ -81,22 +83,17 @@ export class DoublyLinkedList<T> {
   }
 
   /**
-   * Delete all selected nodes in the doubly linked list that satisfy the
-   * condition `satisfies`. Compute the total amount of value removed using
-   * the `value` function and return it.
-   * @param satisfies Function to check if the node satisfies the condition.
+   * Delete all selected nodes in the doubly linked list. Compute the total
+   * amount of value removed using the `value` function and return it.
    * @param value Function to compute the value of the data.
    * @returns The total amount of value removed from the doubly linked list.
    */
-  deleteNodes(
-    satisfies: (data: T) => boolean,
-    value: (data: T) => number
-  ): number {
+  deleteNodes(indices: number[], value: (data: T) => number): number {
     let current = this.head;
     let valueRemoved = 0;
 
     while (current) {
-      if (satisfies(current.data)) {
+      if (indices.includes(current.id)) {
         if (current.prev) {
           current.prev.next = current.next;
         } else {
@@ -120,22 +117,17 @@ export class DoublyLinkedList<T> {
   }
 
   /**
-   * Append all selected nodes in the doubly linked list that satisfy the
-   * condition `satisfies`. Compute the total amount of value added using
-   * the `value` function and return it.
-   * @param satisfies Function to check if the node satisfies the condition.
+   * Append all selected nodes in the doubly linked list. Compute the total
+   * amount of value added using the `value` function and return it.
    * @param value Function to compute the value of the data.
    * @returns The total amount of value added to the doubly linked list.
    */
-  appendNodes(
-    satisfies: (data: T) => boolean,
-    value: (data: T) => number
-  ): number {
+  appendNodes(indices: number[], value: (data: T) => number): number {
     let current = this.head;
     let valueAdded = 0;
 
     while (current) {
-      if (satisfies(current.data)) {
+      if (indices.includes(current.id)) {
         // Make a copy of the node's data and append it to the list
         this.append({ ...current.data });
         valueAdded += value(current.data);
@@ -162,6 +154,24 @@ export class DoublyLinkedList<T> {
     }
 
     return accumulatedSum;
+  }
+
+  /**
+   * Find an ID in the doubly linked list.
+   * @param targetId ID to find.
+   * @returns the node with the given ID `targetId`.
+   */
+  findID(targetId: number): DLLNode<T> | null {
+    let current = this.head;
+
+    while (current) {
+      if (current.id === targetId) {
+        return current;
+      }
+      current = current.next;
+    }
+
+    return null;
   }
 
   /**
@@ -251,6 +261,44 @@ export class DoublyLinkedList<T> {
         this.length++;
       }
     }
+  }
+
+  /**
+   * Check if any node satisfies the given condition.
+   * @param satisfies Function to check if the node satisfies the condition.
+   * @returns true if any node satisfies the condition, false otherwise.
+   */
+  any(satisfies: (data: T) => boolean): boolean {
+    let current = this.head;
+
+    while (current) {
+      if (satisfies(current.data)) {
+        return true;
+      }
+
+      current = current.next;
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if all nodes satisfy the given condition.
+   * @param satisfies Function to check if the node satisfies the condition.
+   * @returns true if all nodes satisfy the condition, false otherwise.
+   */
+  all(satisfies: (data: T) => boolean): boolean {
+    let current = this.head;
+
+    while (current) {
+      if (!satisfies(current.data)) {
+        return false;
+      }
+
+      current = current.next;
+    }
+
+    return true;
   }
 
   print(printFunction: (data: T) => void): void {

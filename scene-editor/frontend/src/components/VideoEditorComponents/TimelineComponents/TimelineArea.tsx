@@ -20,9 +20,11 @@ import { DLLNode } from "../DoublyLinkedList";
 
 type TimelineLayerProps = {
   bounds: { lowerBound: number; upperBound: number };
+  selected: number[];
+  setSelected: React.Dispatch<React.SetStateAction<number[]>>
 };
 
-const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
+const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds, selected, setSelected }) => {
   const { state: clipsState } = useClipsContext();
 
   const renderVisibleClips = () => {
@@ -33,8 +35,10 @@ const TimelineArea: React.FC<TimelineLayerProps> = ({ bounds }) => {
     ).map((result: { node: DLLNode<Clip>; length: number }) => (
       <TimelineClip
         key={result.node.id}
-        clip={result.node.data}
+        node={result.node}
         visibleLength={result.length}
+        selected={selected}
+        setSelected={setSelected}
       />
     ));
     return components;

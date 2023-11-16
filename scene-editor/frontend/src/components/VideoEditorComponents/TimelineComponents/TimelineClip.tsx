@@ -16,18 +16,27 @@ import { Box } from "@mui/material";
 import { TIMELINE_CLIP_HEIGHT } from "../Constants";
 
 import { Clip, thumbnailUrl } from "../ClipsContext";
+import { DLLNode } from "../DoublyLinkedList";
 
 type TimelineClipProps = {
-  clip: Clip;
+  node: DLLNode<Clip>;
   visibleLength: number;
+  selected: number[];
+  setSelected: React.Dispatch<React.SetStateAction<number[]>>;
 };
 
-const TimelineClip: React.FC<TimelineClipProps> = ({ clip, visibleLength }) => {
-  const [, forceUpdate] = useReducer((x) => x + 1, 0);
-
-  const handleClick = (clip: Clip) => {
-    clip.selected = !clip.selected;
-    forceUpdate(); // Force update to see color change immediately.
+const TimelineClip: React.FC<TimelineClipProps> = ({
+  node,
+  visibleLength,
+  selected,
+  setSelected,
+}) => {
+  const handleClick = (node: DLLNode<Clip>) => {
+    if (selected.includes(node.id)) {
+      setSelected(selected.filter((id) => id !== node.id));
+    } else {
+      setSelected([...selected, node.id]);
+    }
   };
 
   return (
@@ -42,14 +51,16 @@ const TimelineClip: React.FC<TimelineClipProps> = ({ clip, visibleLength }) => {
         height={1}
         boxSizing={"border-box"}
         border={3}
-        onClick={() => handleClick(clip)}
+        onClick={() => handleClick(node)}
         sx={{
-          background: `url(${thumbnailUrl(clip)})`,
+          background: `url(${thumbnailUrl(node.data)})`,
           backgroundRepeat: "repeat",
           backgroundSize: "contain",
           border: 4,
           borderRadius: 2,
-          borderColor: clip.selected ? "LightGreen" : "transparent",
+          borderColor: selected.includes(node.id)
+            ? "LightGreen"
+            : "transparent",
         }}
       ></Box>
     </Box>
