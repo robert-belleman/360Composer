@@ -21,8 +21,12 @@ from app.models.project import Project as ProjectModel
 from app.routes.api import api
 from app.schemas.asset import asset_schema
 from app.util.auth import user_jwt_required
-from app.util.ffmpeg import (create_thumbnail, ffmpeg_join_assets,
-                             ffmpeg_trim_asset, get_duration)
+from app.util.ffmpeg import (
+    create_thumbnail,
+    ffmpeg_join_assets,
+    ffmpeg_trim_asset,
+    get_duration,
+)
 from app.util.util import random_file_name
 from flask import abort
 from flask_jwt_extended import get_jwt
@@ -244,7 +248,7 @@ asset_export.add_argument(
 asset_export.add_argument(
     "filename",
     type=str,
-    help="Output filename for the concatenated video",
+    help="Output filename for the resulting video",
     required=True,
 )
 

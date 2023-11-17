@@ -27,6 +27,8 @@
 
 import React, { ReactNode, createContext, useContext, useReducer } from "react";
 
+import axios from "axios";
+
 import defaultImage from "../../static/images/default.jpg";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
 import { DLLNode, DoublyLinkedList } from "./DoublyLinkedList";
@@ -303,23 +305,39 @@ const visibleClips = (state: State, lower: number, upper: number) => {
   return results;
 };
 
-const exportClips = (clips: DoublyLinkedList<Clip>, title: string) => {
-  console.log("Exporting clips as: ", title);
-  console.log(clips.head?.data.asset.path)
-  // id
-  // user_id
-  // name
-  // path
-  // thumbnail_path
-  // duration
-  // file_size
-  // asset_type
-  // view_type
-  // created_at
-  // updated_at
-  // deleted_at
-  // scene
-  // TODO api call to export clips.
+/**
+ * Parse the important information of a clip to export it.
+ * @param clip clip to parse.
+ * @returns parsed information.
+ */
+const parseToExport = (clip: Clip) => {
+  const endTime = clip.startTime + clip.duration;
+  return {
+    asset_id: clip.asset.id,
+    start_time: clip.startTime,
+    end_time: endTime,
+    view_type: clip.asset.view_type,
+  };
+};
+
+/**
+ * Export the clips `clips` with title `title`.
+ * @param clips clips to export.
+ * @param title title to export with.
+ */
+const exportClips = async (projectID: string, clips: DoublyLinkedList<Clip>, title: string) => {
+  const data = clips.toArray(parseToExport);
+  const apiEndPoint = `/api/video-editor/${projectID}/edit`;
+
+  try {
+    const response = await axios.post(apiEndPoint, {
+      clips: data,
+      filename: title,
+    });
+    console.log("API Response: ", response.data);
+  } catch (error) {
+    console.error("API Error:", error);
+  }
 };
 
 /**

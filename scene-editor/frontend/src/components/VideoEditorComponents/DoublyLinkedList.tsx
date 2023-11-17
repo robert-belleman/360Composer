@@ -320,4 +320,16 @@ export class DoublyLinkedList<T> {
 
     return msg;
   }
+
+  toArray(parse: (data: T) => any): T[] {
+    const result: T[] = [];
+    let current = this.head;
+
+    while (current !== null) {
+      result.push(parse(current.data));
+      current = current.next;
+    }
+
+    return result;
+  }
 }

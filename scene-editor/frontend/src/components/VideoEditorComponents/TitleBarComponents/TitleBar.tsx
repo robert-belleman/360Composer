@@ -26,7 +26,7 @@ import { useNavigate, useParams } from "react-router-dom";
 /* Third Party Imports */
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
-import { AppBar, Button, TextField, Toolbar } from "@mui/material";
+import { AppBar, Button, TextField, Toolbar, Typography } from "@mui/material";
 
 /* Project Specific Imports */
 import { Clip, exportClips, useClipsContext } from "../ClipsContext";
@@ -71,9 +71,13 @@ const useTitleChange = (
  * @param title title of the video created from combining the clips.
  * @returns Callback function that exports the clips with title.
  */
-const useExportClips = (clips: DoublyLinkedList<Clip>, title: string) => {
+const useExportClips = (
+  projectID: string,
+  clips: DoublyLinkedList<Clip>,
+  title: string
+) => {
   return useCallback(() => {
-    exportClips(clips, title == "" ? DEFAULT_TITLE : title);
+    exportClips(projectID, clips, title == "" ? DEFAULT_TITLE : title);
   }, [clips, title]);
 };
 
@@ -108,10 +112,9 @@ const TitleTextField = memo(
         size="small"
         color="info"
         variant="outlined"
-        sx={{ marginLeft: 2, marginRight: 2 }}
+        sx={{ marginLeft: 2, marginRight: 2, flexGrow: 1 }}
         placeholder={DEFAULT_TITLE}
         onChange={changeTitle}
-        fullWidth
       />
     );
   }
@@ -119,8 +122,24 @@ const TitleTextField = memo(
 
 const ExportButton = memo(({ title }: { title: string }) => {
   const { state } = useClipsContext();
+  const { projectID } = useParams();
 
-  const handleExport = useExportClips(state.clips, title);
+  // Show invalid button.
+  if (!projectID) {
+    return (
+      <Button
+        color="error"
+        variant="contained"
+        startIcon={<UpgradeIcon />}
+      >
+        <Typography noWrap>
+          Invalid Project ID
+        </Typography>
+      </Button>
+    );
+  }
+
+  const handleExport = useExportClips(projectID, state.clips, title);
 
   return (
     <Button
