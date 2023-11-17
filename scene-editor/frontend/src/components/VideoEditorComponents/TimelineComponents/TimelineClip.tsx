@@ -9,15 +9,19 @@
  *
  */
 
-import React from "react";
+import React, { useState } from "react";
 
 import { Box } from "@mui/material";
 
 import { TIMELINE_CLIP_HEIGHT } from "../Constants";
 
-import { Clip, thumbnailUrl } from "../ClipsContext";
+import {
+  Clip,
+  SELECT_CLIP,
+  thumbnailUrl,
+  useClipsContext,
+} from "../ClipsContext";
 import { DLLNode } from "../DoublyLinkedList";
-import { useTimelineContext } from "./TimelineContext";
 
 type TimelineClipProps = {
   node: DLLNode<Clip>;
@@ -25,15 +29,14 @@ type TimelineClipProps = {
 };
 
 const TimelineClip: React.FC<TimelineClipProps> = ({ node, visibleLength }) => {
-  const { selected, setSelected } = useTimelineContext();
+  /* Use a state to rerender the component on change. */
+  const [showBorder, setShowBorder] = useState(node.data.selected);
+
+  const { dispatch } = useClipsContext();
 
   const handleClick = (node: DLLNode<Clip>) => {
-    if (node.selected) {
-      setSelected(selected - 1);
-    } else {
-      setSelected(selected + 1);
-    }
-    node.selected = !node.selected;
+    dispatch({ type: SELECT_CLIP, payload: { clip: node.data } });
+    setShowBorder(node.data.selected);
   };
 
   return (
@@ -55,7 +58,7 @@ const TimelineClip: React.FC<TimelineClipProps> = ({ node, visibleLength }) => {
           backgroundSize: "contain",
           border: 4,
           borderRadius: 2,
-          borderColor: node.selected ? "LightGreen" : "transparent",
+          borderColor: showBorder ? "LightGreen" : "transparent",
         }}
       ></Box>
     </Box>

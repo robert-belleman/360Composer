@@ -36,6 +36,7 @@ export interface Clip {
   asset: Asset; // Reference to an asset.
   startTime: number; // Start time within the asset.
   duration: number; // Duration of the clip in seconds.
+  selected: boolean; // Indicate if clip is selected.
 }
 
 interface State {
@@ -46,6 +47,7 @@ interface State {
 }
 
 /* The state of Clips can be altered using these action types. */
+export const SELECT_CLIP = "SELECT_CLIP";
 export const APPEND_CLIP = "APPEND_CLIP";
 export const SPLIT_CLIP = "SPLIT_CLIP";
 export const DELETE_CLIPS = "DELETE_CLIPS";
@@ -54,6 +56,7 @@ export const UNDO = "UNDO";
 export const REDO = "REDO";
 
 type Action =
+  | { type: typeof SELECT_CLIP; payload: { clip: Clip } }
   | { type: typeof APPEND_CLIP; payload: { clip: Clip } }
   | { type: typeof SPLIT_CLIP; payload: { time: number } }
   | { type: typeof DELETE_CLIPS }
@@ -77,6 +80,11 @@ const initialState: State = {
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
+    case SELECT_CLIP: {
+      const { clip } = action.payload;
+      clip.selected = !clip.selected;
+      return state;
+    }
     case APPEND_CLIP: {
       const { clip } = action.payload;
       let newClips = state.clips.copy();
@@ -96,7 +104,7 @@ const reducer = (state: State, action: Action): State => {
     case SPLIT_CLIP: {
       const { time } = action.payload;
       let newClips = state.clips.copy();
-      if (!newClips.split(time, getElapsedTime, splitClip)) {
+      if (!newClips.split(time, duration, splitClip)) {
         return state;
       }
       const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);
@@ -106,7 +114,7 @@ const reducer = (state: State, action: Action): State => {
 
     case DELETE_CLIPS: {
       let newClips = state.clips.copy();
-      const durationLost = newClips.deleteNodes(isSelected, getElapsedTime);
+      const durationLost = newClips.deleteNodes(selected, duration);
       const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);
       const newFuture = [] as State[];
       const newDuration = state.totalDuration - durationLost;
@@ -121,7 +129,7 @@ const reducer = (state: State, action: Action): State => {
 
     case DUPLICATE_CLIPS: {
       let newClips = state.clips.copy();
-      const durationAdded = newClips.appendNodes(isSelected, getElapsedTime);
+      const durationAdded = newClips.appendNodes(selected, duration, deselect);
       const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);
       const newFuture = [] as State[];
       const newDuration = state.totalDuration + durationAdded;
@@ -195,7 +203,7 @@ const durationToString = (state: State, sep: string = " ") => {
  * @returns Object with attributes `node` and `offset`.
  */
 const seekClip = (state: State, time: number) => {
-  return state.clips.findNodeByAccumulatedSum(time, getElapsedTime);
+  return state.clips.findNodeByAccumulatedSum(time, duration);
 };
 
 /**
@@ -210,12 +218,20 @@ const thumbnailUrl = (clip: Clip) => {
 };
 
 /**
- * Indicate if the node is selected.
+ * Indicate if the clip of a node is selected.
  * @param node node to check.
  * @returns boolean.
  */
-const isSelected = (node: DLLNode<Clip>) => {
-  return node.selected;
+const selected = (node: DLLNode<Clip>) => {
+  return node.data.selected;
+};
+
+/**
+ * Deselect a node.
+ * @param node node to deselect.
+ */
+const deselect = (node: DLLNode<Clip>) => {
+  node.data.selected = false;
 };
 
 /**
@@ -223,7 +239,7 @@ const isSelected = (node: DLLNode<Clip>) => {
  * @param clip Clip to know the numerical value of.
  * @returns The duration of the clip.
  */
-const getElapsedTime = (clip: Clip) => {
+const duration = (clip: Clip) => {
   return clip.duration;
 };
 
@@ -252,6 +268,7 @@ const splitClip = (clipA: Clip, time: number) => {
   clipA.duration = time;
   clipB.startTime += time;
   clipB.duration -= time;
+  clipB.selected = true;
 
   return { firstPart: clipA, secondPart: clipB };
 };
@@ -279,7 +296,7 @@ const visibleClips = (state: State, lower: number, upper: number) => {
   while (current) {
     let length = visibleLength(current.data, elapsedTime);
     results.push({ node: current, length: length });
-    elapsedTime += getElapsedTime(current.data);
+    elapsedTime += duration(current.data);
     current = current.next;
   }
 

@@ -56,6 +56,7 @@ const createClip = (asset: Asset): Clip => {
     asset: asset,
     startTime: 0,
     duration: asset.duration,
+    selected: false,
   };
   return newClip;
 };

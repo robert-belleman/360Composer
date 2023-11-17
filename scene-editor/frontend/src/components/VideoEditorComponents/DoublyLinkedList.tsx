@@ -16,7 +16,6 @@ export class DLLNode<T> {
   data: T;
   prev: DLLNode<T> | null;
   next: DLLNode<T> | null;
-  selected: boolean;
 
   private static counter = 0;
 
@@ -25,7 +24,6 @@ export class DLLNode<T> {
     this.prev = null;
     this.next = null;
     this.id = DLLNode.counter++;
-    this.selected = select;
   }
 }
 
@@ -49,7 +47,7 @@ export class DoublyLinkedList<T> {
 
     let current = this.head;
     while (current) {
-      const newNode = new DLLNode({ ...current.data }, current.selected);
+      const newNode = new DLLNode({ ...current.data });
       copy.appendNode(newNode); // Pass by value instead of reference.
       current = current.next;
     }
@@ -138,11 +136,13 @@ export class DoublyLinkedList<T> {
    * Append all nodes that satisfy the condition given by `satisfies`.
    * @param satisfies the condition to append a node.
    * @param value function to indicate how to get the value of data.
+   * @param alter alter the node the satisfied the condition.
    * @returns the total value appended from the doubly linked list.
    */
   appendNodes(
     satisfies: (node: DLLNode<T>) => boolean,
-    value: (data: T) => number
+    value: (data: T) => number,
+    alter: (node: DLLNode<T>) => void,
   ): number {
     /* Prevent infinite loop. */
     const startingLength = this.length;
@@ -153,13 +153,11 @@ export class DoublyLinkedList<T> {
 
     while (current && index++ < startingLength) {
       if (satisfies(current)) {
-        // Make a copy of the node's data and append it to the list
-        // this.append({ ...current.data });
-        const newNode = new DLLNode({ ...current.data }, current.selected);
+        const newNode = new DLLNode({ ...current.data });
         this.appendNode(newNode); // Pass by value instead of reference.
         valueAdded += value(current.data);
 
-        current.selected = false;
+        alter(current)
       }
 
       current = current.next;

@@ -59,14 +59,12 @@ const TimelineButton: React.FC<{
 
 const TimelineControls: React.FC = () => {
   const { state: clipsState, dispatch } = useClipsContext();
-  const { currentNode, currentTime, currentDuration, setCurrentNode } =
+  const { currentNode, currentTime, currentDuration, setCurrentNode, seek } =
     useVideoContext();
   const {
-    selected,
     lowerBound,
     upperBound,
     zoomLevel,
-    setSelected,
     setLowerBound,
     setUpperBound,
     setZoomLevel,
@@ -122,13 +120,9 @@ const TimelineControls: React.FC = () => {
     dispatch({ type: DUPLICATE_CLIPS });
   };
   const handleDeleteClips = () => {
-    const resetCurrentNode = currentNode?.selected || false;
+    const resetCurrentNode = currentNode?.data.selected || false;
     dispatch({ type: DELETE_CLIPS });
     if (resetCurrentNode) setCurrentNode(clipsState.clips.head || undefined);
-
-    // TODO setCurrenTimePlyaed
-    /* Deselect all nodes */
-    setSelected(0);
   };
 
   /* Window manipulation functions. */
@@ -203,12 +197,12 @@ const TimelineControls: React.FC = () => {
           icon={<ContentCutIcon />}
         />
         <TimelineButton
-          disabled={selected === 0}
+          disabled={false}
           onClick={handleDeleteClips}
           icon={<DeleteIcon />}
         />
         <TimelineButton
-          disabled={selected === 0}
+          disabled={false}
           onClick={handleDuplicateClips}
           icon={<ContentCopyIcon />}
         />

@@ -12,11 +12,9 @@
 import React, { useState } from "react";
 
 interface TimelineSettings {
-  selected: number;
   lowerBound: number;
   upperBound: number;
   zoomLevel: number;
-  setSelected: React.Dispatch<React.SetStateAction<number>>;
   setLowerBound: React.Dispatch<React.SetStateAction<number>>;
   setUpperBound: React.Dispatch<React.SetStateAction<number>>;
   setZoomLevel: React.Dispatch<React.SetStateAction<number>>;
@@ -27,17 +25,14 @@ const TimelineSettingsContext = React.createContext<
 >(undefined);
 
 const TimelineSettingsProvider: React.FC = ({ children }) => {
-  const [selected, setSelected] = useState<number>(0);
   const [lowerBound, setLowerBound] = useState<number>(0);
   const [upperBound, setUpperBound] = useState<number>(1);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
 
   const timelineSettings: TimelineSettings = {
-    selected,
     lowerBound,
     upperBound,
     zoomLevel,
-    setSelected,
     setLowerBound,
     setUpperBound,
     setZoomLevel,
