@@ -1,6 +1,7 @@
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from app.models.asset import ViewType
 
 import ffmpeg
 
@@ -26,52 +27,52 @@ def get_duration(path):
     return int(float(result.stdout))
 
 
-def ffmpeg_trim_asset(start_time: str, end_time: str, input_path: str, output_path: str, codec: str) -> bool:
+def ffmpeg_process_asset(input_path: str, output_path: str, format: str) -> bool:
+    """Process an asset so they can be joined together later."""
+    # TODO: ensure consistency in resolution, frame rate and codec.
+    # TODO: ensure consistency in stereoscopy.
+    command = []
+
+    if format == ViewType.mono:
+        pass
+    elif format == ViewType.sidetoside:
+        pass
+    elif format == ViewType.toptobottom:
+        pass
+    else:
+        print(f"Unsupported format: {format}")
+        return None
+
+    try:
+        subprocess.run(command, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        print(f"Failed to process video: {input_path}")
+        return False
+
+
+def ffmpeg_trim_asset(start_time: str, end_time: str, input_path: str, output_path: str) -> bool:
     """Trim an asset from `input_path` to `output_path` from `start_time` to `end_time`."""
-    # Trim the asset.
-    result = subprocess.run([
-        "ffmpeg",
-        "-i", input_path,
-        "-ss", start_time,
-        "-to", end_time,
-        "-c", codec,
-        output_path
-    ], check=True)
+    command = []
 
-    # Handle errors.
-    if result.returncode != 0:
-        error_msg = result.stderr.strip()
-        print(error_msg)
+    try:
+        subprocess.run(command, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        print(f"Failed to trim video: {input_path}")
         return False
 
-    return True
 
-
-def ffmpeg_join_assets(filepaths: list[str], output_path: str):
+def ffmpeg_join_assets(input_paths: list[str], output_path: str) -> bool:
     """Join the assets from `filepaths` to `output_path`. """
-    # Join the assets.
-    result = subprocess.run(
-        ["ffmpeg"]
-        + sum([["-i", path] for path in filepaths], [])
-        + [
-            "-filter_complex",
-            f"concat=n={len(filepaths)}:v=1:a=1",
-            "-c:v",
-            "copy",
-            "-c:a",
-            "copy",
-            output_path,
-        ],
-        check=True
-    )
+    command = []
 
-    # Handle errors.
-    if result.returncode != 0:
-        error_msg = result.stderr.strip()
-        print(error_msg)
+    try:
+        subprocess.run(command, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        print(f"Failed to join videos: {input_paths}")
         return False
-
-    return True
 
 
 @dataclass

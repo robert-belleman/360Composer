@@ -329,6 +329,7 @@ const exportClips = async (projectID: string, clips: DoublyLinkedList<Clip>, tit
   const data = clips.toArray(parseToExport);
   const apiEndPoint = `/api/video-editor/${projectID}/edit`;
 
+  // TODO: specify output format?
   try {
     const response = await axios.post(apiEndPoint, {
       clips: data,
