@@ -186,7 +186,7 @@ export class DoublyLinkedList<T> {
   }
 
   /**
-   * Find the first node whose accumulated sum exceeds or equals the target sum.
+   * Find the first node whose accumulated sum exceeds the target sum.
    * @param targetSum The target sum to be compared against.
    * @param value A function to calculate the value of the node.
    * @returns An object with the found node and the difference between the
@@ -200,7 +200,7 @@ export class DoublyLinkedList<T> {
     let accumulatedSum = 0;
 
     while (current) {
-      if (accumulatedSum + value(current.data) >= targetSum) {
+      if (accumulatedSum + value(current.data) > targetSum) {
         const offset = targetSum - accumulatedSum;
         return { node: current, offset };
       }

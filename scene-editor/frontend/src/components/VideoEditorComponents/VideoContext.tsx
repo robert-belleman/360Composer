@@ -33,6 +33,8 @@ interface VideoContextProps {
   setCurrentTime: Dispatch<SetStateAction<number>>;
   setVideoClipTime: Dispatch<SetStateAction<number>>;
   setVideoClipTimePlayed: Dispatch<SetStateAction<number>>;
+  play: (videoElem: HTMLVideoElement) => void;
+  playNext: (videoElem: HTMLVideoElement) => void;
   seek: (time: number) => void;
 }
 
@@ -59,6 +61,38 @@ const VideoProvider: React.FC = ({ children }) => {
   useEffect(() => {
     setCurrentDuration(clipsState.totalDuration);
   }, [clipsState.totalDuration]);
+
+  /**
+   * Play the video of `videoElem`. If the video ended, restart from time = 0.
+   * @param videoElem element to play video of.
+   */
+  const play = (videoElem: HTMLVideoElement) => {
+    if (currentDuration <= currentTime) {
+      /* If play is clicked after finishing, then restart the entire video. */
+      if (clipsState.clips.head) seek(0);
+      videoElem.load();
+    } else {
+      videoElem.play().catch((error) => {
+        console.error("Error playing video:", error);
+      });
+    }
+  };
+
+  /**
+   * Play the next video clip. If there is no next clip, stop playing.
+   * @param videoElem element to play video of.
+   */
+  const playNext = (videoElem: HTMLVideoElement) => {
+    /* If there is no next video clip, then stop. */
+    if (!currentNode || !currentNode.next) {
+      setIsPlaying(false);
+      videoElem.pause();
+      return;
+    }
+
+    /* Seek to the start of next clip. */
+    seek(videoClipTimePlayed + currentNode.data.duration);
+  };
 
   /**
    * Go to a specific time in the entire video (all clips).
@@ -113,6 +147,8 @@ const VideoProvider: React.FC = ({ children }) => {
     setCurrentTime,
     setVideoClipTime,
     setVideoClipTimePlayed,
+    play,
+    playNext,
     seek,
   };
 

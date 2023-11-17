@@ -11,16 +11,15 @@
 
 import React from "react";
 
-import { Box, IconButton } from "@mui/material";
 import Forward5Icon from "@mui/icons-material/Forward5";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import Replay5Icon from "@mui/icons-material/Replay5";
+import { Box, IconButton } from "@mui/material";
 import { useVideoContext } from "../VideoContext";
 
 type VideoControlsProps = {
   videoRef: React.RefObject<HTMLVideoElement>;
-  play: (videoElem: HTMLVideoElement) => void;
 };
 
 const RewindIconButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
@@ -68,8 +67,8 @@ const ForwardIconButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   );
 };
 
-const VideoControls: React.FC<VideoControlsProps> = ({ videoRef, play }) => {
-  const { isPlaying, setIsPlaying, currentNode, currentTime, seek } =
+const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
+  const { isPlaying, setIsPlaying, currentNode, currentTime, play, seek } =
     useVideoContext();
 
   /**

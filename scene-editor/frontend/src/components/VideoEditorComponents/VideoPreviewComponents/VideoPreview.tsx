@@ -50,52 +50,10 @@ const VideoPreview: React.FC = () => {
     setCurrentTime,
     setVideoClipTime,
     setVideoClipTimePlayed,
+    play,
+    playNext,
+    seek,
   } = useVideoContext();
-
-  /* Play the video clip. */
-  const playVideoClip = (videoElem: HTMLVideoElement) => {
-    if (currentDuration <= currentTime) {
-      /* If play is clicked after finishing, then restart the entire video. */
-      if (clipsState.clips.head) {
-        setCurrentNode(clipsState.clips.head);
-        setCurrentTime(0);
-      }
-      videoElem.load();
-    } else {
-      videoElem.play().catch((error) => {
-        console.error("Error playing video:", error);
-      });
-    }
-  };
-
-  /**
-   * Play the next video clip.
-   */
-  const playNextVideoClip = () => {
-    const { current: videoElem } = videoRef;
-
-    if (!videoElem) {
-      console.error("Error loading video: Video element not available.");
-      return;
-    }
-
-    /* If there is no next video clip, then stop. */
-    if (!currentNode || !currentNode.next) {
-      setIsPlaying(false);
-      videoElem.pause();
-      return;
-    }
-
-    const timePlayed = currentNode.data.duration;
-    setVideoClipTimePlayed(videoClipTimePlayed + timePlayed);
-
-    /* Update the video clip variables. */
-    const nextNode = currentNode.next;
-    setCurrentNode(nextNode);
-    const nextVideoClip = nextNode.data;
-    videoElem.currentTime = nextVideoClip.startTime;
-    setVideoClipTime(0);
-  };
 
   /**
    * When the video clip changes, load the source.
@@ -146,7 +104,7 @@ const VideoPreview: React.FC = () => {
 
     if (!isSeeking) videoElem.currentTime = currentClip.startTime;
 
-    if (isPlaying) playVideoClip(videoElem);
+    if (isPlaying) play(videoElem);
   }, [currentNode, hls]);
 
   /**
@@ -170,7 +128,7 @@ const VideoPreview: React.FC = () => {
       /* Try not to overlap with the onEnded() function. */
       const delta = currentClip.asset.duration - currentClip.duration;
       const overlapping = delta < MINIMUM_CLIP_LENGTH;
-      if (!overlapping) playNextVideoClip();
+      if (!overlapping) playNext(videoElem);
     }
   };
 
@@ -183,7 +141,7 @@ const VideoPreview: React.FC = () => {
       console.error("Error: Video element not available");
       return;
     }
-    playNextVideoClip();
+    playNext(videoElem);
   };
 
   /**
@@ -221,7 +179,7 @@ const VideoPreview: React.FC = () => {
         )}
       </Box>
 
-      <VideoControls videoRef={videoRef} play={playVideoClip} />
+      <VideoControls videoRef={videoRef} />
     </Stack>
   );
 };
