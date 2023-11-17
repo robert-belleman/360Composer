@@ -126,6 +126,7 @@ const TimelineControls: React.FC = () => {
     dispatch({ type: DELETE_CLIPS });
     if (resetCurrentNode) setCurrentNode(clipsState.clips.head || undefined);
 
+    // TODO setCurrenTimePlyaed
     /* Deselect all nodes */
     setSelected(0);
   };

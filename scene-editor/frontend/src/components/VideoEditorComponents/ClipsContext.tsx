@@ -28,9 +28,9 @@
 import React, { ReactNode, createContext, useContext, useReducer } from "react";
 
 import defaultImage from "../../static/images/default.jpg";
-import { Asset } from "./AssetsContext";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
 import { DLLNode, DoublyLinkedList } from "./DoublyLinkedList";
+import { Asset } from "./MediaLibraryComponents/AssetsContext";
 
 export interface Clip {
   asset: Asset; // Reference to an asset.

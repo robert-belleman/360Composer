@@ -33,15 +33,15 @@ import {
 } from "@mui/material";
 
 /* Project Specific Imports */
-import NewAssetDialog from "../ProjectComponents/AssetViewComponents/NewAssetDialog";
-import defaultImage from "../../static/images/default.jpg";
+import defaultImage from "../../../static/images/default.jpg";
+import NewAssetDialog from "../../ProjectComponents/AssetViewComponents/NewAssetDialog";
+import { APPEND_CLIP, useClipsContext } from "../ClipsContext";
 import {
   MEDIA_LIBRARY_COLS,
   MEDIA_LIBRARY_IMAGE_WIDTH,
   MEDIA_LIBRARY_WIDTH,
-} from "./Constants";
+} from "../Constants";
 import { Asset, AssetsContext, createClip } from "./AssetsContext";
-import { APPEND_CLIP, useClipsContext } from "./ClipsContext";
 
 /* Components */
 const ImportMediaButton: React.FC<{

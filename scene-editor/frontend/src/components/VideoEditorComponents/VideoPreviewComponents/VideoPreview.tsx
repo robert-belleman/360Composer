@@ -21,14 +21,14 @@ import { Assets, Scene, Sky } from "@belivvr/aframe-react";
 
 import { Box, Stack } from "@mui/material";
 
-import VideoControls from "./VideoPreviewComponents/VideoControls";
+import VideoControls from "./VideoControls";
 
 import Hls from "hls.js";
-import { HlsContext } from "../../App";
+import { HlsContext } from "../../../App";
 
-import { useClipsContext } from "./ClipsContext";
-import { MINIMUM_CLIP_LENGTH } from "./Constants";
-import { useVideoContext } from "./VideoContext";
+import { useClipsContext } from "../ClipsContext";
+import { MINIMUM_CLIP_LENGTH } from "../Constants";
+import { useVideoContext } from "../VideoContext";
 
 const VideoPreview: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);

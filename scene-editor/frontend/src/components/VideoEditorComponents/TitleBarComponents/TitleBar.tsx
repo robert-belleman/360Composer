@@ -24,13 +24,13 @@ import React, { memo, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 /* Third Party Imports */
-import { AppBar, Button, TextField, Toolbar } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
+import { AppBar, Button, TextField, Toolbar } from "@mui/material";
 
 /* Project Specific Imports */
-import { Clip, exportClips, useClipsContext } from "./ClipsContext";
-import { DoublyLinkedList } from "./DoublyLinkedList";
+import { Clip, exportClips, useClipsContext } from "../ClipsContext";
+import { DoublyLinkedList } from "../DoublyLinkedList";
 
 const DEFAULT_TITLE = "Untitled Video";
 

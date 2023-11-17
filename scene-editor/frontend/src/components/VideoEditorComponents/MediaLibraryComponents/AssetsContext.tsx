@@ -16,10 +16,12 @@
  *
  */
 
-import axios from "axios";
 import { FC, ReactNode, createContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Clip } from "./ClipsContext";
+
+import axios from "axios";
+
+import { Clip } from "../ClipsContext";
 
 export interface Asset {
   id: string;

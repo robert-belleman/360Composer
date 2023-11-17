@@ -38,14 +38,14 @@
 import { Box } from "@mui/material";
 
 /* Component Imports */
-import MediaLibrary from "../../components/VideoEditorComponents/MediaLibrary";
-import Timeline from "../../components/VideoEditorComponents/Timeline";
-import TitleBar from "../../components/VideoEditorComponents/TitleBar";
-import VideoPreview from "../../components/VideoEditorComponents/VideoPreview";
+import MediaLibrary from "../../components/VideoEditorComponents/MediaLibraryComponents/MediaLibrary";
+import Timeline from "../../components/VideoEditorComponents/TimelineComponents/Timeline";
+import TitleBar from "../../components/VideoEditorComponents/TitleBarComponents/TitleBar";
+import VideoPreview from "../../components/VideoEditorComponents/VideoPreviewComponents/VideoPreview";
 
 /* Context Imports */
-import { AssetsProvider } from "../../components/VideoEditorComponents/AssetsContext";
 import { ClipsProvider } from "../../components/VideoEditorComponents/ClipsContext";
+import { AssetsProvider } from "../../components/VideoEditorComponents/MediaLibraryComponents/AssetsContext";
 import { TimelineSettingsProvider } from "../../components/VideoEditorComponents/TimelineComponents/TimelineContext";
 import { VideoProvider } from "../../components/VideoEditorComponents/VideoContext";
 

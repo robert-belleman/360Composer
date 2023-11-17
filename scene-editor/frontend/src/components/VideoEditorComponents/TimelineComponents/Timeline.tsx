@@ -19,15 +19,13 @@ import React from "react";
 import { Box, Paper, Slider } from "@mui/material";
 
 /* Project Specific Imports */
-import { useClipsContext } from "./ClipsContext";
-import { TIMELINE_HEIGHT, TIMELINE_SLIDER_STEP } from "./Constants";
-import TimelineArea from "./TimelineComponents/TimelineArea";
-import { useTimelineContext } from "./TimelineComponents/TimelineContext";
-import TimelineControls from "./TimelineComponents/TimelineControls";
-import { useVideoContext } from "./VideoContext";
+import { TIMELINE_HEIGHT, TIMELINE_SLIDER_STEP } from "../Constants";
+import { useVideoContext } from "../VideoContext";
+import TimelineArea from "./TimelineArea";
+import { useTimelineContext } from "./TimelineContext";
+import TimelineControls from "./TimelineControls";
 
 const Timeline: React.FC = () => {
-  const { state: clipsState } = useClipsContext();
   const { lowerBound, upperBound } = useTimelineContext();
   const {
     currentTime,

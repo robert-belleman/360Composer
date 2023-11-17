@@ -12,7 +12,6 @@
 import React from "react";
 
 import { Box, IconButton } from "@mui/material";
-
 import Forward5Icon from "@mui/icons-material/Forward5";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
