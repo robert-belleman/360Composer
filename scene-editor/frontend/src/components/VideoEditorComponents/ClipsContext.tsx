@@ -305,6 +305,20 @@ const visibleClips = (state: State, lower: number, upper: number) => {
 
 const exportClips = (clips: DoublyLinkedList<Clip>, title: string) => {
   console.log("Exporting clips as: ", title);
+  console.log(clips.head?.data.asset.path)
+  // id
+  // user_id
+  // name
+  // path
+  // thumbnail_path
+  // duration
+  // file_size
+  // asset_type
+  // view_type
+  // created_at
+  // updated_at
+  // deleted_at
+  // scene
   // TODO api call to export clips.
 };
 

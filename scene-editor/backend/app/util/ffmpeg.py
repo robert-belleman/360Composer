@@ -1,6 +1,6 @@
 import subprocess
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
 import ffmpeg
 
@@ -24,6 +24,54 @@ def get_duration(path):
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
     return int(float(result.stdout))
+
+
+def ffmpeg_trim_asset(start_time: str, end_time: str, input_path: str, output_path: str, codec: str) -> bool:
+    """Trim an asset from `input_path` to `output_path` from `start_time` to `end_time`."""
+    # Trim the asset.
+    result = subprocess.run([
+        "ffmpeg",
+        "-i", input_path,
+        "-ss", start_time,
+        "-to", end_time,
+        "-c", codec,
+        output_path
+    ], check=True)
+
+    # Handle errors.
+    if result.returncode != 0:
+        error_msg = result.stderr.strip()
+        print(error_msg)
+        return False
+
+    return True
+
+
+def ffmpeg_join_assets(filepaths: list[str], output_path: str):
+    """Join the assets from `filepaths` to `output_path`. """
+    # Join the assets.
+    result = subprocess.run(
+        ["ffmpeg"]
+        + sum([["-i", path] for path in filepaths], [])
+        + [
+            "-filter_complex",
+            f"concat=n={len(filepaths)}:v=1:a=1",
+            "-c:v",
+            "copy",
+            "-c:a",
+            "copy",
+            output_path,
+        ],
+        check=True
+    )
+
+    # Handle errors.
+    if result.returncode != 0:
+        error_msg = result.stderr.strip()
+        print(error_msg)
+        return False
+
+    return True
 
 
 @dataclass
