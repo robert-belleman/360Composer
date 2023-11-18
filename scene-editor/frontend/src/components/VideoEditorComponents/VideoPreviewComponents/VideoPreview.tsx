@@ -15,7 +15,7 @@
  *
  */
 
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { Assets, Scene, Sky } from "@belivvr/aframe-react";
 
@@ -35,6 +35,8 @@ const VideoPreview: React.FC = () => {
 
   const hls = useContext<Hls | undefined>(HlsContext);
   const { state: clipsState } = useClipsContext();
+
+  const [loadedMeta, setLoadedMeta] = useState(false);
 
   const {
     isPlaying,
@@ -160,23 +162,24 @@ const VideoPreview: React.FC = () => {
   return (
     <Stack flexGrow={1} sx={{ backgroundColor: "slategray" }}>
       <Box flexGrow={1} border={2} borderColor="lightgreen">
-        {currentNode && (
-          <Scene embedded width="100%" height="100%">
-            <Assets>
-              <video
-                id="360Video"
-                ref={videoRef}
-                autoPlay={false}
-                loop={false}
-                crossOrigin="anonymous"
-                onTimeUpdate={onTimeUpdate}
-                onEnded={onEnded}
-              />
-            </Assets>
-
-            <Sky src="#360Video" />
-          </Scene>
-        )}
+        <Scene embedded width="100%" height="100%">
+          <Assets>
+            <video
+              id="360Video"
+              ref={videoRef}
+              autoPlay={false}
+              loop={false}
+              crossOrigin="anonymous"
+              onTimeUpdate={onTimeUpdate}
+              onLoadedMetadata={() => {
+                setLoadedMeta(true);
+              }}
+              onEnded={onEnded}
+              src="" // Set an empty placeholder.
+            />
+          </Assets>
+          {loadedMeta && <Sky src="#360Video" />}
+        </Scene>
       </Box>
 
       <VideoControls videoRef={videoRef} />

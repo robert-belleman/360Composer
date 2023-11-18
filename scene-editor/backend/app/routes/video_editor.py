@@ -49,10 +49,8 @@ ns = api.namespace("video-editor")
 
 def trim_and_join_assets(output_path: str, clips: dict) -> bool:
     """Trim and join the assets using the instructions in `clips`. Put the
-    resulting video in `output_path`. If there is only a single clip, then
-    trim it and put the resulting video in ouput_path instantly. Note that
-    trimmed assets are usually partial results that are deleted at a later
-    time.
+    resulting video in `output_path`. Note that proccessed and trimmed assets
+    are partial results that will be deleted at a later time.
 
     Parameters:
         output_path : str
@@ -63,12 +61,6 @@ def trim_and_join_assets(output_path: str, clips: dict) -> bool:
     Returns:
         True if successful, False otherwise.
     """
-    # If there is only a single clip, then just trim.
-    if len(clips) == 1:
-        for clip in clips:
-            asset: AssetModel = find_asset(asset_id=clip["asset_id"])
-            return trim_asset(asset.path, output_path, clip)
-
     # Process the assets, store temporary partial results in `processed_files`.
     processed_files = process_all_assets(clips)
     if not processed_files:
@@ -315,8 +307,8 @@ def create_asset(name: str, path: str, meta: dict) -> AssetModel:
 
 asset_export = reqparse.RequestParser()
 asset_export.add_argument(
-    "clips",
-    type=dict,
+    "edits",
+    type=list,
     action="append",
     help="List of video files with start and end times",
     required=True,
@@ -345,7 +337,7 @@ class EditAssets(Resource):
 
         # Retrieve edit information.
         args = asset_export.parse_args()
-        clips = args["clips"]
+        clips = args["edits"]
         display_name = args["filename"]
 
         # Define the location of the resulting video.
@@ -354,8 +346,19 @@ class EditAssets(Resource):
         video_filename = base_name + extension
         video_path = Path(ASSET_DIR, base_name + extension)
 
-        # Trim the assets, join if necessary. Result is stored in video_path.
-        trim_and_join_assets(video_path, clips)
+        # If there is nothing to edit, return NO_CONTENT.
+        if not clips:
+            return HTTPStatus.NO_CONTENT
+
+        # If there is only a single clip, then just trim.
+        if len(clips) == 1:
+            for clip in clips:
+                asset: AssetModel = find_asset(asset_id=clip["asset_id"])
+                return trim_asset(asset.path, display_name, clip)
+
+        # Trim and join assets and store the resulting video in `video_path`.
+        if not trim_and_join_assets(video_path, clips):
+            return HTTPStatus.BAD_REQUEST
 
         # TODO: hls? see project.py
 

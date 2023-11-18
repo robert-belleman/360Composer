@@ -54,7 +54,11 @@ const VideoProvider: React.FC = ({ children }) => {
 
   /* After any changes to the length, start on the head. */
   useEffect(() => {
-    if (clipsState.clips.length > 0) setCurrentNode(clipsState.clips.head!);
+    if (clipsState.clips.length === 1) {
+      seek(0)
+    } else if (clipsState.clips.length > 1) {
+      seek(currentTime)
+    }
   }, [clipsState.clips.length]);
 
   /* If the total time changes, update the state of the total time. */

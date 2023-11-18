@@ -325,14 +325,22 @@ const parseToExport = (clip: Clip) => {
  * @param clips clips to export.
  * @param title title to export with.
  */
-const exportClips = async (projectID: string, clips: DoublyLinkedList<Clip>, title: string) => {
+const exportClips = async (
+  projectID: string,
+  clips: DoublyLinkedList<Clip>,
+  title: string
+) => {
   const data = clips.toArray(parseToExport);
   const apiEndPoint = `/api/video-editor/${projectID}/edit`;
 
-  // TODO: specify output format?
+  console.log({
+    edits: data,
+    filename: title,
+  })
+
   try {
     const response = await axios.post(apiEndPoint, {
-      clips: data,
+      edits: data,
       filename: title,
     });
     console.log("API Response: ", response.data);
@@ -381,5 +389,5 @@ export {
   seekClip,
   thumbnailUrl,
   useClipsContext,
-  visibleClips
+  visibleClips,
 };
