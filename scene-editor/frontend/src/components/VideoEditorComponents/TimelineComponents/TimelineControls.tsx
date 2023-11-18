@@ -59,7 +59,7 @@ const TimelineButton: React.FC<{
 
 const TimelineControls: React.FC = () => {
   const { state: clipsState, dispatch } = useClipsContext();
-  const { currentNode, currentTime, currentDuration, setCurrentNode, seek } =
+  const { currentIndex, currentTime, currentDuration, setCurrentIndex, seek } =
     useVideoContext();
   const {
     lowerBound,
@@ -120,9 +120,7 @@ const TimelineControls: React.FC = () => {
     dispatch({ type: DUPLICATE_CLIPS });
   };
   const handleDeleteClips = () => {
-    const resetCurrentNode = currentNode?.data.selected || false;
     dispatch({ type: DELETE_CLIPS });
-    if (resetCurrentNode) setCurrentNode(clipsState.clips.head || undefined);
   };
 
   /* Window manipulation functions. */

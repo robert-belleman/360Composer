@@ -68,7 +68,7 @@ const ForwardIconButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
 };
 
 const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
-  const { isPlaying, setIsPlaying, currentNode, currentTime, play, seek } =
+  const { isPlaying, setIsPlaying, currentIndex, currentTime, play, seek } =
     useVideoContext();
 
   /**
@@ -97,7 +97,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
       const exceedClipEnd = newTime > videoElem.duration;
       const exceedClipStart = newTime < 0;
       if (exceedClipEnd || exceedClipStart) {
-        if (currentNode) seek(currentTime + delta);
+        if (currentIndex !== null) seek(currentTime + delta);
       } else {
         videoElem.currentTime = newTime;
       }

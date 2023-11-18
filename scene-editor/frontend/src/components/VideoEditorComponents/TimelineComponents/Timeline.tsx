@@ -25,16 +25,7 @@ import TimelineControls from "./TimelineControls";
 import TimelineLayers from "./TimelineLayers";
 
 const Timeline: React.FC = () => {
-  const {
-    currentTime,
-    currentDuration,
-    setIsSeeking,
-    setCurrentNode,
-    setCurrentTime,
-    setVideoClipTime,
-    setVideoClipTimePlayed,
-    seek,
-  } = useVideoContext();
+  const { currentTime, currentDuration, seek } = useVideoContext();
 
   /**
    * Change the video time whenever the Slider value changes.

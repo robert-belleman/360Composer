@@ -30,7 +30,6 @@ import { AppBar, Button, TextField, Toolbar, Typography } from "@mui/material";
 
 /* Project Specific Imports */
 import { Clip, exportClips, useClipsContext } from "../ClipsContext";
-import { DoublyLinkedList } from "../DoublyLinkedList";
 
 const DEFAULT_TITLE = "Untitled Video";
 
@@ -71,11 +70,7 @@ const useTitleChange = (
  * @param title title of the video created from combining the clips.
  * @returns Callback function that exports the clips with title.
  */
-const useExportClips = (
-  projectID: string,
-  clips: DoublyLinkedList<Clip>,
-  title: string
-) => {
+const useExportClips = (projectID: string, clips: Clip[], title: string) => {
   return useCallback(() => {
     exportClips(projectID, clips, title == "" ? DEFAULT_TITLE : title);
   }, [clips, title]);
@@ -127,14 +122,8 @@ const ExportButton = memo(({ title }: { title: string }) => {
   // Show invalid button.
   if (!projectID) {
     return (
-      <Button
-        color="error"
-        variant="contained"
-        startIcon={<UpgradeIcon />}
-      >
-        <Typography noWrap>
-          Invalid Project ID
-        </Typography>
+      <Button color="error" variant="contained" startIcon={<UpgradeIcon />}>
+        <Typography noWrap>Invalid Project ID</Typography>
       </Button>
     );
   }

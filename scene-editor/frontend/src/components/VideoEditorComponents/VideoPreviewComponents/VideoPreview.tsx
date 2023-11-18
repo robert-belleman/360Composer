@@ -41,14 +41,14 @@ const VideoPreview: React.FC = () => {
   const {
     isPlaying,
     isSeeking,
-    currentNode,
+    currentIndex,
     currentTime,
     currentDuration,
     videoClipTime,
     videoClipTimePlayed,
     setIsPlaying,
     setIsSeeking,
-    setCurrentNode,
+    setCurrentIndex,
     setCurrentTime,
     setVideoClipTime,
     setVideoClipTimePlayed,
@@ -63,18 +63,17 @@ const VideoPreview: React.FC = () => {
   useEffect(() => {
     const { current: videoElem } = videoRef;
 
-    if (!currentNode || !videoElem || !hls) {
+    if (currentIndex === null || !videoElem || !hls) {
       /* `currentNode` or `videoElem` are not initialized at startup. */
       if (clipsState.clips.length != 0) {
         console.error(
-          "Error loading video: Video element or HLS not available. Clip: ",
-          currentNode
+          "Error loading video: Video element or HLS not available."
         );
       }
       return;
     }
 
-    const currentClip = currentNode.data;
+    const currentClip = clipsState.clips[currentIndex];
     const hlsSource = `/assets/${currentClip.asset.path}`;
     if (!hlsSource) {
       console.error(
@@ -107,7 +106,7 @@ const VideoPreview: React.FC = () => {
     if (!isSeeking) videoElem.currentTime = currentClip.startTime;
 
     if (isPlaying) play(videoElem);
-  }, [currentNode, hls]);
+  }, [currentIndex, hls]);
 
   /**
    * Update time state variables on time update.
@@ -115,7 +114,7 @@ const VideoPreview: React.FC = () => {
   const onTimeUpdate = () => {
     const { current: videoElem } = videoRef;
 
-    if (!videoElem || !currentNode) {
+    if (!videoElem || currentIndex === null) {
       console.error("Error: Video element not available");
       return;
     }
@@ -124,7 +123,7 @@ const VideoPreview: React.FC = () => {
     setVideoClipTime(videoElem.currentTime);
     setCurrentTime(videoElem.currentTime + videoClipTimePlayed);
 
-    const currentClip = currentNode.data;
+    const currentClip = clipsState.clips[currentIndex];
     /* If the duration of the clip has been exceeded, play the next clip. */
     if (currentClip.duration <= videoElem.currentTime) {
       /* Try not to overlap with the onEnded() function. */

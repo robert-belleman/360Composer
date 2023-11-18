@@ -30,14 +30,13 @@ import {
   useClipsContext,
   visibleClips,
 } from "../ClipsContext";
-import { DLLNode } from "../DoublyLinkedList";
 import { Box } from "@mui/material";
 import { useTimelineContext } from "./TimelineContext";
 import { TIMELINE_CLIP_HEIGHT } from "../Constants";
 
 interface TimelineClip {
   id: number;
-  node: DLLNode<Clip>;
+  clip: Clip;
   width: number;
 }
 
@@ -60,7 +59,7 @@ function SortableTimelineClip(item: TimelineClip) {
   };
 
   const toggleSelect = () => {
-    item.node.data.selected = !item.node.data.selected;
+    item.clip.selected = !item.clip.selected;
     setSelected(!selected);
   };
 
@@ -74,10 +73,10 @@ function SortableTimelineClip(item: TimelineClip) {
       width={item.width}
       onClick={toggleSelect}
       boxSizing="border-box"
-      border={item.node.data.selected ? "4px solid lightgreen" : "none"}
+      border={item.clip.selected ? "4px solid lightgreen" : "none"}
       borderRadius={2}
       sx={{
-        background: `url(${thumbnailUrl(item.node.data)})`,
+        background: `url(${thumbnailUrl(item.clip)})`,
         backgroundRepeat: "repeat",
         backgroundSize: "contain",
       }}
@@ -92,10 +91,10 @@ const SortableTimelineLayer: React.FC = () => {
 
   useEffect(() => {
     setItems(
-      clipsState.clips.map((node) => ({
-        id: node.id,
-        node: node,
-        width: node.data.duration / clipsState.totalDuration,
+      clipsState.clips.map((clip, index) => ({
+        id: index,
+        clip: clip,
+        width: clip.duration / clipsState.totalDuration,
       }))
     );
   }, [clipsState.clips]);
@@ -132,7 +131,7 @@ const SortableTimelineLayer: React.FC = () => {
             <SortableTimelineClip
               key={item.id}
               id={item.id}
-              node={item.node}
+              clip={item.clip}
               width={item.width}
             />
           ))}
