@@ -21,12 +21,10 @@ import { Box, Paper, Slider } from "@mui/material";
 /* Project Specific Imports */
 import { TIMELINE_HEIGHT, TIMELINE_SLIDER_STEP } from "../Constants";
 import { useVideoContext } from "../VideoContext";
-import TimelineArea from "./TimelineArea";
-import { useTimelineContext } from "./TimelineContext";
 import TimelineControls from "./TimelineControls";
+import TimelineLayers from "./TimelineLayers";
 
 const Timeline: React.FC = () => {
-  const { lowerBound, upperBound } = useTimelineContext();
   const {
     currentTime,
     currentDuration,
@@ -45,16 +43,6 @@ const Timeline: React.FC = () => {
    */
   const handleTimeChange = (event: Event, time: number | number[]) => {
     if (typeof time === "number") seek(time);
-  };
-
-  /**
-   * Convert the fractions of the window bounds to seconds.
-   * @returns Object with attributes `lowerBound` and `upperBound`.
-   */
-  const frac2Seconds = () => {
-    const lower = Math.floor(lowerBound * currentDuration);
-    const upper = Math.ceil(upperBound * currentDuration);
-    return { lowerBound: lower, upperBound: upper };
   };
 
   return (
@@ -79,7 +67,7 @@ const Timeline: React.FC = () => {
         justifyContent={"center"}
         sx={{ backgroundColor: "cornflowerblue" }}
       >
-        <TimelineArea bounds={frac2Seconds()} />
+        <TimelineLayers />
       </Box>
     </Paper>
   );

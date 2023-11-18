@@ -142,7 +142,7 @@ export class DoublyLinkedList<T> {
   appendNodes(
     satisfies: (node: DLLNode<T>) => boolean,
     value: (data: T) => number,
-    alter: (node: DLLNode<T>) => void,
+    alter: (node: DLLNode<T>) => void
   ): number {
     /* Prevent infinite loop. */
     const startingLength = this.length;
@@ -157,7 +157,7 @@ export class DoublyLinkedList<T> {
         this.appendNode(newNode); // Pass by value instead of reference.
         valueAdded += value(current.data);
 
-        alter(current)
+        alter(current);
       }
 
       current = current.next;
@@ -327,6 +327,18 @@ export class DoublyLinkedList<T> {
 
     while (current !== null) {
       result.push(parse(current.data));
+      current = current.next;
+    }
+
+    return result;
+  }
+
+  map(func: (node: DLLNode<T>) => any) {
+    const result = [];
+    let current = this.head;
+
+    while (current !== null) {
+      result.push(func(current));
       current = current.next;
     }
 

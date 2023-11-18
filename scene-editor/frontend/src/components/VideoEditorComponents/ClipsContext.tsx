@@ -270,6 +270,8 @@ const splitClip = (clipA: Clip, time: number) => {
   clipA.duration = time;
   clipB.startTime += time;
   clipB.duration -= time;
+
+  clipA.selected = false;
   clipB.selected = true;
 
   return { firstPart: clipA, secondPart: clipB };
@@ -336,7 +338,7 @@ const exportClips = async (
   console.log({
     edits: data,
     filename: title,
-  })
+  });
 
   try {
     const response = await axios.post(apiEndPoint, {

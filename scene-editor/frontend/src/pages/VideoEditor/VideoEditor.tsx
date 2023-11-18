@@ -35,7 +35,7 @@
  */
 
 /* Third Party Imports */
-import { Box } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 
 /* Component Imports */
 import MediaLibrary from "../../components/VideoEditorComponents/MediaLibraryComponents/MediaLibrary";
@@ -51,19 +51,12 @@ import { VideoProvider } from "../../components/VideoEditorComponents/VideoConte
 
 const VideoEditor: React.FC = () => {
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box display="flex" overflow="hidden" >
       <ClipsProvider>
         <AssetsProvider>
           <MediaLibrary />
         </AssetsProvider>
-        <Box
-          sx={{
-            flexGrow: 1,
-            height: "100vh",
-            display: "flex",
-            flexFlow: "column",
-          }}
-        >
+        <Stack flexGrow={1} height="100vh" display="flex">
           <TitleBar />
           <VideoProvider>
             <VideoPreview />
@@ -71,7 +64,7 @@ const VideoEditor: React.FC = () => {
               <Timeline />
             </TimelineSettingsProvider>
           </VideoProvider>
-        </Box>
+        </Stack>
       </ClipsProvider>
     </Box>
   );
