@@ -26,6 +26,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   Clip,
+  MOVE_CLIP,
   thumbnailUrl,
   useClipsContext,
   visibleClips,
@@ -33,6 +34,7 @@ import {
 import { Box } from "@mui/material";
 import { useTimelineContext } from "./TimelineContext";
 import { TIMELINE_CLIP_HEIGHT } from "../Constants";
+import { useVideoContext } from "../VideoContext";
 
 interface TimelineClip {
   id: number;
@@ -87,12 +89,13 @@ function SortableTimelineClip(item: TimelineClip) {
 const SortableTimelineLayer: React.FC = () => {
   const [items, setItems] = useState<TimelineClip[]>([]);
 
-  const { state: clipsState } = useClipsContext();
+  const { state: clipsState, dispatch } = useClipsContext();
+  const { reloading, setReloading } = useVideoContext();
 
   useEffect(() => {
     setItems(
       clipsState.clips.map((clip, index) => ({
-        id: index,
+        id: index + 1,
         clip: clip,
         width: clip.duration / clipsState.totalDuration,
       }))
@@ -106,15 +109,16 @@ const SortableTimelineLayer: React.FC = () => {
     useSensor(KeyboardSensor)
   );
 
-  // TODO: is O(1) if clips were stored as an array.
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over.id) {
-      setItems((prevItems) => {
-        const oldIndex = prevItems.findIndex((item) => item.id === active.id);
-        const newIndex = prevItems.findIndex((item) => item.id === over.id);
-        return arrayMove(prevItems, oldIndex, newIndex);
-      });
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+
+      dispatch({ type: MOVE_CLIP, payload: { oldIndex, newIndex } });
+      setReloading(!reloading);
+
+      setItems((prevItems) => arrayMove(prevItems, oldIndex, newIndex));
     }
   };
 

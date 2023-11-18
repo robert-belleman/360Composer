@@ -21,6 +21,7 @@ import { Clip, seekIndex, useClipsContext } from "./ClipsContext";
 interface VideoContextProps {
   isPlaying: boolean;
   isSeeking: boolean;
+  reloading: boolean;
   currentIndex: number | null;
   currentTime: number;
   currentDuration: number;
@@ -28,6 +29,7 @@ interface VideoContextProps {
   videoClipTimePlayed: number;
   setIsPlaying: Dispatch<SetStateAction<boolean>>;
   setIsSeeking: Dispatch<SetStateAction<boolean>>;
+  setReloading: Dispatch<SetStateAction<boolean>>;
   setCurrentIndex: Dispatch<SetStateAction<number | null>>;
   setCurrentTime: Dispatch<SetStateAction<number>>;
   setVideoClipTime: Dispatch<SetStateAction<number>>;
@@ -42,6 +44,7 @@ const VideoContext = createContext<VideoContextProps | undefined>(undefined);
 const VideoProvider: React.FC = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
+  const [reloading, setReloading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [currentDuration, setCurrentDuration] = useState(0);
@@ -70,14 +73,29 @@ const VideoProvider: React.FC = ({ children }) => {
    * @param videoElem element to play video of.
    */
   const play = (videoElem: HTMLVideoElement) => {
+    const onCanPlay = () => {
+      videoElem.removeEventListener("canplay", onCanPlay);
+      videoElem.play().catch((error) => {
+        console.error("Error playing video:", error);
+      });
+    };
+
     if (currentDuration <= currentTime) {
       /* If play is clicked after finishing, then restart the entire video. */
       if (clipsState.clips) seek(0);
       videoElem.load();
-    } else {
+      return;
+    }
+
+    // Check if the video is ready to play
+    if (videoElem.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      // The video is ready to play, no need to wait for 'canplay'
       videoElem.play().catch((error) => {
         console.error("Error playing video:", error);
       });
+    } else {
+      // Wait for the 'canplay' event before attempting to play
+      videoElem.addEventListener("canplay", onCanPlay);
     }
   };
 
@@ -139,6 +157,7 @@ const VideoProvider: React.FC = ({ children }) => {
   const value: VideoContextProps = {
     isPlaying,
     isSeeking,
+    reloading,
     currentIndex,
     currentTime,
     currentDuration,
@@ -146,6 +165,7 @@ const VideoProvider: React.FC = ({ children }) => {
     videoClipTimePlayed,
     setIsPlaying,
     setIsSeeking,
+    setReloading,
     setCurrentIndex,
     setCurrentTime,
     setVideoClipTime,

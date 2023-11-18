@@ -26,7 +26,7 @@ import VideoControls from "./VideoControls";
 import Hls from "hls.js";
 import { HlsContext } from "../../../App";
 
-import { useClipsContext } from "../ClipsContext";
+import { Clip, useClipsContext } from "../ClipsContext";
 import { MINIMUM_CLIP_LENGTH } from "../Constants";
 import { useVideoContext } from "../VideoContext";
 
@@ -41,6 +41,7 @@ const VideoPreview: React.FC = () => {
   const {
     isPlaying,
     isSeeking,
+    reloading,
     currentIndex,
     currentTime,
     currentDuration,
@@ -48,6 +49,7 @@ const VideoPreview: React.FC = () => {
     videoClipTimePlayed,
     setIsPlaying,
     setIsSeeking,
+    setReloading,
     setCurrentIndex,
     setCurrentTime,
     setVideoClipTime,
@@ -57,6 +59,38 @@ const VideoPreview: React.FC = () => {
     seek,
   } = useVideoContext();
 
+  const loadVideo = (videoElem: HTMLVideoElement, hls: Hls, clip: Clip) => {
+    const hlsSource = `/assets/${clip.asset.path}`;
+    if (!hlsSource) {
+      console.error(
+        "Error loading video: HLS source URL is empty or undefined"
+      );
+      return;
+    }
+
+    const loadWithHls = (source: string) => {
+      try {
+        hls.loadSource(source);
+        hls.attachMedia(videoElem);
+        console.log("Loaded HLS source:", source);
+      } catch (error) {
+        console.error("Error loading video:", error);
+      }
+    };
+
+    const loadSource = (source: string) => {
+      if (Hls.isSupported()) {
+        loadWithHls(source);
+      } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
+        videoElem.src = source;
+      } else {
+        console.error("No HLS support");
+      }
+    };
+
+    loadSource(hlsSource);
+  };
+
   /**
    * When the video clip changes, load the source.
    */
@@ -64,7 +98,6 @@ const VideoPreview: React.FC = () => {
     const { current: videoElem } = videoRef;
 
     if (currentIndex === null || !videoElem || !hls) {
-      /* `currentNode` or `videoElem` are not initialized at startup. */
       if (clipsState.clips.length != 0) {
         console.error(
           "Error loading video: Video element or HLS not available."
@@ -74,39 +107,17 @@ const VideoPreview: React.FC = () => {
     }
 
     const currentClip = clipsState.clips[currentIndex];
-    const hlsSource = `/assets/${currentClip.asset.path}`;
-    if (!hlsSource) {
-      console.error(
-        "Error loading video: HLS source URL is empty or undefined"
-      );
-      return;
-    }
-
-    const loadSrc = (source: string) => {
-      const loadWithHls = () => {
-        try {
-          hls.loadSource(source);
-          hls.attachMedia(videoElem);
-          console.log("Loaded HLS source:", source);
-        } catch (error) {
-          console.error("Error loading video:", error);
-        }
-      };
-      if (Hls.isSupported()) {
-        loadWithHls();
-      } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
-        videoElem.src = source;
-      } else {
-        console.error("No HLS support");
-      }
-    };
-
-    loadSrc(hlsSource);
+    loadVideo(videoElem, hls, currentClip);
 
     if (!isSeeking) videoElem.currentTime = currentClip.startTime;
 
+    if (reloading) {
+      seek(currentTime);
+      setReloading(false);
+    }
+
     if (isPlaying) play(videoElem);
-  }, [currentIndex, hls]);
+  }, [currentIndex, hls, reloading]);
 
   /**
    * Update time state variables on time update.
@@ -152,7 +163,6 @@ const VideoPreview: React.FC = () => {
     const { current: videoElem } = videoRef;
 
     if (isSeeking && videoElem) {
-      /* Is already on startTime by useEffect with [currentNode, hls] */
       videoElem.currentTime = videoClipTime;
       setIsSeeking(false);
     }

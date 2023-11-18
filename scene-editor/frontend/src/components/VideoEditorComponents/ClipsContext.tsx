@@ -52,6 +52,7 @@ export const APPEND_CLIP = "APPEND_CLIP";
 export const SPLIT_CLIP = "SPLIT_CLIP";
 export const DELETE_CLIPS = "DELETE_CLIPS";
 export const DUPLICATE_CLIPS = "DUPLICATE_CLIPS";
+export const MOVE_CLIP = "MOVE_CLIP";
 export const UNDO = "UNDO";
 export const REDO = "REDO";
 
@@ -60,6 +61,7 @@ type Action =
   | { type: typeof SPLIT_CLIP; payload: { time: number } }
   | { type: typeof DELETE_CLIPS }
   | { type: typeof DUPLICATE_CLIPS }
+  | { type: typeof MOVE_CLIP; payload: { oldIndex: number; newIndex: number } }
   | { type: typeof UNDO }
   | { type: typeof REDO };
 
@@ -155,6 +157,20 @@ const reducer = (state: State, action: Action): State => {
         past: [...state.past, state].slice(-CLIP_UNDO_STATES),
         future: [],
         totalDuration: state.totalDuration + durationAdded,
+      };
+    }
+
+    case MOVE_CLIP: {
+      const { oldIndex, newIndex } = action.payload;
+      const clips = [...state.clips];
+      const [movedClip] = clips.splice(oldIndex, 1);
+      clips.splice(newIndex, 0, movedClip);
+
+      return {
+        ...state,
+        clips,
+        past: [...state.past, state].slice(-CLIP_UNDO_STATES),
+        future: [],
       };
     }
 
