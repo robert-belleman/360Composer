@@ -35,13 +35,13 @@ import {
 /* Project Specific Imports */
 import defaultImage from "../../../static/images/default.jpg";
 import NewAssetDialog from "../../ProjectComponents/AssetViewComponents/NewAssetDialog";
-import { APPEND_CLIP, useClipsContext } from "../ClipsContext";
+import { APPEND_CLIP, useClipsContext, createClip } from "../ClipsContext";
 import {
   MEDIA_LIBRARY_COLS,
   MEDIA_LIBRARY_IMAGE_WIDTH,
   MEDIA_LIBRARY_WIDTH,
 } from "../Constants";
-import { Asset, AssetsContext, createClip } from "./AssetsContext";
+import { Asset, AssetsContext } from "./AssetsContext";
 
 /* Components */
 const ImportMediaButton: React.FC<{

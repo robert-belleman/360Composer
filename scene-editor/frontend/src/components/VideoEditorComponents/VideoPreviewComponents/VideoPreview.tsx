@@ -32,11 +32,13 @@ import { useVideoContext } from "../VideoContext";
 
 const VideoPreview: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const boxRef = useRef<HTMLDivElement | null>(null);
+
+  const [loadedMeta, setLoadedMeta] = useState(false);
+  const [videoSize, setVideoSize] = useState({ width: 1, height: 1 });
 
   const hls = useContext<Hls | undefined>(HlsContext);
   const { state: clipsState } = useClipsContext();
-
-  const [loadedMeta, setLoadedMeta] = useState(false);
 
   const {
     isPlaying,
@@ -119,6 +121,25 @@ const VideoPreview: React.FC = () => {
     if (isPlaying) play(videoElem);
   }, [currentIndex, hls, reloading]);
 
+  const onLoadedMetadata = () => {
+    const { current: videoElem } = videoRef;
+    const { current: boxElem } = boxRef;
+
+    if (!videoElem) {
+      console.error("Error loading video: Video element or HLS not available.");
+      return;
+    }
+
+    /* Get the client height and compute the width. */
+    const aspectRatio = videoElem.videoWidth / videoElem.videoHeight;
+    const height = !boxElem ? 1 : boxElem.getBoundingClientRect().height;
+    const width = height * aspectRatio;
+    setVideoSize({ width, height });
+
+    /* Change state so play() knows when it can play without buffering. */
+    setLoadedMeta(true);
+  };
+
   /**
    * Update time state variables on time update.
    */
@@ -170,8 +191,15 @@ const VideoPreview: React.FC = () => {
 
   return (
     <Stack flexGrow={1} sx={{ backgroundColor: "gainsboro" }}>
-      <Box flexGrow={1} border={2} borderColor="lightgreen">
-        <Scene embedded width="100%" height="100%">
+      <Box
+        ref={boxRef}
+        width={videoSize.width}
+        height={videoSize.height}
+        margin="auto"
+        boxSizing="border-box"
+        border="2px solid lightgreen"
+      >
+        <Scene embedded>
           <Assets>
             <video
               id="360Video"
@@ -180,9 +208,7 @@ const VideoPreview: React.FC = () => {
               loop={false}
               crossOrigin="anonymous"
               onTimeUpdate={onTimeUpdate}
-              onLoadedMetadata={() => {
-                setLoadedMeta(true);
-              }}
+              onLoadedMetadata={onLoadedMetadata}
               onEnded={onEnded}
               src="" // Set an empty placeholder.
             />

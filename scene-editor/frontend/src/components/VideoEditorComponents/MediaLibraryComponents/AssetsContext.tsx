@@ -21,8 +21,6 @@ import { useParams } from "react-router-dom";
 
 import axios from "axios";
 
-import { Clip } from "../ClipsContext";
-
 export interface Asset {
   id: string;
   user_id: string;
@@ -50,16 +48,6 @@ const AssetsContext = createContext<AssetsContextProps | undefined>(undefined);
 interface AssetsProviderProps {
   children: ReactNode;
 }
-
-const createClip = (asset: Asset): Clip => {
-  const newClip: Clip = {
-    asset: asset,
-    startTime: 0,
-    duration: asset.duration,
-    selected: false,
-  };
-  return newClip;
-};
 
 const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -96,4 +84,4 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   );
 };
 
-export { AssetsContext, AssetsProvider, createClip };
+export { AssetsContext, AssetsProvider };

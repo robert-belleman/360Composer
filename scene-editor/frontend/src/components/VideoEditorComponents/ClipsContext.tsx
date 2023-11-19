@@ -225,6 +225,21 @@ const useClipsContext = (): ClipsContextProps => {
 };
 
 /**
+ * Create a clip from an asset.
+ * @param asset asset to create clip with
+ * @returns Clip object instance.
+ */
+const createClip = (asset: Asset): Clip => {
+  const newClip: Clip = {
+    asset: asset,
+    startTime: 0,
+    duration: asset.duration,
+    selected: false,
+  };
+  return newClip;
+};
+
+/**
  * Seek the index of the clip that intersects with time `time`.
  * @param state state with an array of clips
  * @param time time to seek for clip
@@ -376,4 +391,5 @@ export {
   thumbnailUrl,
   useClipsContext,
   visibleClips,
+  createClip,
 };
