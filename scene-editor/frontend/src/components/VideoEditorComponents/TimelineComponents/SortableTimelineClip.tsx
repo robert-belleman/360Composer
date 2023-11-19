@@ -32,8 +32,8 @@ export function SortableTimelineClip(item: SortableTimelineClipProps) {
     isDragging,
   } = useSortable({ id: item.id });
 
-  const [isSelected, setIsSelected] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [, forceUpdate] = useState<{}>();
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -43,7 +43,7 @@ export function SortableTimelineClip(item: SortableTimelineClipProps) {
 
   const toggleSelect = () => {
     item.clip.selected = !item.clip.selected;
-    setIsSelected(!isSelected);
+    forceUpdate({}); // Update to see color change.
   };
 
   return (
@@ -60,7 +60,11 @@ export function SortableTimelineClip(item: SortableTimelineClipProps) {
       boxSizing="border-box"
       border={4}
       borderColor={
-        isSelected ? "lightgreen" : isHovered ? "gainsboro" : "transparent"
+        item.clip.selected
+          ? "lightgreen"
+          : isHovered
+          ? "gainsboro"
+          : "transparent"
       }
       borderRadius={2}
       sx={{

@@ -108,14 +108,14 @@ const reducer = (state: State, action: Action): State => {
         return state;
       }
 
-      const [clipA, clipB] = splitClip(state.clips[index], timeInClip);
+      const { first, second } = splitClip(state.clips[index], timeInClip);
 
       return {
         ...state,
         clips: [
           ...state.clips.slice(0, index),
-          clipA,
-          clipB,
+          first,
+          second,
           ...state.clips.slice(index + 1),
         ],
         past: [...state.past, state].slice(-CLIP_UNDO_STATES),
@@ -265,15 +265,16 @@ const seekIndex = (
  * @param splitTime time in clip to split at
  * @returns `clipA` and `clipB` as the first and second part respectively.
  */
-const splitClip = (clip: Clip, splitTime: number) => {
+const splitClip = (
+  clip: Clip,
+  splitTime: number
+): { first: Clip; second: Clip } => {
   const clipA = { ...clip, duration: splitTime, selected: false };
-  const clipB = {
-    ...clip,
-    startTime: splitTime,
-    duration: clip.duration - splitTime,
-    selected: true,
-  };
-  return [clipA, clipB];
+  let clipB = createClip({ ...clipA.asset });
+  clipB.startTime = splitTime;
+  clipB.duration = clip.duration - splitTime;
+  clipB.selected = true;
+  return { first: clipA, second: clipB };
 };
 
 /**

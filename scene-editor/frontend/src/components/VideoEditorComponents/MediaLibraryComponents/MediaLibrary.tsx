@@ -121,8 +121,7 @@ const MediaLibrary: React.FC = () => {
   const { projectID } = useParams();
 
   const handleAppendClip = (asset: Asset) => {
-    const newClip = createClip(asset);
-    dispatch({ type: APPEND_CLIP, payload: { clip: newClip } });
+    dispatch({ type: APPEND_CLIP, payload: { clip: createClip(asset) } });
   };
 
   /**

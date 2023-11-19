@@ -121,22 +121,61 @@ const VideoPreview: React.FC = () => {
     if (isPlaying) play(videoElem);
   }, [currentIndex, hls, reloading]);
 
-  const onLoadedMetadata = () => {
+  /**
+   * Update the dimensions of the Box to maximize video size while maintaining
+   * its aspect ratio.
+   */
+  const updateDimensions = () => {
     const { current: videoElem } = videoRef;
     const { current: boxElem } = boxRef;
 
-    if (!videoElem) {
+    if (!videoElem || !boxElem) {
       console.error("Error loading video: Video element or HLS not available.");
       return;
     }
 
-    /* Get the client height and compute the width. */
-    const aspectRatio = videoElem.videoWidth / videoElem.videoHeight;
-    const height = !boxElem ? 1 : boxElem.getBoundingClientRect().height;
-    const width = height * aspectRatio;
-    setVideoSize({ width, height });
+    const videoAspectRatio = videoElem.videoWidth / videoElem.videoHeight;
+    const boxAspectRatio = boxElem.clientWidth / boxElem.clientHeight;
 
-    /* Change state so play() knows when it can play without buffering. */
+    let width;
+    let height;
+
+    if (videoAspectRatio > boxAspectRatio) {
+      // Video is wider than the box
+      console.log("wider");
+      width = boxElem.clientWidth;
+      height = width / videoAspectRatio;
+    } else {
+      // Video is taller than or equal to the box
+      console.log("taller");
+      height = boxElem.clientHeight;
+      width = height * videoAspectRatio;
+    }
+    console.log(videoElem.videoWidth, videoElem.videoHeight);
+    console.log(boxElem.clientWidth, boxElem.clientHeight);
+    console.log(width, height);
+    setVideoSize({ width, height });
+  };
+
+  /**
+   * Whenever the window resizes, update the dimensions of the Box.
+   */
+  useEffect(() => {
+    // Add event listener for window resize
+    window.addEventListener("resize", updateDimensions);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", updateDimensions);
+    };
+  }, []);
+
+  /**
+   * Update dimensions to maximize video area inside Box.
+   * Update state to ley play() know it can play without buffer.
+   */
+  const onLoadedMetadata = () => {
+    updateDimensions();
     setLoadedMeta(true);
   };
 
@@ -191,30 +230,31 @@ const VideoPreview: React.FC = () => {
 
   return (
     <Stack flexGrow={1} sx={{ backgroundColor: "gainsboro" }}>
-      <Box
-        ref={boxRef}
-        width={videoSize.width}
-        height={videoSize.height}
-        margin="auto"
-        boxSizing="border-box"
-        border="2px solid lightgreen"
-      >
-        <Scene embedded>
-          <Assets>
-            <video
-              id="360Video"
-              ref={videoRef}
-              autoPlay={false}
-              loop={false}
-              crossOrigin="anonymous"
-              onTimeUpdate={onTimeUpdate}
-              onLoadedMetadata={onLoadedMetadata}
-              onEnded={onEnded}
-              src="" // Set an empty placeholder.
-            />
-          </Assets>
-          {loadedMeta && <Sky src="#360Video" />}
-        </Scene>
+      <Box ref={boxRef} width={1} height={1}>
+        <Box
+          margin="auto"
+          boxSizing="border-box"
+          border="2px solid lightgreen"
+          width={videoSize.width}
+          height={videoSize.height}
+        >
+          <Scene embedded>
+            <Assets>
+              <video
+                id="360Video"
+                ref={videoRef}
+                autoPlay={false}
+                loop={false}
+                crossOrigin="anonymous"
+                onTimeUpdate={onTimeUpdate}
+                onLoadedMetadata={onLoadedMetadata}
+                onEnded={onEnded}
+                src="" // Set an empty placeholder.
+              />
+            </Assets>
+            {loadedMeta && <Sky src="#360Video" />}
+          </Scene>
+        </Box>
       </Box>
 
       <VideoControls videoRef={videoRef} />
