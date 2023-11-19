@@ -169,7 +169,7 @@ const VideoPreview: React.FC = () => {
   }, [isSeeking]);
 
   return (
-    <Stack flexGrow={1} sx={{ backgroundColor: "slategray" }}>
+    <Stack flexGrow={1} sx={{ backgroundColor: "gainsboro" }}>
       <Box flexGrow={1} border={2} borderColor="lightgreen">
         <Scene embedded width="100%" height="100%">
           <Assets>
