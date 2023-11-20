@@ -5,23 +5,25 @@
  * This Component describes the appearance of a clip in the timeline.
  *
  */
+
 import React, { useState } from "react";
-import { Clip, thumbnailUrl } from "../../ClipsContext";
+
 import { Box } from "@mui/material";
+
+import { Clip, thumbnailUrl } from "../../ClipsContext";
 import { TIMELINE_CLIP_HEIGHT } from "../../Constants";
 
-function TimelineClip({ clip, scale }: { clip: Clip; scale: number }) {
+function TimelineClip({ clip }: { clip: Clip }) {
   const [isHovered, setIsHovered] = useState(false);
   const [, forceUpdate] = useState<{}>();
 
   const toggleSelect = () => {
     clip.selected = !clip.selected;
-    forceUpdate({}); // Update to see color change.
+    forceUpdate({});
   };
 
   return (
     <Box
-      width={clip.duration * scale}
       height={TIMELINE_CLIP_HEIGHT}
       onClick={toggleSelect}
       onMouseOver={() => setIsHovered(true)}
@@ -41,4 +43,4 @@ function TimelineClip({ clip, scale }: { clip: Clip; scale: number }) {
   );
 }
 
-export default TimelineClip
+export default TimelineClip;

@@ -9,12 +9,11 @@
  *
  */
 
-import React, { useEffect, useState } from "react";
-import { useClipsContext } from "../ClipsContext";
-import TimelineClip from "./SortableItem/TimelineClip";
+import React, { useState } from "react";
 
 export interface TimelineItem {
   id: number;
+  length: number;
   content: JSX.Element;
 }
 
@@ -31,18 +30,7 @@ const TimelineSettingsContext = React.createContext<
 
 const TimelineSettingsProvider: React.FC = ({ children }) => {
   const [items, setItems] = useState<TimelineItem[]>([]);
-  const [scale, setScale] = useState(60);  // TODO set scale so it fits in container.
-
-  const { state: clipsState } = useClipsContext();
-
-  useEffect(() => {
-    setItems(
-      clipsState.clips.map((clip, index) => ({
-        id: index + 1,
-        content: <TimelineClip clip={clip} scale={scale} />,
-      }))
-    );
-  }, [clipsState.clips, scale]);
+  const [scale, setScale] = useState(1);
 
   const timelineSettings: TimelineSettings = {
     items,

@@ -9,9 +9,11 @@
  */
 
 import React from "react";
+
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Box } from "@mui/material";
+
 import { TimelineItem } from "../TimelineContext";
 
 function SortableItem(item: TimelineItem) {
@@ -28,6 +30,8 @@ function SortableItem(item: TimelineItem) {
     transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.7 : 1,
+    flexGrow: item.length,
+    flexShrink: 0,
   };
 
   return (

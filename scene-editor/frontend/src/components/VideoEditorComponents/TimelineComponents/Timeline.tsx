@@ -16,45 +16,31 @@
 import React from "react";
 
 /* Third Party Imports */
-import { Box, Paper, Slider } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 
 /* Project Specific Imports */
-import { TIMELINE_HEIGHT, TIMELINE_SLIDER_STEP } from "../Constants";
-import { useVideoContext } from "../VideoContext";
+import { TIMELINE_HEIGHT } from "../Constants";
 import TimelineControls from "./TimelineControls";
 import TimelineLayer from "./TimelineLayer";
-import { useTimelineContext } from "./TimelineContext";
+import VideoSlider from "./Sliders/VideoSlider";
 
 const Timeline: React.FC = () => {
-  const { currentTime, currentDuration, seek } = useVideoContext();
-  const { scale } = useTimelineContext();
-
-  /**
-   * Change the video time whenever the Slider value changes.
-   * @param event
-   * @param time
-   */
-  const handleTimeChange = (event: Event, time: number | number[]) => {
-    if (typeof time === "number") seek(time / scale);
-  };
-
   return (
-    <Paper
-      sx={{ height: TIMELINE_HEIGHT, display: "flex", flexFlow: "column" }}
-    >
-      <Box>
+    <Stack height={TIMELINE_HEIGHT} sx={{ backgroundColor: "cornflowerblue" }}>
+      <Box sx={{ backgroundColor: "royalblue" }} paddingX={2}>
         <TimelineControls />
-        <Box overflow={"hidden"}>
-          <Slider
-            max={currentDuration * scale}
-            step={TIMELINE_SLIDER_STEP * scale}
-            value={currentTime * scale}
-            onChange={handleTimeChange}
-          />
-        </Box>
+        <VideoSlider />
       </Box>
-      <TimelineLayer />
-    </Paper>
+      <Stack
+        height={1}
+        marginX={2}
+        display="flex"
+        justifyContent="center"
+        sx={{ borderStyle: "none dashed", overflowX: "auto" }}
+      >
+        <TimelineLayer />
+      </Stack>
+    </Stack>
   );
 };
 

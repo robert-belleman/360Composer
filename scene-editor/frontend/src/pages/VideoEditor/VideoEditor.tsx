@@ -62,10 +62,12 @@ const VideoEditor: React.FC = () => {
           <Stack height="100vh">
             <TitleBar />
             <VideoProvider>
-              <VideoPreview />
-              <TimelineSettingsProvider>
-                <Timeline />
-              </TimelineSettingsProvider>
+              <Stack height={1} display="flex" justifyContent="flex-end" >
+                <VideoPreview />
+                <TimelineSettingsProvider>
+                  <Timeline />
+                </TimelineSettingsProvider>
+              </Stack>
             </VideoProvider>
           </Stack>
         </Grid>

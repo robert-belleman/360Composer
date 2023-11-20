@@ -12,15 +12,12 @@
 import React, { memo } from "react";
 
 /* Third Party Imports */
-import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material";
+import { Grid, IconButton, Typography } from "@mui/material";
 
 /* Project Specific Imports */
 import {
@@ -35,7 +32,7 @@ import {
   useClipsContext,
 } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
-import { useTimelineContext } from "./TimelineContext";
+import ZoomSlider from "./Sliders/ZoomSlider";
 
 const TimelineButton: React.FC<{
   disabled: boolean;
@@ -53,7 +50,6 @@ const TimelineButton: React.FC<{
 const TimelineControls: React.FC = () => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { currentTime, currentDuration } = useVideoContext();
-  const { scale, setScale } = useTimelineContext();
 
   /* Clip manipulation functions. */
   const handleUndo = () => {
@@ -72,25 +68,6 @@ const TimelineControls: React.FC = () => {
     dispatch({ type: DELETE_CLIPS });
   };
 
-  const canZoomOut = () => {
-    return true; // TODO
-  };
-  const canZoomIn = () => {
-    return true; // TODO
-  };
-  const canZoomReset = () => {
-    return true; // TODO
-  };
-  const zoomOut = () => {
-    setScale(scale - 10); // TODO finalize values
-  };
-  const zoomIn = () => {
-    setScale(scale + 10); // TODO finalize values
-  };
-  const zoomReset = () => {
-    setScale(30); // TODO finalize values
-  };
-
   /**
    * Convert seconds to a user friendly display format. Note that the fractional
    * part of the seconds is not shown as the duratino is stored as an integer.
@@ -106,15 +83,20 @@ const TimelineControls: React.FC = () => {
 
   const DisplayTime = () => {
     return (
-      <Typography display="flex" alignItems="center" color={"black"}>
+      <Typography color={"black"}>
         {toDisplayTime(currentTime)}/{toDisplayTime(currentDuration)}
       </Typography>
     );
   };
 
   return (
-    <AppBar position="static">
-      <Toolbar variant="dense">
+    <Grid
+      container
+      display="flex"
+      justifyContent="space-between"
+      alignItems="center"
+    >
+      <Grid item xs={12} sm={12} md={4} display="flex" justifyContent="center">
         <TimelineButton
           disabled={!canUndo(clipsState)}
           onClick={handleUndo}
@@ -140,26 +122,14 @@ const TimelineControls: React.FC = () => {
           onClick={handleDuplicateClips}
           icon={<ContentCopyIcon />}
         />
-        <Box flexGrow={1} display="flex" justifyContent="center">
-          <DisplayTime />
-        </Box>
-        <TimelineButton
-          disabled={!canZoomOut()}
-          onClick={zoomOut}
-          icon={<ZoomOutIcon />}
-        />
-        <TimelineButton
-          disabled={!canZoomIn()}
-          onClick={zoomIn}
-          icon={<ZoomInIcon />}
-        />
-        <TimelineButton
-          disabled={!canZoomReset()}
-          onClick={zoomReset}
-          icon={<CloseFullscreenIcon />}
-        />
-      </Toolbar>
-    </AppBar>
+      </Grid>
+      <Grid item xs={12} sm={12} md={4} display="flex" justifyContent="center">
+        <DisplayTime />
+      </Grid>
+      <Grid item xs={12} sm={12} md={4}>
+        <ZoomSlider />
+      </Grid>
+    </Grid>
   );
 };
 

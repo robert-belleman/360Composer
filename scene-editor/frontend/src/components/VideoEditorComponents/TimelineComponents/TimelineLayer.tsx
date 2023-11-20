@@ -7,7 +7,7 @@
  *
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -27,11 +27,22 @@ import SortableItem from "./SortableItem/SortableItem";
 import { MOVE_CLIP, useClipsContext } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
 import { useTimelineContext, TimelineItem } from "./TimelineContext";
+import TimelineClip from "./SortableItem/TimelineClip";
 
 const TimelineLayer: React.FC = () => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { reloading, setReloading } = useVideoContext();
   const { scale, items, setItems } = useTimelineContext();
+
+  useEffect(() => {
+    setItems(
+      clipsState.clips.map((clip, index) => ({
+        id: index + 1,
+        length: clip.duration,
+        content: <TimelineClip clip={clip} />,
+      }))
+    );
+  }, [clipsState.clips]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -41,24 +52,20 @@ const TimelineLayer: React.FC = () => {
   );
 
   return (
-    <div style={{ overflowX: "auto" }}>
-      <DndContext
-        sensors={sensors}
-        modifiers={[restrictToParentElement]}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={items} strategy={horizontalListSortingStrategy}>
-          <div
-            style={{ display: "flex", width: clipsState.totalDuration * scale }}
-          >
-            {items.map((props: TimelineItem) => (
-              <SortableItem key={props.id} {...props} />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-    </div>
+    <DndContext
+      sensors={sensors}
+      modifiers={[restrictToParentElement]}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={items} strategy={horizontalListSortingStrategy}>
+        <div style={{ display: "flex", width: `${scale * 100}%` }}>
+          {items.map((props: TimelineItem) => (
+            <SortableItem key={props.id} {...props} />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 
   function handleDragEnd(event: any) {
