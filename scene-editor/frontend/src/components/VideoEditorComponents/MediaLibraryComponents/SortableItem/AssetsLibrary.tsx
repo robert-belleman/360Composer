@@ -6,7 +6,6 @@
  *
  */
 
-
 import React, { useEffect, useState } from "react";
 import {
   DndContext,
@@ -19,13 +18,16 @@ import {
 import {
   arrayMove,
   SortableContext,
-  rectSortingStrategy,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from "@dnd-kit/modifiers";
 
 import SortableItem from "./SortableItem";
 import { useAssetsContext } from "../AssetsContext";
 import LibraryAsset from "./LibraryAsset";
-import { Box } from "@mui/material";
 
 export interface LibraryItem {
   id: number;
@@ -57,21 +59,14 @@ const AssetsLibrary: React.FC = () => {
   return (
     <DndContext
       sensors={sensors}
+      modifiers={[restrictToParentElement]}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext items={items} strategy={rectSortingStrategy}>
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-          }}
-        >
-          {items.map((props: LibraryItem) => (
-            <SortableItem key={props.id} {...props} />
-          ))}
-        </Box>
+      <SortableContext items={items} strategy={verticalListSortingStrategy}>
+        {items.map((props: LibraryItem) => (
+          <SortableItem key={props.id} {...props} />
+        ))}
       </SortableContext>
     </DndContext>
   );

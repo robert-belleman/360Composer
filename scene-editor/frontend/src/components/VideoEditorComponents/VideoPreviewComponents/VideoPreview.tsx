@@ -224,7 +224,7 @@ const VideoPreview: React.FC = () => {
   }, [isSeeking]);
 
   return (
-    <Stack flexGrow={1} sx={{ backgroundColor: "gainsboro" }}>
+    <Stack flexGrow={1} sx={{ backgroundColor: "snow" }}>
       <Box ref={boxRef} width={1} height={1}>
         <Box
           margin="auto"

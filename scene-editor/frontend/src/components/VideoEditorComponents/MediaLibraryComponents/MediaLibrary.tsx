@@ -11,7 +11,7 @@ import { useParams } from "react-router-dom";
 
 /* Third Party Imports */
 import AddIcon from "@mui/icons-material/Add";
-import { Button, Stack } from "@mui/material";
+import { Box, Button, Stack } from "@mui/material";
 
 /* Project Specific Imports */
 import NewAssetDialog from "../../ProjectComponents/AssetViewComponents/NewAssetDialog";
@@ -51,9 +51,11 @@ const MediaLibrary: React.FC = () => {
   };
 
   return (
-    <Stack spacing={3}>
+    <Stack height={1} boxSizing="border-box" padding={2}>
       <ImportMediaButton setIsImporting={setIsImporting} />
-      <AssetsLibrary />
+      <Box height={1} marginTop={2}>
+        <AssetsLibrary />
+      </Box>
       <NewAssetDialog
         activeProject={projectID!}
         open={isImporting}

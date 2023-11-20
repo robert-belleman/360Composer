@@ -30,6 +30,7 @@ const VideoSlider = () => {
 
   return (
     <CustomSlider
+      aria-label="Time Slider"
       max={currentDuration}
       step={0.1}
       value={currentTime}

@@ -38,10 +38,15 @@ const TimelineButton: React.FC<{
   disabled: boolean;
   onClick: () => void;
   icon: React.ReactNode;
-}> = memo(({ disabled, onClick, icon }) => {
+  label: string;
+}> = memo(({ disabled, onClick, icon, label }) => {
   const { isSeeking } = useVideoContext();
   return (
-    <IconButton disabled={disabled || isSeeking} onClick={onClick}>
+    <IconButton
+      disabled={disabled || isSeeking}
+      onClick={onClick}
+      aria-label={label}
+    >
       {icon}
     </IconButton>
   );
@@ -101,26 +106,31 @@ const TimelineControls: React.FC = () => {
           disabled={!canUndo(clipsState)}
           onClick={handleUndo}
           icon={<UndoIcon />}
+          label="Undo"
         />
         <TimelineButton
           disabled={!canRedo(clipsState)}
           onClick={handleRedo}
           icon={<RedoIcon />}
+          label="Redo"
         />
         <TimelineButton
           disabled={!canSplit(clipsState)}
           onClick={handleSplitClip}
           icon={<ContentCutIcon />}
+          label="Split"
         />
         <TimelineButton
           disabled={false}
           onClick={handleDeleteClips}
           icon={<DeleteIcon />}
+          label="Delete"
         />
         <TimelineButton
           disabled={false}
           onClick={handleDuplicateClips}
           icon={<ContentCopyIcon />}
+          label="Duplicate"
         />
       </Grid>
       <Grid item xs={12} sm={12} md={4} display="flex" justifyContent="center">

@@ -11,7 +11,6 @@ import React from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { styled } from "@mui/material/styles";
 import { IconButtonProps } from "@mui/material/IconButton";
-
 import {
   Avatar,
   Card,
@@ -20,11 +19,13 @@ import {
   CardMedia,
   Collapse,
   IconButton,
+  MenuItem,
+  Select,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-import { Asset } from "../AssetsContext";
+import { Asset, useAssetsContext } from "../AssetsContext";
 import { APPEND_CLIP, createClip, useClipsContext } from "../../ClipsContext";
 import defaultImage from "../../../../static/images/default.jpg";
 
@@ -79,15 +80,20 @@ function LibraryAsset({ asset }: { asset: Asset }) {
     : defaultImage;
 
   return (
-    <Card>
+    <Card style={{ margin: 4, borderLeft: "7px solid dodgerblue" }}>
       <CardHeader
         avatar={<Avatar alt={asset.name} src={imgPath} />}
         action={
           <div>
-            <IconButton onClick={handleAppendClip} aria-label="add to timeline">
+            <IconButton
+              onClick={handleAppendClip}
+              color="primary"
+              aria-label="add to timeline"
+            >
               <AddIcon />
             </IconButton>
             <ExpandMore
+              color="primary"
               expand={expanded}
               onClick={handleExpandClick}
               aria-expanded={expanded}
@@ -108,8 +114,8 @@ function LibraryAsset({ asset }: { asset: Asset }) {
           alt={asset.name}
         />
         <CardContent>
-          <Typography>{`View Type: ${viewType(asset.view_type)}`}</Typography>
-          <Typography>{`Last Updated: ${asset.updated_at}`}</Typography>
+          <Typography>{`Asset last updated: ${asset.updated_at}`}</Typography>
+          <Typography>{`View type: ${viewType(asset.view_type)}`}</Typography>
         </CardContent>
       </Collapse>
     </Card>

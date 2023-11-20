@@ -14,6 +14,7 @@ import { Slider, styled, Stack, IconButton } from "@mui/material";
 
 import { useTimelineContext } from "../TimelineContext";
 import { useClipsContext } from "../../ClipsContext";
+import { useState } from "react";
 
 const marks = [
   {
@@ -27,6 +28,9 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
 
 const ZoomSlider = () => {
   const defaultValue = 0;
+  const minScale = -1;
+  const maxScale = 8;
+  const [sliderValue, setSliderValue] = useState<number>(defaultValue);
 
   const { setScale } = useTimelineContext();
   const { state: clipsState } = useClipsContext();
@@ -37,8 +41,24 @@ const ZoomSlider = () => {
 
   const handleChangeScale = (event: Event, value: number | number[]) => {
     if (typeof value === "number") {
+      setSliderValue(value);
       setScale(calculateScale(value));
     }
+  };
+
+  const canZoomOut = () => {
+    return 0 < clipsState.clips.length && minScale < sliderValue;
+  };
+
+  const canZoomIn = () => {
+    return 0 < clipsState.clips.length && sliderValue < maxScale;
+  };
+
+  const changeScaleDelta = (delta: number) => {
+    const newValue = sliderValue + delta;
+    const boundedValue = Math.min(Math.max(newValue, minScale), maxScale);
+    setSliderValue(newValue);
+    setScale(calculateScale(boundedValue));
   };
 
   const resetScale = () => {
@@ -53,20 +73,25 @@ const ZoomSlider = () => {
       spacing={1}
       paddingX={1}
     >
-      <ZoomOutIcon />
+      <IconButton disabled={!canZoomOut()} onClick={() => changeScaleDelta(-1)}>
+        <ZoomOutIcon />
+      </IconButton>
       <CustomSlider
         aria-label="Zoom"
         defaultValue={defaultValue}
-        min={-1}
-        max={8}
+        min={minScale}
+        max={maxScale}
         step={0.01}
+        value={sliderValue}
         track={false}
         marks={marks}
         color="secondary"
         onChange={handleChangeScale}
         disabled={clipsState.clips.length === 0}
       />
-      <ZoomInIcon />
+      <IconButton disabled={!canZoomIn()} onClick={() => changeScaleDelta(1)}>
+        <ZoomInIcon />
+      </IconButton>
       <IconButton onClick={resetScale}>
         <CloseFullscreenIcon />
       </IconButton>
