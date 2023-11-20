@@ -16,7 +16,7 @@
  *
  */
 
-import { FC, ReactNode, createContext, useEffect, useState } from "react";
+import { FC, ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import axios from "axios";
@@ -84,4 +84,12 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   );
 };
 
-export { AssetsContext, AssetsProvider };
+const useAssetsContext = (): AssetsContextProps => {
+  const context = useContext(AssetsContext);
+  if (!context) {
+    throw new Error("useAssetsContext must be used within a ClipsProvider");
+  }
+  return context;
+};
+
+export { AssetsContext, AssetsProvider, useAssetsContext };
