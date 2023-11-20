@@ -22,10 +22,12 @@ import { Box, Paper, Slider } from "@mui/material";
 import { TIMELINE_HEIGHT, TIMELINE_SLIDER_STEP } from "../Constants";
 import { useVideoContext } from "../VideoContext";
 import TimelineControls from "./TimelineControls";
-import TimelineLayers from "./TimelineLayers";
+import TimelineLayer from "./TimelineLayer";
+import { useTimelineContext } from "./TimelineContext";
 
 const Timeline: React.FC = () => {
   const { currentTime, currentDuration, seek } = useVideoContext();
+  const { scale } = useTimelineContext();
 
   /**
    * Change the video time whenever the Slider value changes.
@@ -33,7 +35,7 @@ const Timeline: React.FC = () => {
    * @param time
    */
   const handleTimeChange = (event: Event, time: number | number[]) => {
-    if (typeof time === "number") seek(time);
+    if (typeof time === "number") seek(time / scale);
   };
 
   return (
@@ -44,22 +46,14 @@ const Timeline: React.FC = () => {
         <TimelineControls />
         <Box overflow={"hidden"}>
           <Slider
-            max={currentDuration}
-            step={TIMELINE_SLIDER_STEP}
-            value={currentTime}
+            max={currentDuration * scale}
+            step={TIMELINE_SLIDER_STEP * scale}
+            value={currentTime * scale}
             onChange={handleTimeChange}
           />
         </Box>
       </Box>
-      <Box
-        height={1}
-        display={"flex"}
-        flexDirection={"column"}
-        justifyContent={"center"}
-        sx={{ backgroundColor: "cornflowerblue" }}
-      >
-        <TimelineLayers />
-      </Box>
+      <TimelineLayer />
     </Paper>
   );
 };

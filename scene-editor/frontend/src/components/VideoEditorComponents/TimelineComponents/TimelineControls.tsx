@@ -12,8 +12,6 @@
 import React, { memo } from "react";
 
 /* Third Party Imports */
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
@@ -39,11 +37,6 @@ import {
 import { useVideoContext } from "../VideoContext";
 import { useTimelineContext } from "./TimelineContext";
 
-/* The fraction that should be displayed per zoom level. */
-const ZOOM_FRACTIONS_PER_LEVEL = [1, 0.8, 0.6, 0.4, 0.2];
-/* The fraction to move the window when moving left or right. */
-const WINDOW_TICKS = 0.1;
-
 const TimelineButton: React.FC<{
   disabled: boolean;
   onClick: () => void;
@@ -59,52 +52,8 @@ const TimelineButton: React.FC<{
 
 const TimelineControls: React.FC = () => {
   const { state: clipsState, dispatch } = useClipsContext();
-  const { currentIndex, currentTime, currentDuration, setCurrentIndex, seek } =
-    useVideoContext();
-  const {
-    lowerBound,
-    upperBound,
-    zoomLevel,
-    setLowerBound,
-    setUpperBound,
-    setZoomLevel,
-  } = useTimelineContext();
-
-  /**
-   * Move the window left or right by delta.
-   * @param delta negative if moving left, positive if moving right.
-   */
-  const moveWindow = (delta: number) => {
-    /* If the delta moves the lower too far, delta the upper bound. */
-    if (lowerBound + delta < 0) {
-      setLowerBound(0);
-      setUpperBound(upperBound + delta - (lowerBound + delta));
-      /* If the delta moves the upper too far, delta the lower bound. */
-    } else if (upperBound + delta > 1) {
-      setLowerBound(lowerBound + delta - (upperBound + delta - 1));
-      setUpperBound(1);
-    } else {
-      setLowerBound(lowerBound + delta);
-      setUpperBound(upperBound + delta);
-    }
-  };
-
-  /**
-   * Zoom the window in or out.
-   * @param delta 1 if zooming in, 0 if zooming out.
-   */
-  const zoomWindow = (delta: number) => {
-    /* Fraction of total video edit length visible. */
-    let f = ZOOM_FRACTIONS_PER_LEVEL[zoomLevel + delta];
-    const lo = f / 2;
-    const hi = 1 - lo;
-    let mid = currentTime / currentDuration;
-
-    const lower = mid < lo ? 0 : mid > hi ? 1 - f : mid - lo;
-    const upper = mid < lo ? f : mid > hi ? 1 : mid + lo;
-    setLowerBound(lower);
-    setUpperBound(upper);
-  };
+  const { currentTime, currentDuration } = useVideoContext();
+  const { scale, setScale } = useTimelineContext();
 
   /* Clip manipulation functions. */
   const handleUndo = () => {
@@ -123,36 +72,23 @@ const TimelineControls: React.FC = () => {
     dispatch({ type: DELETE_CLIPS });
   };
 
-  /* Window manipulation functions. */
-  const canMoveLeft = () => lowerBound > 0 && clipsState.clips.length > 0;
-  const canMoveRight = () => upperBound < 1 && clipsState.clips.length > 0;
-  const canResetZoom = () => zoomLevel !== 0;
-  const canZoomOut = () => zoomLevel > 0 && clipsState.clips.length > 0;
-  const canZoomIn = () => {
-    return (
-      zoomLevel < ZOOM_FRACTIONS_PER_LEVEL.length - 1 &&
-      clipsState.clips.length > 0
-    );
+  const canZoomOut = () => {
+    return true; // TODO
   };
-  const moveLeft = () => moveWindow(-WINDOW_TICKS);
-  const moveRight = () => moveWindow(WINDOW_TICKS);
-  const resetZoom = () => {
-    const zoomLvl = 0;
-    setZoomLevel(zoomLvl);
-    setLowerBound(0);
-    setUpperBound(1);
+  const canZoomIn = () => {
+    return true; // TODO
+  };
+  const canZoomReset = () => {
+    return true; // TODO
   };
   const zoomOut = () => {
-    if (canZoomOut()) {
-      setZoomLevel(zoomLevel - 1);
-      zoomWindow(-1);
-    }
+    setScale(scale - 10); // TODO finalize values
   };
   const zoomIn = () => {
-    if (canZoomIn()) {
-      setZoomLevel(zoomLevel + 1);
-      zoomWindow(1);
-    }
+    setScale(scale + 10); // TODO finalize values
+  };
+  const zoomReset = () => {
+    setScale(30); // TODO finalize values
   };
 
   /**
@@ -208,16 +144,6 @@ const TimelineControls: React.FC = () => {
           <DisplayTime />
         </Box>
         <TimelineButton
-          disabled={!canMoveLeft()}
-          onClick={moveLeft}
-          icon={<ArrowBackIosNewIcon />}
-        />
-        <TimelineButton
-          disabled={!canMoveRight()}
-          onClick={moveRight}
-          icon={<ArrowForwardIosIcon />}
-        />
-        <TimelineButton
           disabled={!canZoomOut()}
           onClick={zoomOut}
           icon={<ZoomOutIcon />}
@@ -228,8 +154,8 @@ const TimelineControls: React.FC = () => {
           icon={<ZoomInIcon />}
         />
         <TimelineButton
-          disabled={!canResetZoom()}
-          onClick={resetZoom}
+          disabled={!canZoomReset()}
+          onClick={zoomReset}
           icon={<CloseFullscreenIcon />}
         />
       </Toolbar>

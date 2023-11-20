@@ -36,11 +36,7 @@ import {
 import defaultImage from "../../../static/images/default.jpg";
 import NewAssetDialog from "../../ProjectComponents/AssetViewComponents/NewAssetDialog";
 import { APPEND_CLIP, useClipsContext, createClip } from "../ClipsContext";
-import {
-  MEDIA_LIBRARY_COLS,
-  MEDIA_LIBRARY_IMAGE_WIDTH,
-  MEDIA_LIBRARY_WIDTH,
-} from "../Constants";
+import { MEDIA_LIBRARY_COLS, MEDIA_LIBRARY_IMAGE_WIDTH } from "../Constants";
 import { Asset, AssetsContext } from "./AssetsContext";
 
 /* Components */
@@ -91,6 +87,7 @@ const Thumbnail: React.FC<{ asset: Asset }> = ({ asset }) => {
       }
       alt={asset.name}
       loading="lazy"
+      style={{ objectFit: "cover" }}
     />
   );
 };
@@ -131,8 +128,9 @@ const MediaLibrary: React.FC = () => {
     if (loading) {
       return <CircularProgress />;
     }
+
     return assets.map((asset: Asset, i: number) => (
-      <ImageListItem key={i} sx={{ width: MEDIA_LIBRARY_IMAGE_WIDTH }}>
+      <ImageListItem key={i} sx={{ width: 180 }}>
         <Timestamp duration={asset.duration} />
         <Thumbnail asset={asset} />
         <Title title={asset.name} onClick={() => handleAppendClip(asset)} />
@@ -149,11 +147,11 @@ const MediaLibrary: React.FC = () => {
   };
 
   return (
-    <Box width={MEDIA_LIBRARY_WIDTH} padding={1}>
-      <Container disableGutters>
-        <ImportMediaButton setIsImporting={setIsImporting} />
-        <ImageList cols={MEDIA_LIBRARY_COLS}>{renderAssets}</ImageList>
-      </Container>
+    <Box padding={3} sx={{ overflowY: "scroll" }}>
+      <ImportMediaButton setIsImporting={setIsImporting} />
+      <Box display="flex" justifyContent="center">
+        <ImageList cols={MEDIA_LIBRARY_COLS} gap={20}>{renderAssets}</ImageList>
+      </Box>
       <NewAssetDialog
         activeProject={projectID!}
         open={isImporting}

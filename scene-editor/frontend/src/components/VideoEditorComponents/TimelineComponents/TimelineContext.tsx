@@ -9,20 +9,20 @@
  *
  */
 
-import React, { useState } from "react";
-import { useVideoContext } from "../VideoContext";
+import React, { useEffect, useState } from "react";
+import { useClipsContext } from "../ClipsContext";
+import TimelineClip from "./SortableItem/TimelineClip";
+
+export interface TimelineItem {
+  id: number;
+  content: JSX.Element;
+}
 
 interface TimelineSettings {
-  lowerBound: number;
-  upperBound: number;
-  zoomLevel: number;
-  setLowerBound: React.Dispatch<React.SetStateAction<number>>;
-  setUpperBound: React.Dispatch<React.SetStateAction<number>>;
-  setZoomLevel: React.Dispatch<React.SetStateAction<number>>;
-  getBounds: () => {
-    lowerBound: number;
-    upperBound: number;
-  };
+  items: TimelineItem[];
+  scale: number;
+  setItems: React.Dispatch<React.SetStateAction<TimelineItem[]>>;
+  setScale: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const TimelineSettingsContext = React.createContext<
@@ -30,29 +30,25 @@ const TimelineSettingsContext = React.createContext<
 >(undefined);
 
 const TimelineSettingsProvider: React.FC = ({ children }) => {
-  const [lowerBound, setLowerBound] = useState<number>(0);
-  const [upperBound, setUpperBound] = useState<number>(1);
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [items, setItems] = useState<TimelineItem[]>([]);
+  const [scale, setScale] = useState(60);  // TODO set scale so it fits in container.
 
-  /**
-   * Convert the fractions of the window bounds to seconds.
-   * @returns Object with attributes `lowerBound` and `upperBound`.
-   */
-  const getBounds = () => {
-    const { currentDuration } = useVideoContext();
-    const lower = Math.floor(lowerBound * currentDuration);
-    const upper = Math.ceil(upperBound * currentDuration);
-    return { lowerBound: lower, upperBound: upper };
-  };
+  const { state: clipsState } = useClipsContext();
+
+  useEffect(() => {
+    setItems(
+      clipsState.clips.map((clip, index) => ({
+        id: index + 1,
+        content: <TimelineClip clip={clip} scale={scale} />,
+      }))
+    );
+  }, [clipsState.clips, scale]);
 
   const timelineSettings: TimelineSettings = {
-    lowerBound,
-    upperBound,
-    zoomLevel,
-    setLowerBound,
-    setUpperBound,
-    setZoomLevel,
-    getBounds,
+    items,
+    scale,
+    setItems,
+    setScale,
   };
 
   return (

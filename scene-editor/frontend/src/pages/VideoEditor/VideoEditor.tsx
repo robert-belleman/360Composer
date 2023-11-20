@@ -35,7 +35,7 @@
  */
 
 /* Third Party Imports */
-import { Box, Stack } from "@mui/material";
+import { Box, Grid, Stack } from "@mui/material";
 
 /* Component Imports */
 import MediaLibrary from "../../components/VideoEditorComponents/MediaLibraryComponents/MediaLibrary";
@@ -51,22 +51,26 @@ import { VideoProvider } from "../../components/VideoEditorComponents/VideoConte
 
 const VideoEditor: React.FC = () => {
   return (
-    <Box display="flex" overflow="hidden" >
+    <Grid container>
       <ClipsProvider>
-        <AssetsProvider>
-          <MediaLibrary />
-        </AssetsProvider>
-        <Stack flexGrow={1} height="100vh" display="flex">
-          <TitleBar />
-          <VideoProvider>
-            <VideoPreview />
-            <TimelineSettingsProvider>
-              <Timeline />
-            </TimelineSettingsProvider>
-          </VideoProvider>
-        </Stack>
+        <Grid item xs={3}>
+          <AssetsProvider>
+            <MediaLibrary />
+          </AssetsProvider>
+        </Grid>
+        <Grid item xs={9}>
+          <Stack height="100vh">
+            <TitleBar />
+            <VideoProvider>
+              <VideoPreview />
+              <TimelineSettingsProvider>
+                <Timeline />
+              </TimelineSettingsProvider>
+            </VideoProvider>
+          </Stack>
+        </Grid>
       </ClipsProvider>
-    </Box>
+    </Grid>
   );
 };
 

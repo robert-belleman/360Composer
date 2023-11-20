@@ -142,18 +142,13 @@ const VideoPreview: React.FC = () => {
 
     if (videoAspectRatio > boxAspectRatio) {
       // Video is wider than the box
-      console.log("wider");
       width = boxElem.clientWidth;
       height = width / videoAspectRatio;
     } else {
       // Video is taller than or equal to the box
-      console.log("taller");
       height = boxElem.clientHeight;
       width = height * videoAspectRatio;
     }
-    console.log(videoElem.videoWidth, videoElem.videoHeight);
-    console.log(boxElem.clientWidth, boxElem.clientHeight);
-    console.log(width, height);
     setVideoSize({ width, height });
   };
 
