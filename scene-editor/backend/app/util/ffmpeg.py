@@ -108,7 +108,7 @@ def ffmpeg_join_assets(input_paths: list[str], output_path: str) -> bool:
     # Generate a unique filename using a timestamp and process ID
     timestamp = int(time.time())
     process_id = os.getpid()
-    filename = f'input_{timestamp}_{process_id}.txt'
+    filename = f'/trimmed/input_{timestamp}_{process_id}.txt'
 
     # Create a text file with the list of video paths
     with open(filename, 'w', encoding="utf-8") as file:
@@ -119,7 +119,7 @@ def ffmpeg_join_assets(input_paths: list[str], output_path: str) -> bool:
         'ffmpeg',
         '-f', 'concat',
         '-safe', '0',
-        '-i', 'input.txt',
+        '-i', filename,
         '-c', 'copy',
         output_path
     ]

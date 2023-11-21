@@ -21,6 +21,9 @@ services:
         - type: bind
           source: ./assets
           target: /assets
+        - type: bind
+          source: ./trimmed
+          target: /trimmed
     command: bash -c "/entrypoint.sh"
     depends_on:
         - postgres
@@ -30,10 +33,10 @@ services:
     image: redis
 
   postgres:
-    image: postgres:12
+    image: postgres:15
     container_name: postgres-db
     volumes:
-      - postgres:/var/lib/postgresql@15/data
+      - postgres:/var/lib/postgresql/data
     environment:
         - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
         - POSTGRES_USER=postgres

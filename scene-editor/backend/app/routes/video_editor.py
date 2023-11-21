@@ -47,155 +47,71 @@ from sqlalchemy.orm.exc import NoResultFound
 ns = api.namespace("video-editor")
 
 
-def trim_and_join_assets(output_path: str, clips: dict) -> bool:
-    """Trim and join the assets using the instructions in `clips`. Put the
-    resulting video in `output_path`. Note that proccessed and trimmed assets
-    are partial results that will be deleted at a later time.
+PROCESSED_DIR = "/processed/"
+TRIMMED_DIR = "/trimmed/"
 
-    Parameters:
-        output_path : str
-            path to the file to store the end result.
-        clips : dict
-            dictionary containing the trim parameters for each clip.
 
-    Returns:
-        True if successful, False otherwise.
-    """
-    # Find all the paths of the files to edit.
-    files = []
+def _asset_key(clip: dict):
+    """Return the part of `clip` that uniquely identifies an asset."""
+    return clip["asset_id"]
+
+
+def _trim_key(clip: dict) -> tuple[str]:
+    """Return the part of `clip` that uniquely identifies a trim."""
+    return clip["asset_id"], clip["start_time"], clip["duration"]
+
+
+def trim_and_join_assets(clips: dict, video_path: Path):
+    """Trim and concatenate the video clips together in `video_path`."""
+    # Find all unique assets in `clips`.
+    asset_paths = {}
     for clip in clips:
-        asset: AssetModel = find_asset(asset_id=clip["asset_id"])
-        files.append(asset.path)
+        if _asset_key(clip) not in asset_paths:
+            asset: AssetModel = find_asset(clip["asset_id"])
+            asset_paths[_asset_key(clip)] = Path(ASSET_DIR, asset.path)
 
-    # Process the assets, store temporary partial results in `processed_files`.
-    processed_files = process_all_assets(files, clips)
-    if not processed_files:
-        cleanup_partial_results(processed_files)
-        return False
+    # Perform all unique trims in `clips`.
+    trimmed_paths = {}
+    for clip in clips:
+        if _trim_key(clip) not in trimmed_paths:
+            src_path = asset_paths[_asset_key(clip)]
+            # dst_path = Path("trimmed" + random_file_name() + ".mp4")
+            dst_path = Path(TRIMMED_DIR, random_file_name() + ".mp4")
+            if not trim_asset(clip, src_path, dst_path):
+                return HTTPStatus.INTERNAL_SERVER_ERROR
+            trimmed_paths[_trim_key(clip)] = dst_path
 
-    # Trim the assets, store temporary partial results in `trimmed_files`.
-    trimmed_files = trim_all_assets(files, clips)
-    if not trimmed_files:
-        cleanup_partial_results(processed_files)
-        cleanup_partial_results(trimmed_files)
-        return False
+    # List all trimmed assets in chronological order to concatenate.
+    video_clips = []
+    for clip in clips:
+        video_clips.append(trimmed_paths[_trim_key(clip)])
 
-    # If joining is necessary, join the trimmed assets into a video.
-    ffmpeg_join_assets(trimmed_files, output_path)
+    # Join/Concatenate the assets together.
+    if not ffmpeg_join_assets(video_clips, video_path):
+        print("An error occurred during concatenation of video clips.")
+        return HTTPStatus.INTERNAL_SERVER_ERROR
 
-    # Cleanup the temporary partial results.
-    cleanup_partial_results(processed_files)
-    cleanup_partial_results(trimmed_files)
-
-    return True
-
-
-def process_all_assets(input_paths: list[str], clips: dict) -> list[str]:
-    """Process all assets according to the parameters found in `clips`. These
-    processed assets are partial results and have to be removed later.
-
-    Parameters:
-        input_paths : list[str]
-            list of paths to files to process.
-        clips : dict
-            dictionary containing information about the assets.
-
-    Returns:
-        filepaths for processed assets, [] on error.
-
-    Side effects:
-        creates multiple video files that are not assets.
-    """
-    # Keep track of partial results to clean up later.
-    processed = []
-    for i, clip in enumerate(clips):
-        filename = "processed/" + random_file_name() + ".mp4"
-        if not process_asset(input_paths[i], filename, clip):
-            return []
-
-        # Store the path towards the partial result.
-        processed.append(filename)
-
-    return processed
+    return HTTPStatus.OK
 
 
-def process_asset(input_path: str, output_path: str, clip: dict) -> bool:
-    """Process `asset` to allow it to be joined with other assets later.
+def trim_asset(clip: dict, src_path: Path, dst_path: Path):
+    """Trim an asset using the information of dictionary `clip`. The asset can
+    be found on `src_path` and the result will be written to `dst_path`.
 
     Parameters:
-        input_path : str
-            path to the file to process.
-        output_path : str
-            path to give the processed file.
         clip : dict
-            dictionary containing information about one asset.
+            dictionary with trimming information of the clip.
+        src_path : Path
+            file to read the asset to trim from.
+        dst_path : Path
+            file to write the trim result to.
 
     Returns:
-        True if successful, False otherwise.
-
-    Side effects:
-        creates a file that is not an asset.
-    """
-    input_path = Path(ASSET_DIR, input_path)
-    output_path = Path(ASSET_DIR, output_path)
-
-    # Perform processing and check for errors.
-    return ffmpeg_process_asset(input_path, output_path)
-
-
-def trim_all_assets(input_paths: list[str], clips: dict) -> list[str]:
-    """Trim all assets according to the parameters found in `clips`. These
-    trimmed assets are partial results and have to be removed later.
-
-    Parameters:
-        input_paths : list[str]
-            list of paths to files to trim.
-        clips : dict
-            dictionary containing trim parameters for all assets.
-
-    Returns:
-        filepaths for trimmed assets, [] on error.
-
-    Side effects:
-        creates multiple video files that are not assets.
-    """
-    # Keep track of partial results to clean up later.
-    trimmed_files = []
-    for i, clip in enumerate(clips):
-        filename = "trimmed/" + random_file_name() + ".mp4"
-        if not trim_asset(input_paths[i], filename, clip):
-            return []
-
-        # Store the path towards the partial result.
-        trimmed_files.append(filename)
-
-    return trimmed_files
-
-
-def trim_asset(input_path: str, output_path: str, clip: dict) -> bool:
-    """Trim `asset` to be from `start` to `end`. Put the result in `dst`.
-
-    Parameters:
-        input_path : str
-            path to the file to trim.
-        output_path : str
-            path to give the trimmed file.
-        clip : dict
-            dictionary containing trim parameters for one asset.
-
-    Returns:
-        True if successful, False otherwise.
-
-    Side effects:
-        could create a file that is not an asset depending on filename.
+        True on succes, False on error.
     """
     start_time = clip["start_time"]
     duration = clip["duration"]
-    src = Path(ASSET_DIR, input_path)
-    dst = Path(ASSET_DIR, output_path)
-
-    # Perform trim and check for errors.
-    return ffmpeg_trim_asset(start_time, duration, src, dst)
+    return ffmpeg_trim_asset(start_time, duration, src_path, dst_path)
 
 
 def find_project(project_id: int) -> ProjectModel | None:
@@ -352,17 +268,18 @@ class EditAssets(Resource):
         video_filename = base_name + extension
         video_path = Path(ASSET_DIR, base_name + extension)
 
-        # If there is only a single clip, then just trim.
+        # Put the result in ASSET_DIR directly if there is only one trim.
         if len(clips) == 1:
             clip = clips[0]
             asset: AssetModel = find_asset(asset_id=clip["asset_id"])
-            if not trim_asset(asset.path, video_path, clip):
+            src_path = Path(ASSET_DIR, asset.path)
+            if not trim_asset(clip, src_path, video_path):
                 return HTTPStatus.INTERNAL_SERVER_ERROR
-        # Trim and join assets and store the resulting video in `video_path`.
-        elif not trim_and_join_assets(video_path, clips):
-            return HTTPStatus.INTERNAL_SERVER_ERROR
+        # Otherwise, put trim results in folder and concatenate after.
         else:
-            return HTTPStatus.BAD_REQUEST
+            status = trim_and_join_assets(clips, video_path)
+            if status is not HTTPStatus.OK:
+                return status
 
         # TODO: hls? see project.py
 
