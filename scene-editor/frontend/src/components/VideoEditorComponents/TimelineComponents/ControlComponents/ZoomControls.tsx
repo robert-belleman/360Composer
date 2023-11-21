@@ -51,8 +51,8 @@ const ZoomControls = () => {
   return (
     <Stack
       direction="row"
+      justifyContent="flex-end"
       alignItems="center"
-      minWidth={200}
       spacing={1}
       paddingX={1}
     >

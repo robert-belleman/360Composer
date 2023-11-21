@@ -121,7 +121,7 @@ const TimelineControls = ({
       justifyContent="space-between"
       alignItems="center"
     >
-      <Grid item xs={12} sm={12} md={4} display="flex" justifyContent="center">
+      <Grid item xs={12} sm={12} md={4}>
         <TimelineButton
           disabled={!canUndo(clipsState)}
           onClick={handleUndo}
