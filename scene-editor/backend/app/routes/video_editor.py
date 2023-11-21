@@ -75,7 +75,6 @@ def trim_and_join_assets(clips: dict, video_path: Path):
     for clip in clips:
         if _trim_key(clip) not in trimmed_paths:
             src_path = asset_paths[_asset_key(clip)]
-            # dst_path = Path("trimmed" + random_file_name() + ".mp4")
             dst_path = Path(TRIMMED_DIR, random_file_name() + ".mp4")
             if not trim_asset(clip, src_path, dst_path):
                 return HTTPStatus.INTERNAL_SERVER_ERROR

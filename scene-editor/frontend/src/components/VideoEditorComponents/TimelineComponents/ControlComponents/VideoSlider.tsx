@@ -11,30 +11,52 @@
 import { Slider, styled, Box } from "@mui/material";
 
 import { useVideoContext } from "../../VideoContext";
+import { useTimelineContext } from "../TimelineContext";
 
 const CustomSlider = styled(Slider)(({ theme }) => ({
   color: "red",
 }));
 
-const VideoSlider = () => {
+interface VideoSliderProps {
+  timelineContainerRef: React.RefObject<HTMLDivElement>;
+}
+
+const VideoSlider: React.FC<VideoSliderProps> = ({ timelineContainerRef }) => {
+  const { scale, sliderValue, setSliderValue } = useTimelineContext();
   const { currentTime, currentDuration, seek } = useVideoContext();
 
-  /**
-   * Change the video time whenever the Slider value changes.
-   * @param event
-   * @param time
-   */
-  const handleTimeChange = (event: Event, time: number | number[]) => {
-    if (typeof time === "number") seek(time);
+  const handleSliderChange = (event: Event, value: number | number[]) => {
+    const { current: timelineElem } = timelineContainerRef;
+
+    if (typeof value !== "number" || !timelineElem) {
+      return;
+    }
+
+    setSliderValue(value);
+
+    /* Compute the amount of seconds on the left side of the screen. */
+    const widthTimeline = timelineElem.clientWidth * scale;
+    const widthTimelineSecond = widthTimeline / currentDuration;
+    const secondsOffscreen = timelineElem.scrollLeft / widthTimelineSecond;
+
+    /* Compute the amount of seconds of the slider. */
+    const widthSlider = timelineElem.clientWidth * value;
+    const secondsOnscreen = widthSlider / widthTimelineSecond;
+
+    /* The time indicated by the slider. */
+    const newTime = secondsOffscreen + secondsOnscreen;
+    seek(newTime);
   };
 
   return (
     <CustomSlider
       aria-label="Time Slider"
-      max={currentDuration}
-      step={0.1}
-      value={currentTime}
-      onChange={handleTimeChange}
+      min={0}
+      max={1}
+      step={0.01}
+      color="secondary"
+      value={sliderValue}
+      onChange={handleSliderChange}
     />
   );
 };

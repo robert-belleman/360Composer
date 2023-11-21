@@ -17,10 +17,10 @@ import { useClipsContext } from "../../ClipsContext";
 import { useState } from "react";
 
 const ZoomControls = () => {
-  const defaultValue = 0;
+  const defaultExponent = 0;
   const minScale = 0;
   const maxScale = 8;
-  const [sliderValue, setSliderValue] = useState<number>(defaultValue);
+  const [exponent, setExponent] = useState(defaultExponent);
 
   const { setScale } = useTimelineContext();
   const { state: clipsState } = useClipsContext();
@@ -30,22 +30,23 @@ const ZoomControls = () => {
   }
 
   const canZoomOut = () => {
-    return 0 < clipsState.clips.length && minScale < sliderValue;
+    return 0 < clipsState.clips.length && minScale < exponent;
   };
 
   const canZoomIn = () => {
-    return 0 < clipsState.clips.length && sliderValue < maxScale;
+    return 0 < clipsState.clips.length && exponent < maxScale;
   };
 
   const changeScaleDelta = (delta: number) => {
-    const newValue = sliderValue + delta;
+    const newValue = exponent + delta;
     const boundedValue = Math.min(Math.max(newValue, minScale), maxScale);
-    setSliderValue(newValue);
+    setExponent(newValue);
     setScale(calculateScale(boundedValue));
   };
 
   const resetScale = () => {
-    setScale(calculateScale(defaultValue));
+    setExponent(defaultExponent);
+    setScale(calculateScale(defaultExponent));
   };
 
   return (

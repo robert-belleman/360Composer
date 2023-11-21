@@ -86,7 +86,9 @@ def ffmpeg_join_assets(input_paths: list[str], output_path: str) -> bool:
 
     Note that this function assumes that the files can be concatenated. In
     other words, that the files have already been processed to the same view
-    type, etc.
+    type, etc. If you see a clear pause between clip transitions, then the
+    clips do not have similar attributes (codec, resolution, frame rate). As
+    a result, FFmpeg may introduce pauses to handle discrepancies.
 
     Note that the input paths `input_paths` are written to a text file and
     then the text file is used with FFmpeg. The reason for this is the length
@@ -125,10 +127,13 @@ def ffmpeg_join_assets(input_paths: list[str], output_path: str) -> bool:
     ]
 
     try:
-        subprocess.run(command, check=True)
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        print(result.stdout)
+        print(result.stderr)
         return True
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as error:
         print(f"Failed to join videos: {input_paths}")
+        print(error.stderr)
         return False
     finally:
         try:
