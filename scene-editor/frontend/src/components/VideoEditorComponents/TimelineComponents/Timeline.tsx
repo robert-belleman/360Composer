@@ -16,7 +16,7 @@
 import React, { useRef } from "react";
 
 /* Third Party Imports */
-import { Box, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 
 /* Project Specific Imports */
 import { TIMELINE_HEIGHT } from "../Constants";
@@ -28,18 +28,24 @@ const Timeline: React.FC = () => {
   const timelineContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <Stack height={TIMELINE_HEIGHT} sx={{ backgroundColor: "cornflowerblue" }}>
-      <Box sx={{ backgroundColor: "royalblue" }} paddingX={2}>
-        <TimelineControls timelineContainerRef={timelineContainerRef} />
-        <VideoSlider timelineContainerRef={timelineContainerRef} />
-      </Box>
+    <Stack
+      height={TIMELINE_HEIGHT}
+      padding={2}
+      overflow="hidden"
+      sx={{ backgroundColor: "royalblue" }}
+    >
+      <TimelineControls timelineContainerRef={timelineContainerRef} />
+      <VideoSlider timelineContainerRef={timelineContainerRef} />
       <Stack
         ref={timelineContainerRef}
         height={1}
-        marginX={2}
         display="flex"
         // justifyContent="center"
-        sx={{ borderStyle: "none dashed", overflowX: "auto" }}
+        sx={{
+          backgroundColor: "cornflowerblue",
+          borderStyle: "none dashed",
+          overflowX: "auto",
+        }}
       >
         <TimelineLayer />
       </Stack>

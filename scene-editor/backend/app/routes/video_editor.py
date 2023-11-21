@@ -8,16 +8,6 @@ several smaller video clips.
 Usage:
 - This file is part of the video editing functionality in the Flask API.
 
-TODO: give proccessed/trimmed a dedicated folder in app.config?
-
-Note:
-- The filesystem appears like this in the code.
-    assets/
-        processed/
-        trimmed/
-        asset1
-        asset2
-        ...
 """
 
 from http import HTTPStatus

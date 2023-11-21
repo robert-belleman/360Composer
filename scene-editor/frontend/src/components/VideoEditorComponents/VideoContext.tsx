@@ -80,10 +80,16 @@ const VideoProvider: React.FC = ({ children }) => {
       });
     };
 
+    /* Do not do anything when play is requested without any video source. */
+    if (!videoElem.currentSrc) {
+      console.error("No available sources for the video.");
+      return;
+    }
+
     if (currentDuration <= currentTime) {
       /* If play is clicked after finishing, then restart the entire video. */
       if (clipsState.clips) seek(0);
-      videoElem.load();
+      videoElem.play();
       return;
     }
 

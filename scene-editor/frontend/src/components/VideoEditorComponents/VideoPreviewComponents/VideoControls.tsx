@@ -82,7 +82,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
       } else {
         play(videoElem);
       }
-      setIsPlaying(!isPlaying);
+      if (videoElem.currentSrc) setIsPlaying(!isPlaying);
     }
   };
 
