@@ -78,7 +78,7 @@ const useExportClips = (projectID: string, clips: Clip[], title: string) => {
 
 /* Components */
 const BackButton = memo(() => {
-  const { projectID } = useParams();
+  const { projectID } = useParams<'projectID'>();
 
   const goBack = useNavigateBack(projectID!);
 

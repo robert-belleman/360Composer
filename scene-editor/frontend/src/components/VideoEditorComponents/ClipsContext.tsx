@@ -313,39 +313,38 @@ const visibleClips = (state: State, lower: number, upper: number) => {
 };
 
 /**
- * Parse the important information of a clip to export it.
- * @param clip clip to parse.
- * @returns parsed information.
- */
-const parseToExport = (clip: Clip) => {
-  const endTime = clip.startTime + clip.duration;
-  return {
-    asset_id: clip.asset.id,
-    start_time: clip.startTime,
-    end_time: endTime,
-    view_type: clip.asset.view_type,
-  };
-};
-
-/**
  * Export the clips `clips` with title `title`.
  * @param clips clips to export.
  * @param title title to export with.
  */
 const exportClips = async (projectID: string, clips: Clip[], title: string) => {
-  const data = clips;
   const apiEndPoint = `/api/video-editor/${projectID}/edit`;
 
-  console.log({
-    edits: data,
-    filename: title,
-  });
+  // TODO: check if clips with same asset are connected.
+
+  const data = clips.map((clip) => ({
+    asset_id: clip.asset.id,
+    start_time: clip.startTime.toFixed(3),
+    duration: clip.duration.toFixed(3),
+  }));
+
+  const display_name = title.endsWith(".mp4") ? title : title + ".mp4";
+
+  console.log(data);
 
   try {
-    const response = await axios.post(apiEndPoint, {
-      edits: data,
-      filename: title,
-    });
+    const response = await axios.post(
+      apiEndPoint,
+      {
+        edits: data,
+        filename: display_name,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     console.log("API Response: ", response.data);
   } catch (error) {
     console.error("API Error:", error);

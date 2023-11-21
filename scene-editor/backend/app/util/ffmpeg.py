@@ -2,6 +2,8 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from app.models.asset import ViewType
+import os
+import time
 
 import ffmpeg
 
@@ -27,21 +29,11 @@ def get_duration(path):
     return int(float(result.stdout))
 
 
-def ffmpeg_process_asset(input_path: str, output_path: str, format: str) -> bool:
+def ffmpeg_process_asset(input_path: str, output_path: str) -> bool:
     """Process an asset so they can be joined together later."""
     # TODO: ensure consistency in resolution, frame rate and codec.
     # TODO: ensure consistency in stereoscopy.
     command = []
-
-    if format == ViewType.mono:
-        pass
-    elif format == ViewType.sidetoside:
-        pass
-    elif format == ViewType.toptobottom:
-        pass
-    else:
-        print(f"Unsupported format: {format}")
-        return None
 
     try:
         subprocess.run(command, check=True)
@@ -51,9 +43,35 @@ def ffmpeg_process_asset(input_path: str, output_path: str, format: str) -> bool
         return False
 
 
-def ffmpeg_trim_asset(start_time: str, end_time: str, input_path: str, output_path: str) -> bool:
-    """Trim an asset from `input_path` to `output_path` from `start_time` to `end_time`."""
-    command = []
+def ffmpeg_trim_asset(
+    start_time: str, duration: str, input_path: str, output_path: str
+) -> bool:
+    """Trim an asset from `input_path` to `output_path` from `start_time` to
+    `end_time`.
+
+    Note that you can only use either -vf or -c. The video filter graph (-vf)
+    should be used when precise trimming is necessary, otherwise you may use
+    copy as codec (-c) to copy the data from the original asset into the new
+    one (no re-encoding). Copying is good for performance, but it copies from
+    the nearest keyframe. This means that the start and end times may differ
+    from the indicated times.
+
+    Flags:
+        -i <input_path>, input path of the file to trim.
+        -ss <start_time>, start time of the trimmed asset.
+        -t <duration>, duration of the trimmed asset (starting from ss).
+        -vf <>, video filter graph to maintain spatial metadata.
+        -c <codec>, codec to use (copy to leave video data unchanged).
+    """
+    command = [
+        'ffmpeg',
+        '-i', input_path,
+        '-ss', start_time,
+        '-t', duration,
+        # '-vf', 'in=eq=n=1:s=1[clip]; [clip]out=eq=n=1:s=1',
+        '-c', 'copy',
+        output_path
+    ]
 
     try:
         subprocess.run(command, check=True)
@@ -64,8 +82,47 @@ def ffmpeg_trim_asset(start_time: str, end_time: str, input_path: str, output_pa
 
 
 def ffmpeg_join_assets(input_paths: list[str], output_path: str) -> bool:
-    """Join the assets from `filepaths` to `output_path`. """
-    command = []
+    """Join the assets from `filepaths` to `output_path`.
+
+    Note that this function assumes that the files can be concatenated. In
+    other words, that the files have already been processed to the same view
+    type, etc.
+
+    Note that the input paths `input_paths` are written to a text file and
+    then the text file is used with FFmpeg. The reason for this is the length
+    of the command in a command line is limited. The limit is dependant on
+    the underlying operating system. To ensure that two join requests do not
+    write in the same file, the timestamp and the process id are included in
+    the filename. This makes the chance of multiple processes writing in the
+    same file extremely slim.
+
+    The temporary text file is removed after the join operation. This is so
+    that there will not be random files in the directory.
+
+    Flags:
+        -f <format>, specify the format as concat.
+        -safe <mode>, mode = 0 disables safe mode and allow absolute paths.
+        -i <input_path>, path to the text file with each file to concat.
+        -c <codec>, codec to use (copy to leave video data unchanged).
+    """
+    # Generate a unique filename using a timestamp and process ID
+    timestamp = int(time.time())
+    process_id = os.getpid()
+    filename = f'input_{timestamp}_{process_id}.txt'
+
+    # Create a text file with the list of video paths
+    with open(filename, 'w', encoding="utf-8") as file:
+        for path in input_paths:
+            file.write(f"file '{path}'\n")
+
+    command = [
+        'ffmpeg',
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', 'input.txt',
+        '-c', 'copy',
+        output_path
+    ]
 
     try:
         subprocess.run(command, check=True)
@@ -73,6 +130,11 @@ def ffmpeg_join_assets(input_paths: list[str], output_path: str) -> bool:
     except subprocess.CalledProcessError:
         print(f"Failed to join videos: {input_paths}")
         return False
+    finally:
+        try:
+            os.remove(filename)
+        except OSError:
+            pass
 
 
 @dataclass

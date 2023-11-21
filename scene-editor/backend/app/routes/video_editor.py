@@ -61,14 +61,20 @@ def trim_and_join_assets(output_path: str, clips: dict) -> bool:
     Returns:
         True if successful, False otherwise.
     """
+    # Find all the paths of the files to edit.
+    files = []
+    for clip in clips:
+        asset: AssetModel = find_asset(asset_id=clip["asset_id"])
+        files.append(asset.path)
+
     # Process the assets, store temporary partial results in `processed_files`.
-    processed_files = process_all_assets(clips)
+    processed_files = process_all_assets(files, clips)
     if not processed_files:
         cleanup_partial_results(processed_files)
         return False
 
     # Trim the assets, store temporary partial results in `trimmed_files`.
-    trimmed_files = trim_all_assets(processed_files, clips)
+    trimmed_files = trim_all_assets(files, clips)
     if not trimmed_files:
         cleanup_partial_results(processed_files)
         cleanup_partial_results(trimmed_files)
@@ -84,7 +90,7 @@ def trim_and_join_assets(output_path: str, clips: dict) -> bool:
     return True
 
 
-def process_all_assets(clips: dict) -> list[str]:
+def process_all_assets(input_paths: list[str], clips: dict) -> list[str]:
     """Process all assets according to the parameters found in `clips`. These
     processed assets are partial results and have to be removed later.
 
@@ -102,11 +108,9 @@ def process_all_assets(clips: dict) -> list[str]:
     """
     # Keep track of partial results to clean up later.
     processed = []
-    for clip in clips:
-        asset: AssetModel = find_asset(asset_id=clip["asset_id"])
-
+    for i, clip in enumerate(clips):
         filename = "processed/" + random_file_name() + ".mp4"
-        if not process_asset(asset.path, filename, clip):
+        if not process_asset(input_paths[i], filename, clip):
             return []
 
         # Store the path towards the partial result.
@@ -134,10 +138,9 @@ def process_asset(input_path: str, output_path: str, clip: dict) -> bool:
     """
     input_path = Path(ASSET_DIR, input_path)
     output_path = Path(ASSET_DIR, output_path)
-    view_type = clip["view_type"]
 
     # Perform processing and check for errors.
-    return ffmpeg_process_asset(input_path, output_path, view_type)
+    return ffmpeg_process_asset(input_path, output_path)
 
 
 def trim_all_assets(input_paths: list[str], clips: dict) -> list[str]:
@@ -187,12 +190,12 @@ def trim_asset(input_path: str, output_path: str, clip: dict) -> bool:
         could create a file that is not an asset depending on filename.
     """
     start_time = clip["start_time"]
-    end_time = clip["end_time"]
+    duration = clip["duration"]
     src = Path(ASSET_DIR, input_path)
     dst = Path(ASSET_DIR, output_path)
 
     # Perform trim and check for errors.
-    return ffmpeg_trim_asset(start_time, end_time, src, dst)
+    return ffmpeg_trim_asset(start_time, duration, src, dst)
 
 
 def find_project(project_id: int) -> ProjectModel | None:
@@ -266,7 +269,7 @@ def generate_asset_meta(
 
     thumbnail_path = Path(ASSET_DIR, filename + ".jpg")
     if not create_thumbnail(video_path.as_posix(), thumbnail_path.as_posix()):
-        thumbnail_path = None
+        return
 
     size = video_path.stat().st_size
 
@@ -293,6 +296,9 @@ def create_asset(name: str, path: str, meta: dict) -> AssetModel:
     Returns:
         the created asset.
     """
+    if not meta:
+        return
+
     return AssetModel(
         name=name,
         user_id=meta["user_id"],
@@ -301,14 +307,14 @@ def create_asset(name: str, path: str, meta: dict) -> AssetModel:
         thumbnail_path=meta["thumbnail_path"],
         duration=meta["duration"],
         file_size=meta["file_size"],
-        projects=meta["project"],
+        projects=meta["projects"],
     )
 
 
 asset_export = reqparse.RequestParser()
 asset_export.add_argument(
     "edits",
-    type=list,
+    type=dict,
     action="append",
     help="List of video files with start and end times",
     required=True,
@@ -337,8 +343,8 @@ class EditAssets(Resource):
 
         # Retrieve edit information.
         args = asset_export.parse_args()
-        clips = args["edits"]
-        display_name = args["filename"]
+        clips = args.get("edits", [])
+        display_name = args.get("filename", "Untitled_Video.mp4")
 
         # Define the location of the resulting video.
         extension = ".mp4"
@@ -346,18 +352,16 @@ class EditAssets(Resource):
         video_filename = base_name + extension
         video_path = Path(ASSET_DIR, base_name + extension)
 
-        # If there is nothing to edit, return NO_CONTENT.
-        if not clips:
-            return HTTPStatus.NO_CONTENT
-
         # If there is only a single clip, then just trim.
         if len(clips) == 1:
-            for clip in clips:
-                asset: AssetModel = find_asset(asset_id=clip["asset_id"])
-                return trim_asset(asset.path, display_name, clip)
-
+            clip = clips[0]
+            asset: AssetModel = find_asset(asset_id=clip["asset_id"])
+            if not trim_asset(asset.path, video_path, clip):
+                return HTTPStatus.INTERNAL_SERVER_ERROR
         # Trim and join assets and store the resulting video in `video_path`.
-        if not trim_and_join_assets(video_path, clips):
+        elif not trim_and_join_assets(video_path, clips):
+            return HTTPStatus.INTERNAL_SERVER_ERROR
+        else:
             return HTTPStatus.BAD_REQUEST
 
         # TODO: hls? see project.py
@@ -365,6 +369,8 @@ class EditAssets(Resource):
         # Add video to database.
         meta = generate_asset_meta(project, base_name, video_path)
         asset = create_asset(display_name, video_filename, meta)
+        if not asset:
+            return HTTPStatus.INTERNAL_SERVER_ERROR
         db.session.add(asset)
         db.session.commit()
 

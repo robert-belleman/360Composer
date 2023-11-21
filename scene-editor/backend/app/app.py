@@ -18,6 +18,7 @@ from app.routes.annotation import AnnotationOptions, AnnotationOptionDelete
 from app.routes.timeline import Timeline, TimelineDelete, TimelineScenarios, TimelineScenarioDelete, TimelineCustomers, TimelineCustomersDelete, TimelineRandomize
 from app.routes.analytics import Analytics
 from app.routes.customer import Customers, Customer, CustomerDelete, CustomerCreate
+from app.routes.video_editor import EditAssets
 
 app = Flask(__name__)
 app.config.from_pyfile("config.py")
