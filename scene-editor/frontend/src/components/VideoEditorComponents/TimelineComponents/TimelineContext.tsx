@@ -18,8 +18,10 @@ export interface TimelineItem {
 }
 
 interface TimelineSettings {
+  sliderValue: number;
   items: TimelineItem[];
   scale: number;
+  setSliderValue: React.Dispatch<React.SetStateAction<number>>;
   setItems: React.Dispatch<React.SetStateAction<TimelineItem[]>>;
   setScale: React.Dispatch<React.SetStateAction<number>>;
 }
@@ -29,12 +31,15 @@ const TimelineSettingsContext = React.createContext<
 >(undefined);
 
 const TimelineSettingsProvider: React.FC = ({ children }) => {
+  const [sliderValue, setSliderValue] = useState(0);
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [scale, setScale] = useState(1);
 
   const timelineSettings: TimelineSettings = {
+    sliderValue,
     items,
     scale,
+    setSliderValue,
     setItems,
     setScale,
   };

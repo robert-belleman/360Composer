@@ -28,7 +28,7 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
 
 const ZoomSlider = () => {
   const defaultValue = 0;
-  const minScale = -1;
+  const minScale = 0;
   const maxScale = 8;
   const [sliderValue, setSliderValue] = useState<number>(defaultValue);
 

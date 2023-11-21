@@ -33,6 +33,7 @@ import {
 } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
 import ZoomSlider from "./Sliders/ZoomSlider";
+import { useTimelineContext } from "./TimelineContext";
 
 const TimelineButton: React.FC<{
   disabled: boolean;
@@ -52,9 +53,14 @@ const TimelineButton: React.FC<{
   );
 });
 
-const TimelineControls: React.FC = () => {
+const TimelineControls = ({
+  timelineContainerRef,
+}: {
+  timelineContainerRef: React.RefObject<HTMLDivElement>;
+}) => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { currentTime, currentDuration } = useVideoContext();
+  const { sliderValue, scale } = useTimelineContext();
 
   /* Clip manipulation functions. */
   const handleUndo = () => {
@@ -64,7 +70,21 @@ const TimelineControls: React.FC = () => {
     dispatch({ type: REDO });
   };
   const handleSplitClip = () => {
-    dispatch({ type: SPLIT_CLIP, payload: { time: currentTime } });
+    const { current: timelineElem } = timelineContainerRef;
+    if (!timelineElem) return;
+
+    /* Compute the amount of seconds on the left side of the screen. */
+    const widthTimeline = timelineElem.clientWidth * scale;
+    const widthTimelineSecond = widthTimeline / currentDuration;
+    const secondsOffscreen = timelineElem.scrollLeft / widthTimelineSecond;
+
+    /* Compute the amount of seconds of the slider. */
+    const widthSlider = timelineElem.clientWidth * sliderValue;
+    const secondsOnscreen = widthSlider / widthTimelineSecond;
+
+    /* The time indicated by the slider. */
+    const newTime = secondsOffscreen + secondsOnscreen;
+    dispatch({ type: SPLIT_CLIP, payload: { time: newTime } });
   };
   const handleDuplicateClips = () => {
     dispatch({ type: DUPLICATE_CLIPS });

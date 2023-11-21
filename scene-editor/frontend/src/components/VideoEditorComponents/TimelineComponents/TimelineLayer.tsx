@@ -29,11 +29,14 @@ import { useVideoContext } from "../VideoContext";
 import { useTimelineContext, TimelineItem } from "./TimelineContext";
 import TimelineClip from "./SortableItem/TimelineClip";
 
-const TimelineLayer: React.FC = () => {
+const TimelineLayer = () => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { reloading, setReloading } = useVideoContext();
   const { scale, items, setItems } = useTimelineContext();
 
+  /**
+   * If the clips update, change the items to render.
+   */
   useEffect(() => {
     setItems(
       clipsState.clips.map((clip, index) => ({
