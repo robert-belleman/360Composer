@@ -32,7 +32,7 @@ import {
   useClipsContext,
 } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
-import ZoomSlider from "./Sliders/ZoomSlider";
+import ZoomControls from "./ControlComponents/ZoomControls";
 import { useTimelineContext } from "./TimelineContext";
 
 const TimelineButton: React.FC<{
@@ -157,7 +157,7 @@ const TimelineControls = ({
         <DisplayTime />
       </Grid>
       <Grid item xs={12} sm={12} md={4}>
-        <ZoomSlider />
+        <ZoomControls />
       </Grid>
     </Grid>
   );

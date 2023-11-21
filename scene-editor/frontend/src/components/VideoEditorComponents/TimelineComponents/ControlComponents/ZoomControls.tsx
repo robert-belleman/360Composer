@@ -10,23 +10,13 @@
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
-import { Slider, styled, Stack, IconButton } from "@mui/material";
+import { Stack, IconButton } from "@mui/material";
 
 import { useTimelineContext } from "../TimelineContext";
 import { useClipsContext } from "../../ClipsContext";
 import { useState } from "react";
 
-const marks = [
-  {
-    value: 0,
-  },
-];
-
-const CustomSlider = styled(Slider)(({ theme }) => ({
-  color: "palegreen",
-}));
-
-const ZoomSlider = () => {
+const ZoomControls = () => {
   const defaultValue = 0;
   const minScale = 0;
   const maxScale = 8;
@@ -38,13 +28,6 @@ const ZoomSlider = () => {
   function calculateScale(value: number) {
     return 2 ** value;
   }
-
-  const handleChangeScale = (event: Event, value: number | number[]) => {
-    if (typeof value === "number") {
-      setSliderValue(value);
-      setScale(calculateScale(value));
-    }
-  };
 
   const canZoomOut = () => {
     return 0 < clipsState.clips.length && minScale < sliderValue;
@@ -76,19 +59,6 @@ const ZoomSlider = () => {
       <IconButton disabled={!canZoomOut()} onClick={() => changeScaleDelta(-1)}>
         <ZoomOutIcon />
       </IconButton>
-      <CustomSlider
-        aria-label="Zoom"
-        defaultValue={defaultValue}
-        min={minScale}
-        max={maxScale}
-        step={0.01}
-        value={sliderValue}
-        track={false}
-        marks={marks}
-        color="secondary"
-        onChange={handleChangeScale}
-        disabled={clipsState.clips.length === 0}
-      />
       <IconButton disabled={!canZoomIn()} onClick={() => changeScaleDelta(1)}>
         <ZoomInIcon />
       </IconButton>
@@ -99,4 +69,4 @@ const ZoomSlider = () => {
   );
 };
 
-export default ZoomSlider;
+export default ZoomControls;
