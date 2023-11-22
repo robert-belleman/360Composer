@@ -6,7 +6,7 @@
  *
  */
 
-import React, { memo, useContext, useMemo, useState } from "react";
+import React, { memo, useContext, useState } from "react";
 import { useParams } from "react-router-dom";
 
 /* Third Party Imports */

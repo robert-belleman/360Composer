@@ -94,7 +94,7 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
 const useAssetsContext = (): AssetsContextProps => {
   const context = useContext(AssetsContext);
   if (!context) {
-    throw new Error("useAssetsContext must be used within a ClipsProvider");
+    throw new Error("useAssetsContext must be used within a AssetsProvider");
   }
   return context;
 };

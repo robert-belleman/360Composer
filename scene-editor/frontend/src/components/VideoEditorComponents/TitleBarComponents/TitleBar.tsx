@@ -24,12 +24,14 @@ import React, { memo, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 /* Third Party Imports */
+import axios from "axios";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
 import { AppBar, Button, TextField, Toolbar, Typography } from "@mui/material";
 
 /* Project Specific Imports */
 import { Clip, exportClips, useClipsContext } from "../ClipsContext";
+import { useAssetsContext } from "../MediaLibraryComponents/AssetsContext";
 
 const DEFAULT_TITLE = "Untitled Video";
 
@@ -70,15 +72,26 @@ const useTitleChange = (
  * @param title title of the video created from combining the clips.
  * @returns Callback function that exports the clips with title.
  */
-const useExportClips = (projectID: string, clips: Clip[], title: string) => {
-  return useCallback(() => {
-    exportClips(projectID, clips, title == "" ? DEFAULT_TITLE : title);
+const useExportClips = (
+  projectID: string,
+  clips: Clip[],
+  title: string,
+  fetchAssets: () => Promise<void>
+) => {
+  return useCallback(async () => {
+    try {
+      // Wait for exportClips to complete before moving to the next step
+      await exportClips(projectID, clips, title == "" ? DEFAULT_TITLE : title);
+      await fetchAssets();
+    } catch (error) {
+      console.error("Error during export and fetch:", error);
+    }
   }, [clips, title]);
 };
 
 /* Components */
 const BackButton = memo(() => {
-  const { projectID } = useParams<'projectID'>();
+  const { projectID } = useParams<"projectID">();
 
   const goBack = useNavigateBack(projectID!);
 
@@ -117,6 +130,7 @@ const TitleTextField = memo(
 
 const ExportButton = memo(({ title }: { title: string }) => {
   const { state } = useClipsContext();
+  const { fetchAssets } = useAssetsContext();
   const { projectID } = useParams();
 
   // Show invalid button.
@@ -128,7 +142,12 @@ const ExportButton = memo(({ title }: { title: string }) => {
     );
   }
 
-  const handleExport = useExportClips(projectID, state.clips, title);
+  const handleExport = useExportClips(
+    projectID,
+    state.clips,
+    title,
+    fetchAssets
+  );
 
   return (
     <Button

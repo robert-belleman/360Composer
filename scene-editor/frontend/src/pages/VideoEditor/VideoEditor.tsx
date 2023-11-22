@@ -53,24 +53,24 @@ const VideoEditor: React.FC = () => {
   return (
     <Grid container>
       <ClipsProvider>
-        <Grid item xs={3}>
-          <AssetsProvider>
+        <AssetsProvider>
+          <Grid item xs={3}>
             <MediaLibrary />
-          </AssetsProvider>
-        </Grid>
-        <Grid item xs={9}>
-          <Stack height="100vh">
-            <TitleBar />
-            <VideoProvider>
-              <Stack height={1} display="flex" justifyContent="flex-end" >
-                <VideoPreview />
-                <TimelineSettingsProvider>
-                  <Timeline />
-                </TimelineSettingsProvider>
-              </Stack>
-            </VideoProvider>
-          </Stack>
-        </Grid>
+          </Grid>
+          <Grid item xs={9}>
+            <Stack height="100vh">
+              <TitleBar />
+              <VideoProvider>
+                <Stack height={1} display="flex" justifyContent="flex-end">
+                  <VideoPreview />
+                  <TimelineSettingsProvider>
+                    <Timeline />
+                  </TimelineSettingsProvider>
+                </Stack>
+              </VideoProvider>
+            </Stack>
+          </Grid>
+        </AssetsProvider>
       </ClipsProvider>
     </Grid>
   );
