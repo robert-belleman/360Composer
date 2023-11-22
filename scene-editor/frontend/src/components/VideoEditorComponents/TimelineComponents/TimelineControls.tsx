@@ -60,7 +60,7 @@ const TimelineControls = ({
 }) => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { currentTime, currentDuration } = useVideoContext();
-  const { sliderValue, scale } = useTimelineContext();
+  const { sliderTime: sliderValue, scale } = useTimelineContext();
 
   /* Clip manipulation functions. */
   const handleUndo = () => {
