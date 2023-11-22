@@ -56,7 +56,6 @@ const TimelineButton: React.FC<{
 const TimelineControls = () => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { currentTime, currentDuration } = useVideoContext();
-  const { timelineWindowRef, sliderTime, scale } = useTimelineContext();
 
   /* Clip manipulation functions. */
   const handleUndo = () => {
@@ -66,21 +65,7 @@ const TimelineControls = () => {
     dispatch({ type: REDO });
   };
   const handleSplitClip = () => {
-    const { current: timelineElem } = timelineWindowRef;
-    if (!timelineElem) return;
-
-    /* Compute the amount of seconds on the left side of the screen. */
-    const widthTimeline = timelineElem.clientWidth * scale;
-    const widthTimelineSecond = widthTimeline / currentDuration;
-    const secondsOffscreen = timelineElem.scrollLeft / widthTimelineSecond;
-
-    /* Compute the amount of seconds of the slider. */
-    const widthSlider = timelineElem.clientWidth * sliderTime;
-    const secondsOnscreen = widthSlider / widthTimelineSecond;
-
-    /* The time indicated by the slider. */
-    const newTime = secondsOffscreen + secondsOnscreen;
-    dispatch({ type: SPLIT_CLIP, payload: { time: newTime } });
+    dispatch({ type: SPLIT_CLIP, payload: { time: currentTime } });
   };
   const handleDuplicateClips = () => {
     dispatch({ type: DUPLICATE_CLIPS });

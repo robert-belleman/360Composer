@@ -116,10 +116,12 @@ const VideoSlider: React.FC = () => {
     const secondsOnscreen = currentTime - secondsOffscreen;
 
     /* Compute the new slider value using the seconds onscreen. */
-    const newSliderTime = secondsOnscreen * sliderSecond;
+    const onscreenSliderTime = secondsOnscreen * sliderSecond;
+    const newSliderTime = isNaN(onscreenSliderTime) ? 0 : onscreenSliderTime;
+    setSliderTime(newSliderTime);
 
-    /* Prevent setting slider to NaN. */
-    setSliderTime(isNaN(newSliderTime) ? 0 : newSliderTime);
+    /* Move the timeline window if the indicator is offscreen. */
+    if (newSliderTime > 1) timelineElem.scrollLeft += timelineElem.clientWidth;
   }, [currentTime]);
 
   return (

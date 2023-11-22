@@ -35,7 +35,13 @@ function SortableItem(item: TimelineItem) {
   };
 
   return (
-    <Box ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <Box
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      boxSizing="border-box"
+    >
       {item.content}
     </Box>
   );
