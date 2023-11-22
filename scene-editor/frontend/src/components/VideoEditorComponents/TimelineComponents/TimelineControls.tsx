@@ -33,7 +33,6 @@ import {
 } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
 import ZoomControls from "./ControlComponents/ZoomControls";
-import { useTimelineContext } from "./TimelineContext";
 
 const TimelineButton: React.FC<{
   disabled: boolean;

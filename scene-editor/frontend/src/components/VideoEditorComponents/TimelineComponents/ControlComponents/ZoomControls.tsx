@@ -14,33 +14,50 @@ import { Stack, IconButton } from "@mui/material";
 
 import { useTimelineContext } from "../TimelineContext";
 import { useClipsContext } from "../../ClipsContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useVideoContext } from "../../VideoContext";
 
 const ZoomControls = () => {
   const defaultExponent = 0;
-  const minScale = 0;
-  const maxScale = 8;
+  const minExponent = 0;
+  const minSecondsOnscreen = 2;  // If you change this, also change log2().
+
+  const [maxExponent, setMaxExponent] = useState(0);
   const [exponent, setExponent] = useState(defaultExponent);
 
   const { setScale } = useTimelineContext();
   const { state: clipsState } = useClipsContext();
+  const { currentDuration} = useVideoContext()
+
+  useEffect(() => {
+    /* If the duration is too small to zoom in, then do not allow zooming. */
+    if (currentDuration <= minSecondsOnscreen) {
+      setMaxExponent(0)
+      return
+    }
+
+    /* Otherwise, compute how many times you can divide by two. */
+    /* Note that log2() is hardcoded because it is more efficient. */
+    const exp = Math.floor(Math.log2(currentDuration))
+    setMaxExponent(exp - 1)
+  }, [currentDuration])
 
   function calculateScale(value: number) {
     return 2 ** value;
   }
 
   const canZoomOut = () => {
-    return 0 < clipsState.clips.length && minScale < exponent;
+    return 0 < clipsState.clips.length && minExponent < exponent;
   };
 
   const canZoomIn = () => {
-    return 0 < clipsState.clips.length && exponent < maxScale;
+    return 0 < clipsState.clips.length && exponent < maxExponent;
   };
 
   const changeScaleDelta = (delta: number) => {
-    const newValue = exponent + delta;
-    const boundedValue = Math.min(Math.max(newValue, minScale), maxScale);
-    setExponent(newValue);
+    const newExp = exponent + delta;
+    const boundedValue = Math.min(Math.max(newExp, minExponent), maxExponent);
+    setExponent(newExp);
     setScale(calculateScale(boundedValue));
   };
 
