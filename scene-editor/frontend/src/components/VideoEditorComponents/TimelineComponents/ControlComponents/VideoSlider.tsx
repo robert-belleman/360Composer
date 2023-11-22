@@ -28,12 +28,12 @@
  *   - `sliderTime` = 0    => 0    * 24 = 0  seconds onscreen.
  *   - `sliderTime` = 0.25 => 0.25 * 24 = 6  seconds onscreen.
  *   - `sliderTime` = 1    => 1    * 24 = 24 seconds onscreen.
- *   * since scale = 1, the entire tape is visible.
+ *   * Since scale = 1, the entire tape is visible.
  * - For `scale` = 2:
  *   - `sliderTime` = 0    => 0    * 24 / 2 = 0  seconds onscreen.
  *   - `sliderTime` = 0.25 => 0.25 * 24 / 2 = 3  seconds onscreen.
  *   - `sliderTime` = 1    => 1    * 24 / 2 = 12 seconds onscreen.
- *   * since scale > 1, part of the tape is offscreen.
+ *   * Since scale > 1, part of the tape is offscreen.
  *
  */
 
@@ -82,21 +82,18 @@ const VideoSlider: React.FC = () => {
    */
   const handleSliderChange = (event: Event, value: number | number[]) => {
     const { current: timelineElem } = timelineWindowRef;
-
-    if (typeof value !== "number" || !timelineElem) {
-      return;
-    }
+    if (typeof value !== "number" || !timelineElem) return;
 
     /* Compute the size of a single second on the slider and the tape. */
     const sliderSecond = scale / currentDuration;
     const tapeSecond = sliderSecond * timelineElem.clientWidth;
 
     /* Compute the seconds offscreen and onscreen. */
-    const offscreenSeconds = timelineElem.scrollLeft / tapeSecond;
-    const onscreenSeconds = value / sliderSecond;
+    const secondsOffscreen = timelineElem.scrollLeft / tapeSecond;
+    const secondsOnscreen = value / sliderSecond;
 
     /* Sum the seconds offscreen and onscreen to get the indicated time. */
-    const seekTime = offscreenSeconds + onscreenSeconds;
+    const seekTime = secondsOffscreen + secondsOnscreen;
     seek(seekTime);
 
     setSliderTime(value);
@@ -107,15 +104,22 @@ const VideoSlider: React.FC = () => {
    * See header comment for more information on `sliderTime`.
    */
   useEffect(() => {
-    /* Compute the size of a single second on the slider. */
-    const sliderSecond = scale / currentDuration;
-    /* Convert the size of the current time to slider seconds. */
-    const sliderSeconds = sliderSecond * currentTime;
-    /* Only retrieve the fractional part, which can be seen on screen. */
-    const sliderMilliseconds = sliderSeconds % 1;
+    const { current: timelineElem } = timelineWindowRef;
+    if (!timelineElem) return;
 
-    /* If the video ended, then set the sliderTime on 1. */
-    setSliderTime(currentTime < currentDuration ? sliderMilliseconds : 1);
+    /* Compute the size of a single second on the slider and the tape. */
+    const sliderSecond = scale / currentDuration;
+    const tapeSecond = sliderSecond * timelineElem.clientWidth;
+
+    /* Compute the seconds offscreen and onscreen. */
+    const secondsOffscreen = timelineElem.scrollLeft / tapeSecond;
+    const secondsOnscreen = currentTime - secondsOffscreen;
+
+    /* Compute the new slider value using the seconds onscreen. */
+    const newSliderTime = secondsOnscreen * sliderSecond;
+
+    /* Prevent setting slider to NaN. */
+    setSliderTime(isNaN(newSliderTime) ? 0 : newSliderTime);
   }, [currentTime]);
 
   return (
