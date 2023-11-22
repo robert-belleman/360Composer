@@ -67,9 +67,36 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
 }));
 
 const VideoSlider: React.FC = () => {
+  const [sliderSecond, setSliderSecond] = useState(0);
+  const [tapeSecond, setTapeSecond] = useState(0);
+
   const { timelineWindowRef, scale, sliderTime, setSliderTime } =
     useTimelineContext();
   const { currentTime, currentDuration, seek } = useVideoContext();
+
+  /**
+   * Update sliderSecond and tapeSecond only when the scale, duration or
+   * the timeline window reference changes. These values do not change as
+   * often as things like the current time. Therefore they are put in a
+   * separate useEffect and only updated when necessary.
+   */
+  useEffect(() => {
+    const { current: timelineElem } = timelineWindowRef;
+    if (!timelineElem) return;
+
+    // Compute the size of a single second on the slider and the tape.
+    const newSliderSecond = scale / currentDuration;
+    const newTapeSecond = newSliderSecond * timelineElem.clientWidth;
+
+    // Update state only if the values have changed.
+    if (newSliderSecond !== sliderSecond) {
+      setSliderSecond(newSliderSecond);
+    }
+
+    if (newTapeSecond !== tapeSecond) {
+      setTapeSecond(newTapeSecond);
+    }
+  }, [scale, currentDuration, timelineWindowRef]);
 
   /**
    * When the slider changes, compute its new position compared to the entire
@@ -83,10 +110,6 @@ const VideoSlider: React.FC = () => {
   const handleSliderChange = (event: Event, value: number | number[]) => {
     const { current: timelineElem } = timelineWindowRef;
     if (typeof value !== "number" || !timelineElem) return;
-
-    /* Compute the size of a single second on the slider and the tape. */
-    const sliderSecond = scale / currentDuration;
-    const tapeSecond = sliderSecond * timelineElem.clientWidth;
 
     /* Compute the seconds offscreen and onscreen. */
     const secondsOffscreen = timelineElem.scrollLeft / tapeSecond;
@@ -106,10 +129,6 @@ const VideoSlider: React.FC = () => {
   useEffect(() => {
     const { current: timelineElem } = timelineWindowRef;
     if (!timelineElem) return;
-
-    /* Compute the size of a single second on the slider and the tape. */
-    const sliderSecond = scale / currentDuration;
-    const tapeSecond = sliderSecond * timelineElem.clientWidth;
 
     /* Compute the seconds offscreen and onscreen. */
     const secondsOffscreen = timelineElem.scrollLeft / tapeSecond;

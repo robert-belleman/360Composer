@@ -20,27 +20,27 @@ import { useVideoContext } from "../../VideoContext";
 const ZoomControls = () => {
   const defaultExponent = 0;
   const minExponent = 0;
-  const minSecondsOnscreen = 2;  // If you change this, also change log2().
+  const minSecondsOnscreen = 2; // If you change this, also change log2().
 
   const [maxExponent, setMaxExponent] = useState(0);
   const [exponent, setExponent] = useState(defaultExponent);
 
   const { setScale } = useTimelineContext();
   const { state: clipsState } = useClipsContext();
-  const { currentDuration} = useVideoContext()
+  const { currentDuration } = useVideoContext();
 
   useEffect(() => {
     /* If the duration is too small to zoom in, then do not allow zooming. */
     if (currentDuration <= minSecondsOnscreen) {
-      setMaxExponent(0)
-      return
+      setMaxExponent(0);
+      return;
     }
 
     /* Otherwise, compute how many times you can divide by two. */
     /* Note that log2() is hardcoded because it is more efficient. */
-    const exp = Math.floor(Math.log2(currentDuration))
-    setMaxExponent(exp - 1)
-  }, [currentDuration])
+    const exp = Math.floor(Math.log2(currentDuration));
+    setMaxExponent(exp - 1);
+  }, [currentDuration]);
 
   function calculateScale(value: number) {
     return 2 ** value;
@@ -52,6 +52,10 @@ const ZoomControls = () => {
 
   const canZoomIn = () => {
     return 0 < clipsState.clips.length && exponent < maxExponent;
+  };
+
+  const canZoomReset = () => {
+    return exponent !== defaultExponent;
   };
 
   const changeScaleDelta = (delta: number) => {
@@ -80,7 +84,7 @@ const ZoomControls = () => {
       <IconButton disabled={!canZoomIn()} onClick={() => changeScaleDelta(1)}>
         <ZoomInIcon />
       </IconButton>
-      <IconButton onClick={resetScale}>
+      <IconButton disabled={!canZoomReset()} onClick={resetScale}>
         <CloseFullscreenIcon />
       </IconButton>
     </Stack>
