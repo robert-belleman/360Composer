@@ -53,14 +53,10 @@ const TimelineButton: React.FC<{
   );
 });
 
-const TimelineControls = ({
-  timelineContainerRef,
-}: {
-  timelineContainerRef: React.RefObject<HTMLDivElement>;
-}) => {
+const TimelineControls = () => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { currentTime, currentDuration } = useVideoContext();
-  const { sliderTime: sliderValue, scale } = useTimelineContext();
+  const { timelineWindowRef, sliderTime, scale } = useTimelineContext();
 
   /* Clip manipulation functions. */
   const handleUndo = () => {
@@ -70,7 +66,7 @@ const TimelineControls = ({
     dispatch({ type: REDO });
   };
   const handleSplitClip = () => {
-    const { current: timelineElem } = timelineContainerRef;
+    const { current: timelineElem } = timelineWindowRef;
     if (!timelineElem) return;
 
     /* Compute the amount of seconds on the left side of the screen. */
@@ -79,7 +75,7 @@ const TimelineControls = ({
     const secondsOffscreen = timelineElem.scrollLeft / widthTimelineSecond;
 
     /* Compute the amount of seconds of the slider. */
-    const widthSlider = timelineElem.clientWidth * sliderValue;
+    const widthSlider = timelineElem.clientWidth * sliderTime;
     const secondsOnscreen = widthSlider / widthTimelineSecond;
 
     /* The time indicated by the slider. */

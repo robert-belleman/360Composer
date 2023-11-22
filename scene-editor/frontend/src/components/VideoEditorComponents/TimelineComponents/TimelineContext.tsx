@@ -9,7 +9,7 @@
  *
  */
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 
 export interface TimelineItem {
   id: number;
@@ -18,6 +18,7 @@ export interface TimelineItem {
 }
 
 interface TimelineSettings {
+  timelineWindowRef: React.RefObject<HTMLDivElement>;
   sliderTime: number;
   items: TimelineItem[];
   scale: number;
@@ -31,11 +32,13 @@ const TimelineSettingsContext = React.createContext<
 >(undefined);
 
 const TimelineSettingsProvider: React.FC = ({ children }) => {
+  const timelineWindowRef = useRef<HTMLDivElement>(null);
   const [sliderTime, setSliderTime] = useState(0);
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [scale, setScale] = useState(1);
 
   const timelineSettings: TimelineSettings = {
+    timelineWindowRef,
     sliderTime,
     items,
     scale,

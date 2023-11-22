@@ -45,6 +45,7 @@ import { useEffect, useState } from "react";
 
 const CustomSlider = styled(Slider)(({ theme }) => ({
   color: "gold",
+  /* Make the slider thumb a vertical line. */
   "& .MuiSlider-thumb": {
     width: 4, // Set the width of the thumb to make it a vertical line
     height: 264, // Make the thumb height equal to the slider height
@@ -52,6 +53,7 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
     marginTop: 132, // Align the thumb to the top of the slider
     marginLeft: 1, // Center the thumb on the slider
     position: "relative", // Position relative for absolute positioning of the pseudo-element
+    /* Attach a circle to the top of the vertical line. */
     "&::before": {
       content: "''",
       position: "absolute",
@@ -64,12 +66,9 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
   },
 }));
 
-interface VideoSliderProps {
-  timelineContainerRef: React.RefObject<HTMLDivElement>;
-}
-
-const VideoSlider: React.FC<VideoSliderProps> = ({ timelineContainerRef }) => {
-  const { scale, sliderTime, setSliderTime } = useTimelineContext();
+const VideoSlider: React.FC = () => {
+  const { timelineWindowRef, scale, sliderTime, setSliderTime } =
+    useTimelineContext();
   const { currentTime, currentDuration, seek } = useVideoContext();
 
   /**
@@ -82,13 +81,13 @@ const VideoSlider: React.FC<VideoSliderProps> = ({ timelineContainerRef }) => {
    * @param value new slider value
    */
   const handleSliderChange = (event: Event, value: number | number[]) => {
-    const { current: timelineElem } = timelineContainerRef;
+    const { current: timelineElem } = timelineWindowRef;
 
     if (typeof value !== "number" || !timelineElem) {
       return;
     }
 
-    /* Compute the size of a single second on the slider and video edit tape. */
+    /* Compute the size of a single second on the slider and the tape. */
     const sliderSecond = scale / currentDuration;
     const tapeSecond = sliderSecond * timelineElem.clientWidth;
 

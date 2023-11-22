@@ -23,9 +23,10 @@ import { TIMELINE_HEIGHT } from "../Constants";
 import TimelineControls from "./TimelineControls";
 import TimelineLayer from "./TimelineLayer";
 import VideoSlider from "./ControlComponents/VideoSlider";
+import { useTimelineContext } from "./TimelineContext";
 
 const Timeline: React.FC = () => {
-  const timelineContainerRef = useRef<HTMLDivElement>(null);
+  const {timelineWindowRef} = useTimelineContext()
 
   return (
     <Stack
@@ -34,10 +35,10 @@ const Timeline: React.FC = () => {
       overflow="hidden"
       sx={{ backgroundColor: "royalblue" }}
     >
-      <TimelineControls timelineContainerRef={timelineContainerRef} />
-      <VideoSlider timelineContainerRef={timelineContainerRef} />
+      <TimelineControls />
+      <VideoSlider />
       <Stack
-        ref={timelineContainerRef}
+        ref={timelineWindowRef}
         height={1}
         display="flex"
         // justifyContent="center"
