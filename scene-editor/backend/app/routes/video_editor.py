@@ -25,11 +25,9 @@ from app.util.ffmpeg import (
     create_thumbnail,
     ffmpeg_join_assets,
     ffmpeg_trim_asset,
-    ffmpeg_process_asset,
     get_duration,
 )
 from app.util.util import random_file_name
-from flask import abort
 from flask_jwt_extended import get_jwt
 from flask_restx import Resource, reqparse
 from sqlalchemy.orm.exc import NoResultFound
@@ -39,6 +37,39 @@ ns = api.namespace("video-editor")
 
 PROCESSED_DIR = "/processed/"
 TRIMMED_DIR = "/trimmed/"
+EXTENSION = ".mp4"
+
+
+class FFmpegException(Exception):
+    """Exception for errors during FFmpeg utilization."""
+
+    def __init__(self, status_code, message):
+        self.status_code = status_code
+        self.message = message
+
+
+class AssetMetaGenerationError(Exception):
+    """Exception for errors during metadata generation."""
+
+    def __init__(self, status_code, message):
+        self.status_code = status_code
+        self.message = message
+
+
+class NoAssetFound(Exception):
+    """Exception for when asset cannot be found in database."""
+
+    def __init__(self, status_code, message):
+        self.status_code = status_code
+        self.message = message
+
+
+class NoProjectFound(Exception):
+    """Exception for when project cannot be found in database."""
+
+    def __init__(self, status_code, message):
+        self.status_code = status_code
+        self.message = message
 
 
 def _asset_key(clip: dict):
@@ -51,36 +82,69 @@ def _trim_key(clip: dict) -> tuple[str]:
     return clip["asset_id"], clip["start_time"], clip["duration"]
 
 
-def trim_and_join_assets(clips: dict, video_path: Path):
-    """Trim and concatenate the video clips together in `video_path`."""
-    # Find all unique assets in `clips`.
+def find_unique_assets(clips: dict) -> dict:
+    """Find all unique assets in `clips`. An asset is uniquely defined by
+    the id.
+
+    Returns:
+        a dict with asset id as key and asset path as value.
+    """
     asset_paths = {}
     for clip in clips:
         if _asset_key(clip) not in asset_paths:
             asset: AssetModel = find_asset(clip["asset_id"])
             asset_paths[_asset_key(clip)] = Path(ASSET_DIR, asset.path)
+    return asset_paths
 
-    # Perform all unique trims in `clips`.
+
+def perform_unique_trims(clips: dict, asset_paths: dict) -> dict:
+    """Perform all unique trims in `clips`. A trim is uniquely defined by
+    the id of the asset, the start time of the trim, and the duration.
+
+    Returns:
+        a dictionary with (asset_id, start_time, duration) as key and"""
     trimmed_paths = {}
     for clip in clips:
         if _trim_key(clip) not in trimmed_paths:
             src_path = asset_paths[_asset_key(clip)]
-            dst_path = Path(TRIMMED_DIR, random_file_name() + ".mp4")
-            if not trim_asset(clip, src_path, dst_path):
-                return HTTPStatus.INTERNAL_SERVER_ERROR
+            dst_path = Path(TRIMMED_DIR, random_file_name() + EXTENSION)
+            trim_asset(clip, src_path, dst_path)
             trimmed_paths[_trim_key(clip)] = dst_path
+    return trimmed_paths
 
-    # List all trimmed assets in chronological order to concatenate.
-    video_clips = []
-    for clip in clips:
-        video_clips.append(trimmed_paths[_trim_key(clip)])
 
-    # Join/Concatenate the assets together.
-    if not ffmpeg_join_assets(video_clips, video_path):
-        print("An error occurred during concatenation of video clips.")
-        return HTTPStatus.INTERNAL_SERVER_ERROR
+def list_video_clips(clips: dict, trimmed_paths: dict) -> list:
+    """List all trimmed assets in chronological order to concatenate."""
+    return [trimmed_paths[_trim_key(clip)] for clip in clips]
 
-    return HTTPStatus.OK
+
+def edit_assets(clips: dict, video_path: Path) -> HTTPStatus:
+    """Trim and concatenate the video clips together in `video_path`.
+
+    Parameters:
+        clip : dict
+            dictionary with trimming information of the clip.
+        dst_path : Path
+            file to write the trim result to.
+
+    Returns:
+        True on succes, False on error.
+    """
+    try:
+        # Put the result in ASSET_DIR directly if there is only one trim.
+        if len(clips) == 1:
+            clip = clips[0]
+            asset: AssetModel = find_asset(asset_id=clip["asset_id"])
+            src_path = Path(ASSET_DIR, asset.path)
+            trim_asset(clip, src_path, video_path)
+
+        # Otherwise, perform unique trims and concatenate them together.
+        unique_assets = find_unique_assets(clips)
+        unique_trims = perform_unique_trims(clips, unique_assets)
+        video_clips = list_video_clips(clips, unique_trims)
+        return ffmpeg_join_assets(video_clips, video_path)
+    finally:
+        cleanup_temporary_files(unique_trims)
 
 
 def trim_asset(clip: dict, src_path: Path, dst_path: Path):
@@ -98,9 +162,14 @@ def trim_asset(clip: dict, src_path: Path, dst_path: Path):
     Returns:
         True on succes, False on error.
     """
-    start_time = clip["start_time"]
-    duration = clip["duration"]
-    return ffmpeg_trim_asset(start_time, duration, src_path, dst_path)
+    try:
+        start_time = clip["start_time"]
+        duration = clip["duration"]
+        return ffmpeg_trim_asset(start_time, duration, src_path, dst_path)
+    except Exception as error:
+        status = HTTPStatus.INTERNAL_SERVER_ERROR
+        msg = f"Error trimming asset with ID: {clip['asset_id']}"
+        raise FFmpegException(status, msg) from error
 
 
 def find_project(project_id: int) -> ProjectModel | None:
@@ -111,7 +180,7 @@ def find_project(project_id: int) -> ProjectModel | None:
             the ID of the project to find.
 
     Returns:
-        the found project on success, aborts with 404 Not Found on failure.
+        the found project on success, None on failure.
     """
     claims = get_jwt()
     try:
@@ -119,8 +188,10 @@ def find_project(project_id: int) -> ProjectModel | None:
             id=project_id, user_id=claims["id"]
         ).first_or_404()
         return found_project
-    except NoResultFound:
-        abort(HTTPStatus.NOT_FOUND, "Project not found")
+    except NoResultFound as error:
+        status = HTTPStatus.NOT_FOUND
+        msg = f"Project not found with ID: {project_id}"
+        raise NoAssetFound(status, msg) from error
 
 
 def find_asset(asset_id: int) -> AssetModel | None:
@@ -131,27 +202,35 @@ def find_asset(asset_id: int) -> AssetModel | None:
             the ID of the asset to find.
 
     Returns:
-        the found asset on success, aborts with 404 Not Found on failure.
+        the found asset on success, None on failure.
     """
     try:
         found_asset = AssetModel.query.filter_by(id=asset_id).first_or_404()
         return found_asset
-    except NoResultFound:
-        abort(HTTPStatus.NOT_FOUND, "Asset not found")
+    except NoResultFound as error:
+        status = HTTPStatus.NOT_FOUND
+        msg = f"Asset not found with ID: {asset_id}"
+        raise NoAssetFound(status, msg) from error
 
 
-def cleanup_partial_results(filepaths: list[str]) -> None:
+def cleanup_temporary_files(filepaths: list | dict) -> None:
     """Remove the files specified by `filepaths`.
 
     Parameters:
         filepaths : list[str]
-            list of filepaths to remove.
+            list or dictionary of filepaths to remove.
 
     Side effects:
         removes files.
     """
-    for path in filepaths:
-        Path(ASSET_DIR, path).unlink()
+    if isinstance(filepaths, list):
+        for path in filepaths:
+            Path(path).unlink()
+    elif isinstance(filepaths, dict):
+        for path in filepaths.values():
+            Path(path).unlink()
+    else:
+        raise TypeError("Unsupported type for filepaths. Use list or dict.")
 
 
 def generate_asset_meta(
@@ -170,21 +249,26 @@ def generate_asset_meta(
     Returns:
         dictionary containing metadata.
     """
-    duration = get_duration(video_path)
+    try:
+        thumbnail_path = Path(ASSET_DIR, filename + ".jpg")
 
-    thumbnail_path = Path(ASSET_DIR, filename + ".jpg")
-    if not create_thumbnail(video_path.as_posix(), thumbnail_path.as_posix()):
-        return
+        # Create a thumbnail on `thumbnail_path` if it does not exist.
+        video_path_str = video_path.as_posix()
+        thumbnail_path_str = thumbnail_path.as_posix()
+        if not create_thumbnail(video_path_str, thumbnail_path_str):
+            return
 
-    size = video_path.stat().st_size
-
-    return {
-        "user_id": project.user_id,
-        "duration": duration,
-        "thumbnail_path": thumbnail_path.name,
-        "file_size": size,
-        "projects": [project],
-    }
+        return {
+            "user_id": project.user_id,
+            "duration": get_duration(video_path),
+            "thumbnail_path": thumbnail_path.name,
+            "file_size": video_path.stat().st_size,
+            "projects": [project],
+        }
+    except Exception as error:
+        status = HTTPStatus.INTERNAL_SERVER_ERROR
+        msg = f"Error generating asset metadata {str(error)}"
+        raise AssetMetaGenerationError(status, msg) from error
 
 
 def create_asset(name: str, path: str, meta: dict) -> AssetModel:
@@ -244,40 +328,31 @@ class EditAssets(Resource):
     def post(self, project_id: int):
         """Receive the information of the clip(s), edit them, and add the
         resulting video to the database."""
-        project = find_project(project_id)
+        try:
+            project = find_project(project_id)
 
-        # Retrieve edit information.
-        args = asset_export.parse_args()
-        clips = args.get("edits", [])
-        display_name = args.get("filename", "Untitled_Video.mp4")
+            # Retrieve edit information.
+            args = asset_export.parse_args()
+            clips = args.get("edits", [])
+            display_name = args.get("filename", "Untitled_Video" + EXTENSION)
 
-        # Define the location of the resulting video.
-        extension = ".mp4"
-        base_name = random_file_name()
-        video_filename = base_name + extension
-        video_path = Path(ASSET_DIR, base_name + extension)
+            # Define the location of the resulting video.
+            base_name = random_file_name()
+            video_filename = base_name + EXTENSION
+            video_path = Path(ASSET_DIR, base_name + EXTENSION)
 
-        # Put the result in ASSET_DIR directly if there is only one trim.
-        if len(clips) == 1:
-            clip = clips[0]
-            asset: AssetModel = find_asset(asset_id=clip["asset_id"])
-            src_path = Path(ASSET_DIR, asset.path)
-            if not trim_asset(clip, src_path, video_path):
-                return HTTPStatus.INTERNAL_SERVER_ERROR
-        # Otherwise, put trim results in folder and concatenate after.
-        else:
-            status = trim_and_join_assets(clips, video_path)
-            if status is not HTTPStatus.OK:
-                return status
+            edit_assets(clips, video_path)
 
-        # TODO: hls? see project.py
-
-        # Add video to database.
-        meta = generate_asset_meta(project, base_name, video_path)
-        asset = create_asset(display_name, video_filename, meta)
-        if not asset:
-            return HTTPStatus.INTERNAL_SERVER_ERROR
-        db.session.add(asset)
-        db.session.commit()
-
-        return asset, HTTPStatus.CREATED
+            # Add video to database.
+            meta = generate_asset_meta(project, base_name, video_path)
+            asset = create_asset(display_name, video_filename, meta)
+            db.session.add(asset)
+            db.session.commit()
+            return asset, HTTPStatus.CREATED
+        except (
+            NoAssetFound,
+            NoProjectFound,
+            FFmpegException,
+            AssetMetaGenerationError,
+        ) as error:
+            return {"message": error.message}, error.status_code
