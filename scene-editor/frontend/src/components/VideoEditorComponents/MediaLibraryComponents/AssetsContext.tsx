@@ -48,6 +48,16 @@ interface AssetsContextProps {
   assets: Asset[];
   loading: boolean;
   fetchAssets: () => Promise<void>;
+  sortOption: string;
+  orderOption: string;
+  changeSorting: (newOption: string) => void;
+  changeOrdering: (newOption: string) => void;
+  sortAssets: (assets: Asset[]) => Asset[];
+  filterOptions: string[];
+  toggleFilter: (filter: string) => void;
+  filterAssets: (assets: Asset[]) => Asset[];
+  filterSetting: string;
+  changeFilterSetting: (newSetting: string) => void;
 }
 
 const AssetsContext = createContext<AssetsContextProps | undefined>(undefined);
@@ -59,6 +69,10 @@ interface AssetsProviderProps {
 const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortOption, setSortOption] = useState("name");
+  const [orderOption, setOrderOption] = useState("asc");
+  const [filterOptions, setFilterOptions] = useState<string[]>([]);
+  const [filterSetting, setFilterSetting] = useState("any");
   const { projectID } = useParams();
 
   const fetchAssets = async () => {
@@ -74,6 +88,115 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
     }
   };
 
+  const changeSorting = (newOption: string) => {
+    setSortOption(newOption);
+  };
+
+  const changeOrdering = (newOption: string) => {
+    setOrderOption(newOption);
+  };
+
+  /**
+   * Sort assets based on `sortOption`. The sorting is ordered according to
+   * `orderOption`.
+   * @param assets assets to sort
+   * @returns sorted assets.
+   */
+  const sortAssets = (assets: Asset[]) => {
+    return [...assets].sort((a, b) => {
+      let result = 0;
+
+      if (sortOption === "name") {
+        result = a.name.localeCompare(b.name);
+      } else if (sortOption === "date") {
+        const dateA = new Date(a.updated_at).getTime();
+        const dateB = new Date(b.updated_at).getTime();
+        result = dateA - dateB;
+      }
+
+      return orderOption === "desc" ? -result : result;
+    });
+  };
+
+  const filters = {
+    name: (asset: Asset, filter: string) =>
+      asset.name.toLowerCase() === filter.toLowerCase(),
+    "duration<": (asset: Asset, filter: string) =>
+      asset.duration < parseInt(filter, 10),
+    "duration>": (asset: Asset, filter: string) =>
+      asset.duration > parseInt(filter, 10),
+    view_type: (asset: Asset, filter: string) =>
+      asset.view_type.toLowerCase() === filter.toLowerCase(),
+    asset_type: (asset: Asset, filter: string) =>
+      asset.asset_type.toLowerCase() === filter.toLowerCase(),
+    // Add more filters as needed
+  };
+
+  /**
+   * Filter assets based on `filterOptions`. Assets will be in the resulting
+   * array if they satisfy any or all filters depending on `filterSetting`.
+   * @param assets assets to filter
+   * @returns filtered assets.
+   */
+  const filterAssets = (assets: Asset[]) => {
+    if (filterOptions.length === 0) {
+      return assets; // No filters, return all assets
+    }
+
+    return assets.filter((asset) => {
+      if (filterSetting === "any") {
+        return filterOptions.some((filter: string) => {
+          const [field, filterValue] = filter.split(":");
+          return (
+            field in filters && (filters as any)[field](asset, filterValue)
+          );
+        });
+      }
+
+      if (filterSetting === "all") {
+        return filterOptions.every((filter: string) => {
+          const [field, filterValue] = filter.split(":");
+          return (
+            field in filters && (filters as any)[field](asset, filterValue)
+          );
+        });
+      }
+
+      return true;
+    });
+  };
+
+  /**
+   * Add or remove a filter from the filter options.
+   * A filter is of the form field:filter where field is a n attribute of
+   * an asset (i.e. asset_type) and filter is the string to compare with
+   * (i.e. "video").
+   * @param filter
+   */
+  const toggleFilter = (filter: string) => {
+    const [field, filterValue] = filter
+      .toLowerCase()
+      .split(":")
+      .map((part) => part.trim());
+    if (field in filters) {
+      if (filterOptions.includes(filter)) {
+        // Filter already exists, remove it.
+        setFilterOptions(filterOptions.filter((f) => f !== filter));
+      } else {
+        // Filter doesn't exist, add it.
+        setFilterOptions([...filterOptions, filter]);
+      }
+    }
+  };
+
+  /**
+   * Change the filter setting to the new filter setting.
+   * @param newSetting new filter setting.
+   */
+  const changeFilterSetting = (newSetting: string) => {
+    setFilterSetting(newSetting);
+  };
+
   useEffect(() => {
     fetchAssets();
   }, [projectID]);
@@ -82,6 +205,16 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
     assets,
     loading,
     fetchAssets,
+    sortOption,
+    orderOption,
+    changeSorting,
+    changeOrdering,
+    sortAssets,
+    filterOptions,
+    toggleFilter,
+    filterAssets,
+    filterSetting,
+    changeFilterSetting,
   };
 
   return (

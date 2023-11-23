@@ -26,7 +26,7 @@ import {
 } from "@dnd-kit/modifiers";
 
 import SortableItem from "./SortableItem";
-import { useAssetsContext } from "../AssetsContext";
+import { Asset } from "../AssetsContext";
 import LibraryAsset from "./LibraryAsset";
 
 export interface LibraryItem {
@@ -34,10 +34,12 @@ export interface LibraryItem {
   content: JSX.Element;
 }
 
-const AssetsLibrary: React.FC = () => {
-  const [items, setItems] = useState<LibraryItem[]>([]);
+type AssetsLibraryProps = {
+  assets: Asset[]
+}
 
-  const { assets } = useAssetsContext();
+const AssetsLibrary: React.FC<AssetsLibraryProps> = ({assets}) => {
+  const [items, setItems] = useState<LibraryItem[]>([]);
 
   /* Update the content whenever the assets update. */
   useEffect(() => {
