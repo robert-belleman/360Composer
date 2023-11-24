@@ -386,13 +386,42 @@ const Editor: React.FC = () => {
         });
     }
 
-    const onVideoElemRef = useCallback(videoElem => {
+    const initiateHLS = async (assetId: string) => {
+      try {
+        console.log(`Attempting to enable HLS for asset with id: ${assetId}`);
+
+        const res = await axios.put(`/api/asset/${assetId}/stream`, {});
+        const updatedAsset = res.data;
+
+        console.log(`HLS has been enabled for asset with id: ${assetId}`);
+
+        return updatedAsset;
+      } catch (error) {
+        console.error("Error enabling HLS:", error);
+        return null;
+      }
+    };
+
+    // TODO: might not want to initialize HLS here
+    const onVideoElemRef = useCallback(async videoElem => {
       if (hls == undefined) {
         console.warn("HLS not available");
         return;
       }
 
-      const hlsSource = `/assets/${video.path}`;
+      let source = video.hls_path
+
+      if (source === null) {
+        const updatedVideo = await initiateHLS(video.id)
+        if (updatedVideo !== null) source = updatedVideo.hls_path
+      }
+      // Check if HLS path is still null after initiation
+      if (source === null) {
+        console.error("Error loading video: HLS source URL is still null");
+        return;
+      }
+
+      const hlsSource = `/assets/${source}`;
       if (Hls.isSupported()) {
         hls.loadSource(hlsSource);
         hls.attachMedia(videoElem);

@@ -32,7 +32,6 @@ import axios from "axios";
 import defaultImage from "../../static/images/default.jpg";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
 import { Asset } from "./MediaLibraryComponents/AssetsContext";
-import { useVideoContext } from "./VideoContext";
 
 export interface Clip {
   asset: Asset; // Reference to an asset.

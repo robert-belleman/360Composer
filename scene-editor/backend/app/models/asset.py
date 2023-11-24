@@ -17,11 +17,12 @@ from sqlalchemy.dialects.postgresql import UUID
 class Asset(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("user.id"), unique=False, nullable=False) # UUID of user that created the scene
-    
+
     # Asset metadata
     name = db.Column(db.String(128))
     path = db.Column(db.String(128))
     thumbnail_path = db.Column(db.String(128))
+    hls_path = db.Column(db.String(128), nullable=True)
 
     duration = db.Column(db.Integer)
     file_size = db.Column(db.Integer)

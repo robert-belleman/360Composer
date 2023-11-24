@@ -148,7 +148,7 @@ class StreamAsset(Resource):
         create_hls(raw_video_path, hls_output_dir)
         hls_playlist = base_name + "/main.m3u8"
 
-        asset.path = hls_playlist
+        asset.hls_path = hls_playlist
         db.session.commit()
 
         return asset, HTTPStatus.OK

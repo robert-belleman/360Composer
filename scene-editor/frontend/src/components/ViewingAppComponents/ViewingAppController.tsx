@@ -43,14 +43,14 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         .then((res:any) => handleAnnotationData(res.data))
         .catch((e:any) => console.log('Something went wrong while fetching annotations:', e));
     };
-    
+
     // Request the scenario data of the given id
     const fetchScenarioData = async (id: string) => {
         await axios.get(`/api/scenario/${id}/`)
         .then((res:any) => setScenario(res.data))
         .catch((e:any) => console.log('Something went wrong while fetching scenario:', e));
     };
-    
+
     // Request the timeline data of the given id
     const fetchTimelineData = async (id: string) => {
         await axios.get(`/api/timeline/${id}/export`)
@@ -81,7 +81,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         if (timeline.randomized) {
             const newScenario = timeline.scenarios[Math.floor(Math.random() * timeline.scenarios.length)]
             setScenario(newScenario)
-            if(scenario) { 
+            if(scenario) {
                 const firstScene = newScenario.scenes.find((scene: any) => {return scene.id === newScenario.start_scene});
                 setNewScene(scenarioId ? firstScene.scene_id : firstScene.id);
              }
@@ -106,7 +106,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         // Call onFinish when scene is ended
         if (!actionId && onFinish) {onFinish(); return; }
         // If only playing scene reload scene
-        if (!onFinish && sceneId) { 
+        if (!onFinish && sceneId) {
             setNewScene(scene.id);
             callback('end');
             return;
@@ -114,7 +114,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
         // Find all links of current scene
         const sceneLinks: any = timelineId ? scene.links : scenario.scenes.find((targetScene: any) => targetScene.scene_id === scene.id).links;
-        
+
         // If no action id load first scene
         if (!actionId && !onFinish && !sceneId) { onFinishScenario(); callback('end'); return; }
 
@@ -124,7 +124,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
         // Find the given action data.
         const action = sceneLinks.find((link:any) => link.action_id === actionId);
-        
+
         // If the action has no target, finish or end the scene depending on a onfinish function.
         if (!action.target_id && onFinish) { callback('exit'); onFinish(); return; }
         if (!action.target_id) { callback('end'); onFinishScenario(); return; }
@@ -181,9 +181,9 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     // Only output viewingapp when video and annotation data are loaded.
     return (currentVideo && currentAnnotations) ?
-        <ViewingAppAframe 
-        video={currentVideo} 
-        annotations={currentAnnotations} 
+        <ViewingAppAframe
+        video={currentVideo}
+        annotations={currentAnnotations}
         onFinish={onFinishScene}/>
         : null
 };

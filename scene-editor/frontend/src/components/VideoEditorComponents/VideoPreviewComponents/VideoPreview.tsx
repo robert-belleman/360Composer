@@ -17,19 +17,23 @@
 
 import React, { useContext, useEffect, useRef, useState } from "react";
 
+import axios from "axios";
 import { Assets, Scene, Sky } from "@belivvr/aframe-react";
-
 import { Box, Stack } from "@mui/material";
-
-import VideoControls from "./VideoControls";
 
 import Hls from "hls.js";
 import { HlsContext } from "../../../App";
 
-import { Clip, useClipsContext } from "../ClipsContext";
+import VideoControls from "./VideoControls";
+
+import {
+  Clip,
+  UPDATE_CLIP,
+  createClip,
+  useClipsContext,
+} from "../ClipsContext";
 import { MINIMUM_CLIP_LENGTH } from "../Constants";
 import { useVideoContext } from "../VideoContext";
-import { useAssetsContext } from "../MediaLibraryComponents/AssetsContext";
 
 const VideoPreview: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -39,8 +43,7 @@ const VideoPreview: React.FC = () => {
   const [videoSize, setVideoSize] = useState({ width: 1, height: 1 });
 
   const hls = useContext<Hls | undefined>(HlsContext);
-  const { updating } = useAssetsContext();
-  const { state: clipsState } = useClipsContext();
+  const { state: clipsState, dispatch } = useClipsContext();
 
   const {
     isPlaying,
@@ -63,8 +66,51 @@ const VideoPreview: React.FC = () => {
     seek,
   } = useVideoContext();
 
-  const loadVideo = (videoElem: HTMLVideoElement, hls: Hls, clip: Clip) => {
-    const hlsSource = `/assets/${clip.asset.path}`;
+  /**
+   * Enable HTTP Live-Streaming for an asset.
+   *
+   * Note: Updating is used in VideoPreview.tsx to reload the video. This is
+   *       in case the clip was added to the timeline before HLS was enabled.
+   *
+   * @param assetId asset to enable HLS for.
+   */
+  const initiateHLS = async (assetId: string) => {
+    try {
+      console.log(`Attempting to enable HLS for asset with id: ${assetId}`);
+
+      const res = await axios.put(`/api/asset/${assetId}/stream`, {});
+      const updatedAsset = res.data;
+
+      const updatedClip = createClip(updatedAsset);
+      dispatch({ type: UPDATE_CLIP, payload: { clip: updatedClip } });
+
+      console.log(`HLS has been enabled for asset with id: ${assetId}`);
+
+      return updatedAsset;
+    } catch (error) {
+      console.error("Error enabling HLS:", error);
+      return null;
+    }
+  };
+
+  const loadVideo = async (
+    videoElem: HTMLVideoElement,
+    hls: Hls,
+    clip: Clip
+  ) => {
+    let source = clip.asset.hls_path;
+    if (source === null) {
+      const updatedAsset = await initiateHLS(clip.asset.id);
+      if (updatedAsset !== null) source = updatedAsset.hls_path;
+    }
+
+    // Check if HLS path is still null after initiation
+    if (source === null) {
+      console.error("Error loading video: HLS source URL is still null");
+      return;
+    }
+
+    const hlsSource = `/assets/${source}`;
     if (!hlsSource) {
       console.error(
         "Error loading video: HLS source URL is empty or undefined"
@@ -121,7 +167,7 @@ const VideoPreview: React.FC = () => {
     }
 
     if (isPlaying) play(videoElem);
-  }, [currentIndex, hls, reloading, updating]);
+  }, [currentIndex, hls, reloading]);
 
   /**
    * Update the dimensions of the Box to maximize video size while maintaining
