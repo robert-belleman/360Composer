@@ -8,8 +8,8 @@
  * using a `dispatch` instead of `lifting up state`.
  *
  * In the files related to the video editor will use the following terms:
- *   - Asset, an asset stored in the file system.
- *   - Clip, an asset with a start time and a duration.
+ *   - Asset, a 'project asset' from the database.
+ *   - Clip, a wrapper around an Asset with a start time and a duration.
  *   - Video, the current edit (all clips combined).
  *
  * The Video Editor has four main Components:
@@ -43,42 +43,95 @@
  *
  */
 
-/* Third Party Imports */
-import { Box, Button, Grid, Stack } from "@mui/material";
+import React, { useState } from "react";
 
-/* Component Imports */
+import { Box, Drawer, Grid, Stack, useTheme } from "@mui/material";
+
 import MediaLibrary from "../../components/VideoEditorComponents/MediaLibraryComponents/MediaLibrary";
 import Timeline from "../../components/VideoEditorComponents/TimelineComponents/Timeline";
 import TitleBar from "../../components/VideoEditorComponents/TitleBarComponents/TitleBar";
 import VideoPreview from "../../components/VideoEditorComponents/VideoPreviewComponents/VideoPreview";
 
-/* Context Imports */
 import { ClipsProvider } from "../../components/VideoEditorComponents/ClipsContext";
 import { AssetsProvider } from "../../components/VideoEditorComponents/MediaLibraryComponents/AssetsContext";
 import { TimelineSettingsProvider } from "../../components/VideoEditorComponents/TimelineComponents/TimelineContext";
 import { VideoProvider } from "../../components/VideoEditorComponents/VideoContext";
 
 const VideoEditor: React.FC = () => {
+  const theme = useTheme();
+  const [showMediaLibrary, setShowMediaLibrary] = useState(true);
+
+  const toggleMediaLibrary = () => {
+    setShowMediaLibrary(!showMediaLibrary);
+  };
+
+  const anchor = theme.breakpoints.down("sm") ? "bottom" : "left";
+
+  /* Size of the drawer depending on device size. Note the anchor point. */
+  const getDrawerStyles = () => ({
+    width: { xs: "100%", sm: "100%", md: "35%", lg: "30%", xl: "25%" },
+    height: { xs: "60%", sm: "60%", md: "100%", lg: "100%", xl: "100%" },
+    flexShrink: 0,
+    "& .MuiDrawer-paper": {
+      width: { xs: "100%", sm: "100%", md: "35%", lg: "30%", xl: "25%" },
+      height: { xs: "60%", sm: "60%", md: "100%", lg: "100%", xl: "100%" },
+      boxSizing: "border-box",
+    },
+  });
+
+  const getMainContentStyles = () => ({
+    width: "100%",
+
+    /* Offset the main content to allow the drawer and content to co-exist. */
+    [theme.breakpoints.up("md")]: {
+      marginLeft: showMediaLibrary ? getDrawerStyles().width.md : 0,
+    },
+    [theme.breakpoints.up("lg")]: {
+      marginLeft: showMediaLibrary ? getDrawerStyles().width.lg : 0,
+    },
+    [theme.breakpoints.up("xl")]: {
+      marginLeft: showMediaLibrary ? getDrawerStyles().width.xl : 0,
+    },
+  });
+
+  const renderMediaLibraryDrawer = () => (
+    <Drawer
+      anchor={anchor}
+      variant="persistent"
+      open={showMediaLibrary}
+      onClose={toggleMediaLibrary}
+      ModalProps={{
+        keepMounted: true, // Better open performance on mobile.
+      }}
+      sx={getDrawerStyles()}
+    >
+      <MediaLibrary />
+    </Drawer>
+  );
+
+  const renderMainContentArea = () => (
+    <Box sx={getMainContentStyles()}>
+      <Stack height="100vh">
+        <TitleBar toggleMediaLibrary={toggleMediaLibrary} />
+
+        <VideoProvider>
+          <Stack height={1} display="flex" justifyContent="flex-end">
+            <VideoPreview />
+            <TimelineSettingsProvider>
+              <Timeline />
+            </TimelineSettingsProvider>
+          </Stack>
+        </VideoProvider>
+      </Stack>
+    </Box>
+  );
+
   return (
     <Grid container>
       <ClipsProvider>
         <AssetsProvider>
-          <Grid item xs={3}>
-            <MediaLibrary />
-          </Grid>
-          <Grid item xs={9}>
-            <Stack height="100vh">
-              <TitleBar />
-              <VideoProvider>
-                <Stack height={1} display="flex" justifyContent="flex-end">
-                  <VideoPreview />
-                  <TimelineSettingsProvider>
-                    <Timeline />
-                  </TimelineSettingsProvider>
-                </Stack>
-              </VideoProvider>
-            </Stack>
-          </Grid>
+          {renderMediaLibraryDrawer()}
+          {renderMainContentArea()}
         </AssetsProvider>
       </ClipsProvider>
     </Grid>

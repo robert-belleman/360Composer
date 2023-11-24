@@ -1,21 +1,87 @@
-import React, { useState, useRef } from "react";
+/**
+ * FilterOptions.tsx
+ *
+ * This component provides filtering options for the media library.
+ * It includes options to filter by asset type, view type, duration,
+ * and filter setting (Any or All).
+ *
+ */
+
+import React, { useState, useRef, ChangeEvent } from "react";
+
 import { Box, Button, Divider, Menu, MenuItem, TextField } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import CheckIcon from "@mui/icons-material/Check";
+import ClearIcon from "@mui/icons-material/Clear";
+
 import { useAssetsContext } from "../AssetsContext";
 
-const FilterOptions = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+const SELECTED_COLOR = "paleturquoise";
+const FILTER_VIDEO = "asset_type:AssetType.Video";
+const FILTER_MODEL = "asset_type:AssetType.Model";
+const FILTER_MONOSCOPIC = "view_type:ViewType.Mono";
+const FILTER_SIDEBYSIDE = "view_type:ViewType.sidetoside";
+const FILTER_TOP_BOTTOM = "view_type:ViewType.toptobottom";
+
+interface FilterMenuItemProps {
+  onClick: () => void;
+  selected: boolean;
+  label: string;
+}
+
+const FilterMenuItem: React.FC<FilterMenuItemProps> = ({
+  onClick,
+  label,
+  selected,
+}) => (
+  <MenuItem
+    onClick={onClick}
+    disableRipple
+    selected={selected}
+    style={{
+      backgroundColor: selected ? SELECTED_COLOR : "transparent",
+    }}
+  >
+    {label}
+  </MenuItem>
+);
+
+interface DurationFilterItemProps {
+  label: string;
+  value: string;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onApply: () => void;
+  icon: React.ReactNode;
+}
+
+const DurationFilterItem: React.FC<DurationFilterItemProps> = ({
+  label,
+  value,
+  onChange,
+  onApply,
+  icon,
+}) => (
+  <MenuItem>
+    <TextField
+      label={`${label} (seconds)`}
+      type="number"
+      value={value}
+      onChange={onChange}
+      size="small"
+    />
+    <Button onClick={onApply}>{icon}</Button>
+  </MenuItem>
+);
+
+const FilterOptions: React.FC = () => {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [durationFilterShorter, setDurationFilterShorter] =
     useState<string>("");
   const [durationFilterLonger, setDurationFilterLonger] = useState<string>("");
-
   const { filterOptions, toggleFilter, filterSetting, changeFilterSetting } =
     useAssetsContext();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
-
   const open = Boolean(anchorEl);
-
-  const color = "paleturquoise";
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -30,22 +96,17 @@ const FilterOptions = () => {
   };
 
   const handleDurationFilterShorterChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) => {
     setDurationFilterShorter(event.target.value);
   };
 
   const handleDurationFilterLongerChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) => {
     setDurationFilterLonger(event.target.value);
   };
 
-  /**
-   * Use regular expression to convert MM:SS format to seconds.
-   * @param value string representation of time.
-   * @returns numerical time value of string in seconds. NaN on parse error.
-   */
   const convertMMSSToSeconds = (value: string) => {
     let filterValueInSeconds = Number(value);
 
@@ -82,12 +143,8 @@ const FilterOptions = () => {
 
   const isFilterApplied = (filter: string) => filterOptions.includes(filter);
 
-  const getButtonLabel = (filter: string) => {
-    return isFilterApplied(filter) ? "Remove" : "Apply";
-  };
-
   return (
-    <Box width={1}>
+    <Box marginX={1}>
       <Button
         ref={buttonRef}
         id="filter-button"
@@ -109,125 +166,70 @@ const FilterOptions = () => {
         open={open}
         onClose={handleClose}
       >
-        {/* Video | Model */}
-        <MenuItem
-          onClick={() => handleFilterChange("asset_type:AssetType.Video")}
-          disableRipple
-          selected={filterOptions.includes("asset_type:AssetType.Video")}
-          style={{
-            backgroundColor: filterOptions.includes(
-              "asset_type:AssetType.Video"
-            )
-              ? color
-              : "transparent",
-          }}
-        >
-          Video
-        </MenuItem>
-        <MenuItem
-          onClick={() => handleFilterChange("asset_type:AssetType.Model")}
-          disableRipple
-          selected={filterOptions.includes("asset_type:AssetType.Model")}
-          style={{
-            backgroundColor: filterOptions.includes(
-              "asset_type:AssetType.Model"
-            )
-              ? color
-              : "transparent",
-          }}
-        >
-          Model
-        </MenuItem>
+        <FilterMenuItem
+          onClick={() => handleFilterChange(FILTER_VIDEO)}
+          selected={filterOptions.includes(FILTER_VIDEO)}
+          label="Video"
+        />
+        <FilterMenuItem
+          onClick={() => handleFilterChange(FILTER_MODEL)}
+          selected={filterOptions.includes(FILTER_MODEL)}
+          label="Model"
+        />
         <Divider sx={{ my: 0.5 }} />
-        {/* Monoscopic | Side-by-Side | Top-Bottom */}
-        <MenuItem
-          onClick={() => handleFilterChange("view_type:ViewType.Mono")}
-          disableRipple
-          selected={filterOptions.includes("view_type:ViewType.Mono")}
-          style={{
-            backgroundColor: filterOptions.includes("view_type:ViewType.Mono")
-              ? color
-              : "transparent",
-          }}
-        >
-          Monoscopic
-        </MenuItem>
-        <MenuItem
-          onClick={() => handleFilterChange("view_type:ViewType.sidetoside")}
-          disableRipple
-          selected={filterOptions.includes("view_type:ViewType.sidetoside")}
-          style={{
-            backgroundColor: filterOptions.includes(
-              "view_type:ViewType.sidetoside"
-            )
-              ? color
-              : "transparent",
-          }}
-        >
-          Side-By-Side
-        </MenuItem>
-        <MenuItem
-          onClick={() => handleFilterChange("view_type:ViewType.toptobottom")}
-          disableRipple
-          selected={filterOptions.includes("view_type:ViewType.toptobottom")}
-          style={{
-            backgroundColor: filterOptions.includes(
-              "view_type:ViewType.toptobottom"
-            )
-              ? color
-              : "transparent",
-          }}
-        >
-          Top-Bottom
-        </MenuItem>
+        <FilterMenuItem
+          onClick={() => handleFilterChange(FILTER_MONOSCOPIC)}
+          selected={filterOptions.includes(FILTER_MONOSCOPIC)}
+          label="Monoscopic"
+        />
+        <FilterMenuItem
+          onClick={() => handleFilterChange(FILTER_SIDEBYSIDE)}
+          selected={filterOptions.includes(FILTER_SIDEBYSIDE)}
+          label="Side-By-Side"
+        />
+        <FilterMenuItem
+          onClick={() => handleFilterChange(FILTER_TOP_BOTTOM)}
+          selected={filterOptions.includes(FILTER_TOP_BOTTOM)}
+          label="Top-Bottom"
+        />
         <Divider sx={{ my: 0.5 }} />
-        {/* Shorter than | Longer than */}
-        <MenuItem>
-          <TextField
-            label="Shorter than (seconds)"
-            type="number"
-            value={durationFilterShorter}
-            onChange={handleDurationFilterShorterChange}
-            size="small"
-          />
-          <Button onClick={handleApplyDurationFilterShorter}>
-            {getButtonLabel(`duration<:${durationFilterShorter}`)}
-          </Button>
-        </MenuItem>
-        <MenuItem>
-          <TextField
-            label="Longer than (seconds)"
-            type="number"
-            value={durationFilterLonger}
-            onChange={handleDurationFilterLongerChange}
-            size="small"
-          />
-          <Button onClick={handleApplyDurationFilterLonger}>
-            {getButtonLabel(`duration>:${durationFilterLonger}`)}
-          </Button>
-        </MenuItem>
+        <DurationFilterItem
+          label="Shorter than"
+          value={durationFilterShorter}
+          onChange={handleDurationFilterShorterChange}
+          onApply={handleApplyDurationFilterShorter}
+          icon={
+            isFilterApplied(`duration<:${durationFilterShorter}`) ? (
+              <ClearIcon sx={{ color: "red" }} />
+            ) : (
+              <CheckIcon sx={{ color: "green" }} />
+            )
+          }
+        />
+        <DurationFilterItem
+          label="Longer than"
+          value={durationFilterLonger}
+          onChange={handleDurationFilterLongerChange}
+          onApply={handleApplyDurationFilterLonger}
+          icon={
+            isFilterApplied(`duration>:${durationFilterLonger}`) ? (
+              <ClearIcon sx={{ color: "red" }} />
+            ) : (
+              <CheckIcon sx={{ color: "green" }} />
+            )
+          }
+        />
         <Divider sx={{ my: 0.5 }} />
-        {/* Any | All */}
-        <MenuItem
+        <FilterMenuItem
           onClick={() => changeFilterSetting("any")}
-          disableRipple
           selected={filterSetting === "any"}
-          style={{
-            backgroundColor: filterSetting === "any" ? color : "transparent",
-          }}
-        >
-          Any
-        </MenuItem>
-        <MenuItem
+          label="Any"
+        />
+        <FilterMenuItem
           onClick={() => changeFilterSetting("all")}
-          disableRipple
           selected={filterSetting === "all"}
-          style={{
-            backgroundColor: filterSetting === "all" ? color : "transparent",
-          }}
-        >
-          All
-        </MenuItem>
+          label="All"
+        />
       </Menu>
     </Box>
   );

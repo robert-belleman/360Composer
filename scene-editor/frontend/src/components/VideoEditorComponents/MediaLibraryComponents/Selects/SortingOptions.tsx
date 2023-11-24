@@ -1,18 +1,32 @@
-import React, { useState, useRef } from "react";
-import { Box, Button, Divider, Menu, MenuItem } from "@mui/material";
+/**
+ * SortingOptions.tsx
+ *
+ * This component provides sorting options for the media library.
+ * It includes options to sort by name and data in ascending or
+ * descending order.
+ *
+ */
+
+// Import statements
 import SwapVertIcon from "@mui/icons-material/SwapVert";
+import { Box, Button, Divider, Menu, MenuItem } from "@mui/material";
+import React, { useRef, useState } from "react";
 import { useAssetsContext } from "../AssetsContext";
 
+const SELECTED_COLOR = "paleturquoise";
+
+// Component definition
 const SortingOptions = () => {
+  // State and context hooks
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { sortOption, orderOption, changeSorting, changeOrdering } =
     useAssetsContext();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
+  // State for menu open/close
   const open = Boolean(anchorEl);
 
-  const color = "paleturquoise";
-
+  // Event handlers
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -31,8 +45,10 @@ const SortingOptions = () => {
     handleClose();
   };
 
+  // JSX structure
   return (
-    <Box width={1}>
+    <Box marginX={1}>
+      {/* Sort button */}
       <Button
         ref={buttonRef}
         id="sort-button"
@@ -47,6 +63,8 @@ const SortingOptions = () => {
       >
         Sort By
       </Button>
+
+      {/* Sort menu */}
       <Menu
         id="sort-menu"
         MenuListProps={{ "aria-labelledby": "sort-button" }}
@@ -54,43 +72,56 @@ const SortingOptions = () => {
         open={open}
         onClose={handleClose}
       >
+        {/* Name option */}
         <MenuItem
           onClick={() => handleSortOptionChange("name")}
           disableRipple
           selected={sortOption === "name"}
           style={{
-            backgroundColor: sortOption === "name" ? color : "transparent",
+            backgroundColor:
+              sortOption === "name" ? SELECTED_COLOR : "transparent",
           }}
         >
           Name
         </MenuItem>
+
+        {/* Date option */}
         <MenuItem
           onClick={() => handleSortOptionChange("date")}
           disableRipple
           selected={sortOption === "date"}
           style={{
-            backgroundColor: sortOption === "date" ? color : "transparent",
+            backgroundColor:
+              sortOption === "date" ? SELECTED_COLOR : "transparent",
           }}
         >
           Date
         </MenuItem>
+
+        {/* Divider */}
         <Divider sx={{ my: 0.5 }} />
+
+        {/* Ascending option */}
         <MenuItem
           onClick={() => handleOrderOptionChange("asc")}
           disableRipple
           selected={orderOption === "asc"}
           style={{
-            backgroundColor: orderOption === "asc" ? color : "transparent",
+            backgroundColor:
+              orderOption === "asc" ? SELECTED_COLOR : "transparent",
           }}
         >
           Ascending
         </MenuItem>
+
+        {/* Descending option */}
         <MenuItem
           onClick={() => handleOrderOptionChange("desc")}
           disableRipple
           selected={orderOption === "desc"}
           style={{
-            backgroundColor: orderOption === "desc" ? color : "transparent",
+            backgroundColor:
+              orderOption === "desc" ? SELECTED_COLOR : "transparent",
           }}
         >
           Descending
@@ -100,4 +131,5 @@ const SortingOptions = () => {
   );
 };
 
+// Export the component
 export default SortingOptions;

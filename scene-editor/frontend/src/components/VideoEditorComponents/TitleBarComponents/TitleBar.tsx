@@ -1,6 +1,7 @@
 /**
  * TitleBar.tsx
  *
+ * Description:
  * This component represents the title bar of the VideoEditor. It includes
  * features such as a back button to navigate to the assets tab, a text field
  * for setting the video title, and an export button to export the video clips.
@@ -13,21 +14,16 @@
  * State:
  * - title: The current title of the video, managed using the useState hook.
  *
- * Hooks:
- * - useNavigateBack: Custom hook for navigating back to the assets tab.
- * - useTitleChange: Custom hook for handling changes to the video title.
- * - useExportClips: Custom hook for exporting video clips with the specified title.
- *
  */
 
 import React, { memo, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 /* Third Party Imports */
-import axios from "axios";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
-import { AppBar, Button, TextField, Toolbar, Typography } from "@mui/material";
+import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
+import { Button, Stack, TextField, Typography } from "@mui/material";
 
 /* Project Specific Imports */
 import { Clip, exportClips, useClipsContext } from "../ClipsContext";
@@ -97,10 +93,14 @@ const BackButton = memo(() => {
 
   return (
     <Button
-      color="success"
       variant="contained"
       startIcon={<ArrowBackIcon />}
       onClick={goBack}
+      sx={{
+        backgroundColor: "aliceblue",
+        color: "royalblue",
+        "&:hover": { backgroundColor: "lightgrey" },
+      }}
     >
       Back
     </Button>
@@ -118,9 +118,13 @@ const TitleTextField = memo(
     return (
       <TextField
         size="small"
-        color="info"
         variant="outlined"
-        sx={{ marginLeft: 2, marginRight: 2, flexGrow: 1 }}
+        sx={{
+          flexGrow: 1,
+          borderRadius: { xs: 0, md: 8 },
+          backgroundColor: "aliceblue",
+          overflow: "hidden",
+        }}
         placeholder={DEFAULT_TITLE}
         onChange={changeTitle}
       />
@@ -151,28 +155,54 @@ const ExportButton = memo(({ title }: { title: string }) => {
 
   return (
     <Button
-      color="success"
       variant="contained"
       startIcon={<UpgradeIcon />}
       onClick={handleExport}
+      sx={{
+        backgroundColor: "aliceblue",
+        color: "royalblue",
+        "&:hover": { backgroundColor: "lightgrey" },
+      }}
     >
       Export
     </Button>
   );
 });
 
-const TitleBar: React.FC = memo(() => {
-  const [title, setTitle] = useState("");
-
+const ToggleMediaLibraryButton = ({ onclick }: { onclick: () => void }) => {
   return (
-    <AppBar position="static">
-      <Toolbar>
+    <Button
+      variant="contained"
+      onClick={onclick}
+      sx={{
+        backgroundColor: "aliceblue",
+        color: "royalblue",
+        "&:hover": { backgroundColor: "lightgrey" },
+      }}
+    >
+      <VideoLibraryIcon />
+    </Button>
+  );
+};
+
+const TitleBar: React.FC<{ toggleMediaLibrary: () => void }> = memo(
+  ({ toggleMediaLibrary }) => {
+    const [title, setTitle] = useState("");
+
+    return (
+      <Stack
+        direction="row"
+        padding={{ xs: 1, md: 2 }}
+        spacing={{ xs: 1, md: 2 }}
+        sx={{ backgroundColor: "#2196f3" }}
+      >
+        <ToggleMediaLibraryButton onclick={toggleMediaLibrary} />
         <BackButton />
         <TitleTextField setTitle={setTitle} />
         <ExportButton title={title} />
-      </Toolbar>
-    </AppBar>
-  );
-});
+      </Stack>
+    );
+  }
+);
 
 export default TitleBar;
