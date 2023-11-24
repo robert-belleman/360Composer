@@ -23,7 +23,7 @@ export const MEDIA_LIBRARY_IMAGE_WIDTH = 160;
 export const MEDIA_LIBRARY_WIDTH =
   MEDIA_LIBRARY_IMAGE_WIDTH * MEDIA_LIBRARY_COLS +
   MEDIA_LIBRARY_COLS * MEDIA_LIBRARY_COLS;
-export const TIMELINE_CLIP_HEIGHT = 80;
+export const TIMELINE_CLIP_HEIGHT = 100;
 
 /* Performance concering settings. */
 export const MINIMUM_CLIP_LENGTH = 1;

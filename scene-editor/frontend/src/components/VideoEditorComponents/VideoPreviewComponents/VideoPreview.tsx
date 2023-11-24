@@ -17,9 +17,9 @@
 
 import React, { useContext, useEffect, useRef, useState } from "react";
 
-import axios from "axios";
 import { Assets, Scene, Sky } from "@belivvr/aframe-react";
 import { Box, Stack } from "@mui/material";
+import axios from "axios";
 
 import Hls from "hls.js";
 import { HlsContext } from "../../../App";

@@ -17,7 +17,7 @@ import ContentCutIcon from "@mui/icons-material/ContentCut";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
-import { Grid, IconButton, Typography } from "@mui/material";
+import { Grid, Hidden, IconButton, Typography } from "@mui/material";
 
 /* Project Specific Imports */
 import {
@@ -52,9 +52,8 @@ const TimelineButton: React.FC<{
   );
 });
 
-const TimelineControls = () => {
+const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
   const { state: clipsState, dispatch } = useClipsContext();
-  const { currentTime, currentDuration } = useVideoContext();
 
   /* Clip manipulation functions. */
   const handleUndo = () => {
@@ -72,6 +71,45 @@ const TimelineControls = () => {
   const handleDeleteClips = () => {
     dispatch({ type: DELETE_CLIPS });
   };
+
+  return (
+    <>
+      <TimelineButton
+        disabled={!canUndo(clipsState)}
+        onClick={handleUndo}
+        icon={<UndoIcon />}
+        label="Undo"
+      />
+      <TimelineButton
+        disabled={!canRedo(clipsState)}
+        onClick={handleRedo}
+        icon={<RedoIcon />}
+        label="Redo"
+      />
+      <TimelineButton
+        disabled={!canSplit(clipsState)}
+        onClick={handleSplitClip}
+        icon={<ContentCutIcon />}
+        label="Split"
+      />
+      <TimelineButton
+        disabled={false}
+        onClick={handleDeleteClips}
+        icon={<DeleteIcon />}
+        label="Delete"
+      />
+      <TimelineButton
+        disabled={false}
+        onClick={handleDuplicateClips}
+        icon={<ContentCopyIcon />}
+        label="Duplicate"
+      />
+    </>
+  );
+};
+
+const TimelineControls = () => {
+  const { currentTime, currentDuration } = useVideoContext();
 
   /**
    * Convert seconds to a user friendly display format. Note that the fractional
@@ -101,44 +139,31 @@ const TimelineControls = () => {
       justifyContent="space-between"
       alignItems="center"
     >
-      <Grid item xs={12} sm={12} md={4}>
-        <TimelineButton
-          disabled={!canUndo(clipsState)}
-          onClick={handleUndo}
-          icon={<UndoIcon />}
-          label="Undo"
-        />
-        <TimelineButton
-          disabled={!canRedo(clipsState)}
-          onClick={handleRedo}
-          icon={<RedoIcon />}
-          label="Redo"
-        />
-        <TimelineButton
-          disabled={!canSplit(clipsState)}
-          onClick={handleSplitClip}
-          icon={<ContentCutIcon />}
-          label="Split"
-        />
-        <TimelineButton
-          disabled={false}
-          onClick={handleDeleteClips}
-          icon={<DeleteIcon />}
-          label="Delete"
-        />
-        <TimelineButton
-          disabled={false}
-          onClick={handleDuplicateClips}
-          icon={<ContentCopyIcon />}
-          label="Duplicate"
-        />
-      </Grid>
-      <Grid item xs={12} sm={12} md={4} display="flex" justifyContent="center">
-        <DisplayTime />
-      </Grid>
-      <Grid item xs={12} sm={12} md={4}>
-        <ZoomControls />
-      </Grid>
+      {/* For larger screens, show both sets of buttons */}
+      <Hidden smDown>
+        <Grid item md={5}>
+          <ClipManipulationButtons currentTime={currentTime} />
+        </Grid>
+        <Grid item md={2} display="flex" justifyContent="center">
+          <DisplayTime />
+        </Grid>
+        <Grid item md={5}>
+          <ZoomControls />
+        </Grid>
+      </Hidden>
+
+      {/* For smaller screens, buttons are combined with display time below */}
+      <Hidden smUp>
+        <Grid item xs={7}>
+          <ClipManipulationButtons currentTime={currentTime} />
+        </Grid>
+        <Grid item xs={5}>
+          <ZoomControls />
+        </Grid>
+        <Grid item xs={12} display="flex" justifyContent="center">
+          <DisplayTime />
+        </Grid>
+      </Hidden>
     </Grid>
   );
 };

@@ -7,23 +7,24 @@
  *
  * The Timeline contains the following Components:
  *   - TimelineControls. Bar with options to control timeline.
- *   - TimelineArea. A Box showing multiple clips and their edits.
+ *   - VideoSlider. A slider to indicate a specific time in the video.
+ *   - TimelineLayer. A layer with sortable timeline clips.
  *
  * TODO: make slider use onChangeCommitted on low resource devices
  *
  */
 
-import React, { useRef } from "react";
+import React from "react";
 
 /* Third Party Imports */
 import { Stack } from "@mui/material";
 
 /* Project Specific Imports */
 import { TIMELINE_HEIGHT } from "../Constants";
-import TimelineControls from "./TimelineControls";
-import TimelineLayer from "./TimelineLayer";
 import VideoSlider from "./ControlComponents/VideoSlider";
 import { useTimelineContext } from "./TimelineContext";
+import TimelineControls from "./TimelineControls";
+import TimelineLayer from "./TimelineLayer";
 
 const Timeline: React.FC = () => {
   const {timelineWindowRef} = useTimelineContext()
@@ -31,7 +32,7 @@ const Timeline: React.FC = () => {
   return (
     <Stack
       height={TIMELINE_HEIGHT}
-      padding={2}
+      padding={{ sx: 0, md: 2}}
       overflow="hidden"
       sx={{ backgroundColor: "royalblue" }}
     >
@@ -41,7 +42,7 @@ const Timeline: React.FC = () => {
         ref={timelineWindowRef}
         height={1}
         display="flex"
-        // justifyContent="center"
+        justifyContent="center"
         sx={{
           backgroundColor: "cornflowerblue",
           borderStyle: "none dashed",

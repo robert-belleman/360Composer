@@ -115,7 +115,7 @@ const VideoEditor: React.FC = () => {
         <TitleBar toggleMediaLibrary={toggleMediaLibrary} />
 
         <VideoProvider>
-          <Stack height={1} display="flex" justifyContent="flex-end">
+          <Stack height={1}>
             <VideoPreview />
             <TimelineSettingsProvider>
               <Timeline />
