@@ -124,7 +124,7 @@ class ChangeViewType(Resource):
 @ns.route("/<string:asset_id>/stream")
 @ns.response(HTTPStatus.NOT_FOUND, "Asset not found")
 @ns.param("asset_id", "The asset identifier")
-class StreamAsset(Resource):
+class InitializeHLS(Resource):
     """
     Create a HLS playlist of the video in the asset and update its fields
     """
@@ -140,14 +140,17 @@ class StreamAsset(Resource):
         asset: AssetModel
         asset = AssetModel.query.filter_by(id=asset_id).first_or_404()
 
-        base_name = asset.thumbnail_path.split(".")[0]
+        # Determine path for hls playlist.
+        base_name = asset.path.split(".")[0]
         raw_video_path = Path(ASSET_DIR, base_name + ".mp4")
 
+        # Create a directory and store the HLS playlist there.
         hls_output_dir = Path(ASSET_DIR, base_name)
         hls_output_dir.mkdir()
         create_hls(raw_video_path, hls_output_dir)
         hls_playlist = base_name + "/main.m3u8"
 
+        # Update the `hls_path` field of the asset and commit.
         asset.hls_path = hls_playlist
         db.session.commit()
 
