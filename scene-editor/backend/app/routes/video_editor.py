@@ -20,7 +20,7 @@ from app.models.database import db
 from app.models.project import Project as ProjectModel
 from app.routes.api import api
 from app.schemas.asset import asset_schema
-from app.util.auth import user_jwt_required
+from app.util.auth import user_jwt_required, project_access_required
 from app.util.ffmpeg import (
     create_thumbnail,
     ffmpeg_join_assets,
@@ -323,6 +323,7 @@ class EditAssets(Resource):
     """Edit assets by trimming them and joining them together."""
 
     @user_jwt_required
+    @project_access_required
     @ns.marshal_with(asset_schema)
     @ns.expect(asset_export)
     def post(self, project_id: int):
