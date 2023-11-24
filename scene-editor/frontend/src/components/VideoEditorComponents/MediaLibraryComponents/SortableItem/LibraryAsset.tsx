@@ -13,12 +13,14 @@ import { styled } from "@mui/material/styles";
 import { IconButtonProps } from "@mui/material/IconButton";
 import {
   Avatar,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardMedia,
   Collapse,
   IconButton,
+  Stack,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -78,43 +80,72 @@ function LibraryAsset({ asset }: { asset: Asset }) {
     : defaultImage;
 
   return (
-    <Card style={{ margin: 4, borderLeft: "7px solid dodgerblue" }}>
-      <CardHeader
-        avatar={<Avatar alt={asset.name} src={imgPath} />}
-        action={
-          <div>
-            <IconButton
-              onClick={handleAppendClip}
-              color="primary"
-              aria-label="add to timeline"
-            >
-              <AddIcon />
-            </IconButton>
-            <ExpandMore
-              color="primary"
-              expand={expanded}
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label="show more"
-            >
-              <ExpandMoreIcon />
-            </ExpandMore>
-          </div>
-        }
-        title={asset.name}
-        subheader={toDisplayTime(asset.duration)}
-      />
+    <Card
+      style={{
+        margin: 4,
+        borderLeft: "7px solid dodgerblue",
+        borderRight: "7px solid crimson",
+      }}
+    >
+      <CardContent
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Stack sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              overflow: "hidden",
+              textOverflow: expanded ? "unset" : "ellipsis",
+              whiteSpace: expanded ? "normal" : "nowrap",
+            }}
+          >
+            {asset.name}
+          </Typography>
+          <Typography color="text.secondary">
+            {toDisplayTime(asset.duration)}
+          </Typography>
+        </Stack>
+        <Stack>
+          <IconButton
+            onClick={handleAppendClip}
+            color="primary"
+            aria-label="add to timeline"
+          >
+            <AddIcon />
+          </IconButton>
+          <ExpandMore
+            color="primary"
+            expand={expanded}
+            onClick={handleExpandClick}
+            aria-expanded={expanded}
+            aria-label="show more"
+          >
+            <ExpandMoreIcon />
+          </ExpandMore>
+        </Stack>
+      </CardContent>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardMedia
-          component="img"
-          height="auto"
-          image={imgPath}
-          alt={asset.name}
-        />
-        <CardContent>
-          <Typography>{`Asset last updated: ${asset.updated_at}`}</Typography>
-          <Typography>{`View type: ${viewType(asset.view_type)}`}</Typography>
-        </CardContent>
+        {expanded && (
+          <>
+            <CardMedia
+              component="img"
+              height="auto"
+              image={imgPath}
+              alt={asset.name}
+            />
+            <CardContent>
+              <Typography>{`Asset last updated: ${asset.updated_at}`}</Typography>
+              <Typography>{`View type: ${viewType(
+                asset.view_type
+              )}`}</Typography>
+            </CardContent>
+          </>
+        )}
       </Collapse>
     </Card>
   );

@@ -10,8 +10,7 @@
  * In the files related to the video editor will use the following terms:
  *   - Asset, an asset stored in the file system.
  *   - Clip, an asset with a start time and a duration.
- *   - Video, the current Clip played on the VideoPreview Component.
- *   - Video edit, an array of Clips that are played in order.
+ *   - Video, the current edit (all clips combined).
  *
  * The Video Editor has four main Components:
  *   - Title Bar
@@ -28,9 +27,19 @@
  *
  * There are multiple custom Context modules used in this VideoEditor
  * Component. The Context modules are for:
- *   - Assets. Handles actions such as fetching or the conversion to clips.
- *   - Clips. Handles actions that manipulate a clip or the ordering of them.
- *   - Video. Handles actions that concern the current clip played.
+ *   - Assets
+ *     - Handles actions such as fetching or the conversion to clips.
+ *     - Contains functions to filter and sort through the assets.
+ *   - Clips
+ *     - Handles actions to logically change the state of clips.
+ *     - Contains functions that can be usefull for working with clips.
+ *   - Video
+ *     - Handles actions that concern the video on the preview component.
+ *     - Actions could be playing, seeking, keeping track of current time, etc.
+ *     - Contains functions to seek to a certain time or play the next video.
+ *   - Timeline.
+ *     - Handles actions that concern the state of the timeline.
+ *     - There is state for the items on it, the scale of it and the slider.
  *
  */
 
