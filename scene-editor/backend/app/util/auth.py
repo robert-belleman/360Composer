@@ -11,6 +11,7 @@ from app.models.database import db
 from app.models.user import User as UserModel
 from app.models.customer import Customer as CustomerModel
 from app.models.timeline import CustomerTimeline as CustomerTimelineModel
+from app.models.project import Project as ProjectModel
 
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt, get_jwt, exceptions
 
@@ -87,6 +88,23 @@ def user_or_customer_jwt_required(fn):
 
     return wrapper
 
+
+def project_access_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        claims = get_jwt()
+        project = ProjectModel.query.filter_by(user_id=claims["id"]).first()
+
+        if project is None:
+            return make_response(
+                jsonify(msg="No access to project"), HTTPStatus.UNAUTHORIZED
+            )
+        else:
+            return fn(*args, **kwargs)
+
+    return wrapper
+
+
 def timeline_access_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -101,7 +119,7 @@ def timeline_access_required(fn):
 
       if claims['role'] != 'user' and claims['role'] != 'customer':
           return make_response(jsonify(msg='Must be user or customer'), HTTPStatus.UNAUTHORIZED)
-      
+
       if not valid_uuid(claims['id']):
           return not_exists()
 
@@ -114,5 +132,5 @@ def timeline_access_required(fn):
               return make_response(jsonify(msg='Customer does not have access to the timeline'), HTTPStatus.UNAUTHORIZED)
           else:
               return fn(*args, **kwargs)
-    
+
     return wrapper
