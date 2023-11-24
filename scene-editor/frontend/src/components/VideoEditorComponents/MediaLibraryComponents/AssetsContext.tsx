@@ -27,6 +27,7 @@ import {
 import { useParams } from "react-router-dom";
 
 import axios from "axios";
+import { UPDATE_CLIP, useClipsContext, createClip } from "../ClipsContext";
 
 export interface Asset {
   id: string;
@@ -47,7 +48,9 @@ export interface Asset {
 interface AssetsContextProps {
   assets: Asset[];
   loading: boolean;
+  updating: boolean;
   fetchAssets: () => Promise<void>;
+  initiateHLS: (assetId: string) => Promise<void>;
   sortOption: string;
   orderOption: string;
   changeSorting: (newOption: string) => void;
@@ -69,11 +72,14 @@ interface AssetsProviderProps {
 const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
   const [sortOption, setSortOption] = useState("name");
   const [orderOption, setOrderOption] = useState("asc");
   const [filterOptions, setFilterOptions] = useState<string[]>([]);
   const [filterSetting, setFilterSetting] = useState("any");
   const { projectID } = useParams();
+
+  const { dispatch } = useClipsContext();
 
   const fetchAssets = async () => {
     try {
@@ -85,6 +91,38 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Enable HTTP Live-Streaming for an asset.
+   *
+   * Note: Updating is used in VideoPreview.tsx to reload the video. This is
+   *       in case the clip was added to the timeline before HLS was enabled.
+   *
+   * @param assetId asset to enable HLS for.
+   */
+  const initiateHLS = async (assetId: string) => {
+    try {
+      setUpdating(true);
+      console.log(`Attempting to enable HLS for asset with id: ${assetId}`);
+
+      const res = await axios.put(`/api/asset/${assetId}/stream`, {});
+      const updatedAsset = res.data;
+      setAssets((prevAssets) =>
+        prevAssets.map((asset) =>
+          asset.id === updatedAsset.id ? updatedAsset : asset
+        )
+      );
+
+      console.log(`HLS has been enabled for asset with id: ${assetId}`);
+
+      const updatedClip = createClip(updatedAsset);
+      dispatch({ type: UPDATE_CLIP, payload: { clip: updatedClip } });
+    } catch (error) {
+      console.error("Error enabling HLS:", error);
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -204,7 +242,9 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   const contextValue: AssetsContextProps = {
     assets,
     loading,
+    updating,
     fetchAssets,
+    initiateHLS,
     sortOption,
     orderOption,
     changeSorting,

@@ -21,6 +21,7 @@ from app.util.auth import (
     user_or_customer_jwt_required,
     project_access_required,
 )
+from app.util.ffmpeg import create_hls
 from flask import send_file
 from flask_restx import Resource
 
@@ -67,7 +68,7 @@ class Thumbnail(Resource):
 
 
 @ns.route("/<string:id>/delete")
-@ns.response(HTTPStatus.NOT_FOUND, "Thumbnail not found")
+@ns.response(HTTPStatus.NOT_FOUND, "Asset not found")
 @ns.param("id", "The asset identifier")
 class DeleteAsset(Resource):
     """
@@ -89,7 +90,7 @@ class DeleteAsset(Resource):
 
 
 @ns.route("/<string:id>/setview/<string:viewtype>")
-@ns.response(HTTPStatus.NOT_FOUND, "Thumbnail not found")
+@ns.response(HTTPStatus.NOT_FOUND, "Asset not found")
 @ns.param("id", "The asset identifier")
 @ns.param("viewtype", "The asset video type")
 class ChangeViewType(Resource):
@@ -118,3 +119,36 @@ class ChangeViewType(Resource):
         db.session.commit()
 
         return "", HTTPStatus.OK
+
+
+@ns.route("/<string:asset_id>/stream")
+@ns.response(HTTPStatus.NOT_FOUND, "Asset not found")
+@ns.param("asset_id", "The asset identifier")
+class StreamAsset(Resource):
+    """
+    Create a HLS playlist of the video in the asset and update its fields
+    """
+
+    @user_jwt_required
+    @project_access_required
+    @ns.marshal_with(asset_schema)
+    def put(self, asset_id: int):
+        """
+        Retrieve the asset with `asset_id`, create a HLS playlist and
+        update the fields in the asset.
+        """
+        asset: AssetModel
+        asset = AssetModel.query.filter_by(id=asset_id).first_or_404()
+
+        base_name = asset.thumbnail_path.split(".")[0]
+        raw_video_path = Path(ASSET_DIR, base_name + ".mp4")
+
+        hls_output_dir = Path(ASSET_DIR, base_name)
+        hls_output_dir.mkdir()
+        create_hls(raw_video_path, hls_output_dir)
+        hls_playlist = base_name + "/main.m3u8"
+
+        asset.path = hls_playlist
+        db.session.commit()
+
+        return asset, HTTPStatus.OK

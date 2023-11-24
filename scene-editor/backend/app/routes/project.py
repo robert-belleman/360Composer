@@ -121,13 +121,10 @@ class ProjectAssets(Resource):
         meta = self.generate_asset_meta(asset_type, base_name, raw_video_path)
         assert meta['thumbnail_path']
 
-        hls_output_dir = Path(ASSET_DIR, base_name)
-        hls_output_dir.mkdir()
-        create_hls(raw_video_path, hls_output_dir)
-        hls_playlist = base_name + '/main.m3u8'
+        path = base_name + extension
 
         # Only commit to database if files were uploaded and transcoded successfully
-        row = AssetModel(name=asset_name, user_id=project.user_id, path=hls_playlist, asset_type=asset_type, thumbnail_path=meta['thumbnail_path'], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
+        row = AssetModel(name=asset_name, user_id=project.user_id, path=path, asset_type=asset_type, thumbnail_path=meta['thumbnail_path'], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
         db.session.commit()
 
         return row, HTTPStatus.CREATED

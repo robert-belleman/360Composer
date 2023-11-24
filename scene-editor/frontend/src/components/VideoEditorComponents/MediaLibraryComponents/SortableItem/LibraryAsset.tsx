@@ -8,6 +8,8 @@
 
 import React from "react";
 
+import axios from "axios";
+import HlsIcon from '@mui/icons-material/Hls';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { styled } from "@mui/material/styles";
 import { IconButtonProps } from "@mui/material/IconButton";
@@ -66,12 +68,14 @@ function LibraryAsset({ asset }: { asset: Asset }) {
   const [expanded, setExpanded] = React.useState(false);
 
   const { dispatch } = useClipsContext();
+  const { initiateHLS } = useAssetsContext();
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
   const handleAppendClip = () => {
+    console.log(asset.path)
     dispatch({ type: APPEND_CLIP, payload: { clip: createClip(asset) } });
   };
 
@@ -91,6 +95,13 @@ function LibraryAsset({ asset }: { asset: Asset }) {
               aria-label="add to timeline"
             >
               <AddIcon />
+            </IconButton>
+            <IconButton
+              onClick={() => initiateHLS(asset.id)}
+              color="primary"
+              aria-label="enable HLS"
+            >
+              <HlsIcon />
             </IconButton>
             <ExpandMore
               color="primary"

@@ -32,6 +32,7 @@ import axios from "axios";
 import defaultImage from "../../static/images/default.jpg";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
 import { Asset } from "./MediaLibraryComponents/AssetsContext";
+import { useVideoContext } from "./VideoContext";
 
 export interface Clip {
   asset: Asset; // Reference to an asset.
@@ -48,6 +49,7 @@ interface State {
 }
 
 /* The state of Clips can be altered using these action types. */
+export const UPDATE_CLIP = "UPDATE_CLIP";
 export const APPEND_CLIP = "APPEND_CLIP";
 export const SPLIT_CLIP = "SPLIT_CLIP";
 export const DELETE_CLIPS = "DELETE_CLIPS";
@@ -57,6 +59,7 @@ export const UNDO = "UNDO";
 export const REDO = "REDO";
 
 type Action =
+  | { type: typeof UPDATE_CLIP; payload: { clip: Clip } }
   | { type: typeof APPEND_CLIP; payload: { clip: Clip } }
   | { type: typeof SPLIT_CLIP; payload: { time: number } }
   | { type: typeof DELETE_CLIPS }
@@ -81,6 +84,21 @@ const initialState: State = {
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
+    case UPDATE_CLIP: {
+      const { clip } = action.payload;
+
+      const updatedClips = state.clips.map((existingClip) =>
+        existingClip.asset.id === clip.asset.id ? clip : existingClip
+      );
+
+      return {
+        ...state,
+        clips: updatedClips,
+        past: [...state.past, state].slice(-CLIP_UNDO_STATES),
+        future: [],
+      };
+    }
+
     case APPEND_CLIP: {
       const { clip } = action.payload;
       const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);

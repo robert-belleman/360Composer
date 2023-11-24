@@ -29,6 +29,7 @@ import { HlsContext } from "../../../App";
 import { Clip, useClipsContext } from "../ClipsContext";
 import { MINIMUM_CLIP_LENGTH } from "../Constants";
 import { useVideoContext } from "../VideoContext";
+import { useAssetsContext } from "../MediaLibraryComponents/AssetsContext";
 
 const VideoPreview: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -38,6 +39,7 @@ const VideoPreview: React.FC = () => {
   const [videoSize, setVideoSize] = useState({ width: 1, height: 1 });
 
   const hls = useContext<Hls | undefined>(HlsContext);
+  const { updating } = useAssetsContext();
   const { state: clipsState } = useClipsContext();
 
   const {
@@ -119,7 +121,7 @@ const VideoPreview: React.FC = () => {
     }
 
     if (isPlaying) play(videoElem);
-  }, [currentIndex, hls, reloading]);
+  }, [currentIndex, hls, reloading, updating]);
 
   /**
    * Update the dimensions of the Box to maximize video size while maintaining

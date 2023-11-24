@@ -35,7 +35,7 @@
  */
 
 /* Third Party Imports */
-import { Box, Grid, Stack } from "@mui/material";
+import { Box, Button, Grid, Stack } from "@mui/material";
 
 /* Component Imports */
 import MediaLibrary from "../../components/VideoEditorComponents/MediaLibraryComponents/MediaLibrary";
