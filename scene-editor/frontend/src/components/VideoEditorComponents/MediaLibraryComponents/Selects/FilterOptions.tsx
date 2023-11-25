@@ -52,19 +52,21 @@ interface DurationFilterItemProps {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onApply: () => void;
   icon: React.ReactNode;
+  type: string;
 }
 
-const DurationFilterItem: React.FC<DurationFilterItemProps> = ({
+const FilterTextfieldItem: React.FC<DurationFilterItemProps> = ({
   label,
   value,
   onChange,
   onApply,
   icon,
+  type,
 }) => (
   <MenuItem>
     <TextField
-      label={`${label} (seconds)`}
-      type="number"
+      label={label}
+      type={type}
       value={value}
       onChange={onChange}
       size="small"
@@ -78,6 +80,7 @@ const FilterOptions: React.FC = () => {
   const [durationFilterShorter, setDurationFilterShorter] =
     useState<string>("");
   const [durationFilterLonger, setDurationFilterLonger] = useState<string>("");
+  const [searchFilter, setSearchFilter] = useState<string>("");
   const { filterOptions, toggleFilter, filterSetting, changeFilterSetting } =
     useAssetsContext();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -93,6 +96,10 @@ const FilterOptions: React.FC = () => {
 
   const handleFilterChange = (filter: string) => {
     toggleFilter(filter);
+  };
+
+  const handleSearchFilterChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchFilter(event.target.value);
   };
 
   const handleDurationFilterShorterChange = (
@@ -193,8 +200,24 @@ const FilterOptions: React.FC = () => {
           label="Top-Bottom"
         />
         <Divider sx={{ my: 0.5 }} />
-        <DurationFilterItem
-          label="Shorter than"
+        <FilterTextfieldItem
+          type="text"
+          label="Search..."
+          value={searchFilter}
+          onChange={handleSearchFilterChange}
+          onApply={() => toggleFilter(`name:${searchFilter}`)}
+          icon={
+            isFilterApplied(`name:${searchFilter}`) ? (
+              <ClearIcon sx={{ color: "red" }} />
+            ) : (
+              <CheckIcon sx={{ color: "green" }} />
+            )
+          }
+        />
+        <Divider sx={{ my: 0.5 }} />
+        <FilterTextfieldItem
+          type="number"
+          label="Shorter than (seconds)"
           value={durationFilterShorter}
           onChange={handleDurationFilterShorterChange}
           onApply={handleApplyDurationFilterShorter}
@@ -206,8 +229,9 @@ const FilterOptions: React.FC = () => {
             )
           }
         />
-        <DurationFilterItem
-          label="Longer than"
+        <FilterTextfieldItem
+          type="number"
+          label="Longer than (seconds)"
           value={durationFilterLonger}
           onChange={handleDurationFilterLongerChange}
           onApply={handleApplyDurationFilterLonger}

@@ -121,7 +121,7 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
 
   const filters = {
     name: (asset: Asset, filter: string) =>
-      asset.name.toLowerCase() === filter.toLowerCase(),
+      asset.name.toLowerCase().includes(filter.toLowerCase()),
     "duration<": (asset: Asset, filter: string) =>
       asset.duration < parseInt(filter, 10),
     "duration>": (asset: Asset, filter: string) =>
