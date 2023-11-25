@@ -20,10 +20,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  restrictToVerticalAxis,
-  restrictToParentElement,
-} from "@dnd-kit/modifiers";
+import { restrictToParentElement } from "@dnd-kit/modifiers";
 
 import SortableItem from "./SortableItem";
 import { Asset } from "../AssetsContext";
@@ -35,10 +32,10 @@ export interface LibraryItem {
 }
 
 type AssetsLibraryProps = {
-  assets: Asset[]
-}
+  assets: Asset[];
+};
 
-const AssetsLibrary: React.FC<AssetsLibraryProps> = ({assets}) => {
+const AssetsLibrary: React.FC<AssetsLibraryProps> = ({ assets }) => {
   const [items, setItems] = useState<LibraryItem[]>([]);
 
   /* Update the content whenever the assets update. */

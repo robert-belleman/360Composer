@@ -47,25 +47,29 @@ interface State {
   totalDuration: number;
 }
 
-/* The state of Clips can be altered using these action types. */
-export const UPDATE_CLIP = "UPDATE_CLIP";
-export const APPEND_CLIP = "APPEND_CLIP";
-export const SPLIT_CLIP = "SPLIT_CLIP";
-export const DELETE_CLIPS = "DELETE_CLIPS";
-export const DUPLICATE_CLIPS = "DUPLICATE_CLIPS";
-export const MOVE_CLIP = "MOVE_CLIP";
-export const UNDO = "UNDO";
-export const REDO = "REDO";
+export enum ActionTypes {
+  UPDATE_CLIP = "UPDATE_CLIP",
+  APPEND_CLIP = "APPEND_CLIP",
+  SPLIT_CLIP = "SPLIT_CLIP",
+  DELETE_CLIPS = "DELETE_CLIPS",
+  DUPLICATE_CLIPS = "DUPLICATE_CLIPS",
+  MOVE_CLIP = "MOVE_CLIP",
+  UNDO = "UNDO",
+  REDO = "REDO",
+}
 
 type Action =
-  | { type: typeof UPDATE_CLIP; payload: { clip: Clip } }
-  | { type: typeof APPEND_CLIP; payload: { clip: Clip } }
-  | { type: typeof SPLIT_CLIP; payload: { time: number } }
-  | { type: typeof DELETE_CLIPS }
-  | { type: typeof DUPLICATE_CLIPS }
-  | { type: typeof MOVE_CLIP; payload: { oldIndex: number; newIndex: number } }
-  | { type: typeof UNDO }
-  | { type: typeof REDO };
+  | { type: typeof ActionTypes.UPDATE_CLIP; payload: { clip: Clip } }
+  | { type: typeof ActionTypes.APPEND_CLIP; payload: { clip: Clip } }
+  | { type: typeof ActionTypes.SPLIT_CLIP; payload: { time: number } }
+  | { type: typeof ActionTypes.DELETE_CLIPS }
+  | { type: typeof ActionTypes.DUPLICATE_CLIPS }
+  | {
+      type: typeof ActionTypes.MOVE_CLIP;
+      payload: { oldIndex: number; newIndex: number };
+    }
+  | { type: typeof ActionTypes.UNDO }
+  | { type: typeof ActionTypes.REDO };
 
 interface ClipsContextProps {
   state: State;
@@ -83,7 +87,7 @@ const initialState: State = {
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
-    case UPDATE_CLIP: {
+    case ActionTypes.UPDATE_CLIP: {
       const { clip } = action.payload;
 
       const updatedClips = state.clips.map((existingClip) =>
@@ -98,7 +102,7 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
-    case APPEND_CLIP: {
+    case ActionTypes.APPEND_CLIP: {
       const { clip } = action.payload;
       const newPast = [...state.past, state].slice(-CLIP_UNDO_STATES);
       const newClips = [...state.clips, clip];
@@ -113,7 +117,7 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
-    case SPLIT_CLIP: {
+    case ActionTypes.SPLIT_CLIP: {
       const { time } = action.payload;
 
       const { index, timeInClip } = seekIndex(state, time);
@@ -140,7 +144,7 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
-    case DELETE_CLIPS: {
+    case ActionTypes.DELETE_CLIPS: {
       const durationLost = state.clips.reduce(
         (acc, clip) => (clip.selected ? acc + clip.duration : acc),
         0
@@ -154,7 +158,7 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
-    case DUPLICATE_CLIPS: {
+    case ActionTypes.DUPLICATE_CLIPS: {
       const duplicatedClips = state.clips.reduce((acc: Clip[], clip) => {
         if (clip.selected) {
           acc.push({ ...clip });
@@ -177,7 +181,7 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
-    case MOVE_CLIP: {
+    case ActionTypes.MOVE_CLIP: {
       const { oldIndex, newIndex } = action.payload;
       const clips = [...state.clips];
       const [movedClip] = clips.splice(oldIndex, 1);
@@ -191,7 +195,7 @@ const reducer = (state: State, action: Action): State => {
       };
     }
 
-    case UNDO: {
+    case ActionTypes.UNDO: {
       if (!canUndo(state)) {
         return state;
       }
@@ -202,7 +206,7 @@ const reducer = (state: State, action: Action): State => {
       return { ...newState, past: newPast, future: newFuture };
     }
 
-    case REDO: {
+    case ActionTypes.REDO: {
       if (!canRedo(state)) {
         return state;
       }

@@ -27,12 +27,12 @@ import TimelineControls from "./TimelineControls";
 import TimelineLayer from "./TimelineLayer";
 
 const Timeline: React.FC = () => {
-  const {timelineWindowRef} = useTimelineContext()
+  const { timelineWindowRef } = useTimelineContext();
 
   return (
     <Stack
       height={TIMELINE_HEIGHT}
-      padding={{ sx: 0, md: 2}}
+      paddingX={{ sx: 0, md: 2 }}
       overflow="hidden"
       sx={{ backgroundColor: "royalblue" }}
     >

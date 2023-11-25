@@ -12,11 +12,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { styled } from "@mui/material/styles";
 import { IconButtonProps } from "@mui/material/IconButton";
 import {
-  Avatar,
-  Button,
   Card,
   CardContent,
-  CardHeader,
   CardMedia,
   Collapse,
   IconButton,
@@ -26,7 +23,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 
 import { Asset } from "../AssetsContext";
-import { APPEND_CLIP, createClip, useClipsContext } from "../../ClipsContext";
+import { ActionTypes, createClip, useClipsContext } from "../../ClipsContext";
 import defaultImage from "../../../../static/images/default.jpg";
 
 const toDisplayTime = (seconds: number) => {
@@ -72,7 +69,10 @@ function LibraryAsset({ asset }: { asset: Asset }) {
   };
 
   const handleAppendClip = () => {
-    dispatch({ type: APPEND_CLIP, payload: { clip: createClip(asset) } });
+    dispatch({
+      type: ActionTypes.APPEND_CLIP,
+      payload: { clip: createClip(asset) },
+    });
   };
 
   const imgPath = asset.thumbnail_path

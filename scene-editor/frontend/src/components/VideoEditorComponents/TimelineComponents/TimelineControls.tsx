@@ -9,7 +9,7 @@
  *
  */
 
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 
 /* Third Party Imports */
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -21,11 +21,7 @@ import { Grid, Hidden, IconButton, Typography } from "@mui/material";
 
 /* Project Specific Imports */
 import {
-  DELETE_CLIPS,
-  DUPLICATE_CLIPS,
-  REDO,
-  SPLIT_CLIP,
-  UNDO,
+  ActionTypes,
   canRedo,
   canSplit,
   canUndo,
@@ -33,6 +29,27 @@ import {
 } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
 import ZoomControls from "./ControlComponents/ZoomControls";
+
+export const undoAction = () => ({
+  type: ActionTypes.UNDO as const,
+});
+
+export const redoAction = () => ({
+  type: ActionTypes.REDO as const,
+});
+
+export const splitClipAction = (currentTime: number) => ({
+  type: ActionTypes.SPLIT_CLIP as const,
+  payload: { time: currentTime },
+});
+
+export const duplicateClipsAction = () => ({
+  type: ActionTypes.DUPLICATE_CLIPS as const,
+});
+
+export const deleteClipsAction = () => ({
+  type: ActionTypes.DELETE_CLIPS as const,
+});
 
 const TimelineButton: React.FC<{
   disabled: boolean;
@@ -56,21 +73,25 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
   const { state: clipsState, dispatch } = useClipsContext();
 
   /* Clip manipulation functions. */
-  const handleUndo = () => {
-    dispatch({ type: UNDO });
-  };
-  const handleRedo = () => {
-    dispatch({ type: REDO });
-  };
-  const handleSplitClip = () => {
-    dispatch({ type: SPLIT_CLIP, payload: { time: currentTime } });
-  };
-  const handleDuplicateClips = () => {
-    dispatch({ type: DUPLICATE_CLIPS });
-  };
-  const handleDeleteClips = () => {
-    dispatch({ type: DELETE_CLIPS });
-  };
+  const handleUndo = useCallback(() => {
+    dispatch(undoAction());
+  }, [dispatch]);
+
+  const handleRedo = useCallback(() => {
+    dispatch(redoAction());
+  }, [dispatch]);
+
+  const handleSplitClip = useCallback(() => {
+    dispatch(splitClipAction(currentTime));
+  }, [dispatch, currentTime]);
+
+  const handleDuplicateClips = useCallback(() => {
+    dispatch(duplicateClipsAction());
+  }, [dispatch]);
+
+  const handleDeleteClips = useCallback(() => {
+    dispatch(deleteClipsAction());
+  }, [dispatch]);
 
   return (
     <>

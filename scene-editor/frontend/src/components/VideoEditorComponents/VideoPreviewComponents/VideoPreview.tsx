@@ -24,7 +24,7 @@ import Hls from "hls.js";
 import { HlsContext } from "../../../App";
 import {
   Clip,
-  UPDATE_CLIP,
+  ActionTypes,
   createClip,
   useClipsContext,
 } from "../ClipsContext";
@@ -79,7 +79,10 @@ const VideoPreview: React.FC = () => {
       const updatedAsset = res.data;
 
       const updatedClip = createClip(updatedAsset);
-      dispatch({ type: UPDATE_CLIP, payload: { clip: updatedClip } });
+      dispatch({
+        type: ActionTypes.UPDATE_CLIP,
+        payload: { clip: updatedClip },
+      });
 
       console.log(`HLS has been enabled for asset with id: ${assetId}`);
 

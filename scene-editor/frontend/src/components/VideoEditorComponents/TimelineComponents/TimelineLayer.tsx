@@ -24,7 +24,7 @@ import {
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 
 import SortableItem from "./SortableItem/SortableItem";
-import { MOVE_CLIP, useClipsContext } from "../ClipsContext";
+import { ActionTypes, useClipsContext } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
 import { useTimelineContext, TimelineItem } from "./TimelineContext";
 import TimelineClip from "./SortableItem/TimelineClip";
@@ -81,7 +81,7 @@ const TimelineLayer = () => {
         (item: TimelineItem) => item.id === over.id
       );
 
-      dispatch({ type: MOVE_CLIP, payload: { oldIndex, newIndex } });
+      dispatch({ type: ActionTypes.MOVE_CLIP, payload: { oldIndex, newIndex } });
       setReloading(!reloading);
 
       setItems((prevItems: TimelineItem[]) =>
