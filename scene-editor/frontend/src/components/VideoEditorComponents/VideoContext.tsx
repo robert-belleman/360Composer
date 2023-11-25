@@ -4,7 +4,12 @@
  * Description:
  * This file defines a React Context for the video, which is all the video
  * clips in the timeline combined. The context, VideoContext, encapsulates
- * the state of video clips between different files.
+ * the state of video clips between different files. All functions and
+ * effect that change the state of the video should be defined here.
+ *
+ * Examples:
+ * - play(): attempt to play the current video source.
+ * - seek(): seek to a certain time in the video (all clips).
  *
  */
 
@@ -14,11 +19,14 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
-import { Clip, seekIndex, useClipsContext } from "./ClipsContext";
+
+import { seekIndex, useClipsContext } from "./ClipsContext";
 
 interface VideoContextProps {
+  videoRef: React.RefObject<HTMLVideoElement>;
   isPlaying: boolean;
   isSeeking: boolean;
   reloading: boolean;
@@ -35,21 +43,32 @@ interface VideoContextProps {
   setVideoClipTime: Dispatch<SetStateAction<number>>;
   setVideoClipTimePlayed: Dispatch<SetStateAction<number>>;
   play: (videoElem: HTMLVideoElement) => void;
-  playNext: (videoElem: HTMLVideoElement) => void;
+  playNext: () => void;
+  reset: () => void;
   seek: (time: number) => void;
 }
 
 const VideoContext = createContext<VideoContextProps | undefined>(undefined);
 
 const VideoProvider: React.FC = ({ children }) => {
+  /* Reference to the HTMLVideoElement. */
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  /* Indicate when playback of the video changes. */
   const [isPlaying, setIsPlaying] = useState(false);
+  /* Indicate when time is changed and things like ontimeupdate should stop. */
   const [isSeeking, setIsSeeking] = useState(false);
+  /* Set to true if you want to forec reload the current source. */
   const [reloading, setReloading] = useState(false);
+  /* Index of the current clip in the clips array. */
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+  /* Indicate the current time in the video (all clips). */
   const [currentTime, setCurrentTime] = useState(0);
+  /* Indicate the full duration of the video (all clips). */
   const [currentDuration, setCurrentDuration] = useState(0);
 
+  /* Indicate the current time in the current clip. */
   const [videoClipTime, setVideoClipTime] = useState(0);
+  /* Indicate the amount of time that has already been played before clip. */
   const [videoClipTimePlayed, setVideoClipTimePlayed] = useState(0);
 
   const { state: clipsState } = useClipsContext();
@@ -86,13 +105,6 @@ const VideoProvider: React.FC = ({ children }) => {
       return;
     }
 
-    if (currentDuration <= currentTime) {
-      /* If play is clicked after finishing, then restart the entire video. */
-      if (clipsState.clips) seek(0);
-      videoElem.play();
-      return;
-    }
-
     // Check if the video is ready to play
     if (videoElem.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
       // The video is ready to play, no need to wait for 'canplay'
@@ -107,18 +119,25 @@ const VideoProvider: React.FC = ({ children }) => {
 
   /**
    * Play the next video clip. If there is no next clip, stop playing.
-   * @param videoElem element to play video of.
    */
-  const playNext = (videoElem: HTMLVideoElement) => {
+  const playNext = () => {
     /* If there is no next video clip, then stop. */
     if (currentIndex === null || currentIndex === clipsState.clips.length - 1) {
       setIsPlaying(false);
-      videoElem.pause();
       return;
     }
 
     /* Seek to the start of next clip. */
     seek(videoClipTimePlayed + clipsState.clips[currentIndex].duration);
+  };
+
+  /**
+   * Reset to the start of the video.
+   */
+  const reset = () => {
+    if (clipsState.clips.length) {
+      seek(0);
+    }
   };
 
   /**
@@ -134,33 +153,40 @@ const VideoProvider: React.FC = ({ children }) => {
       setVideoClipTime(timeInClip);
       setCurrentIndex(index);
       setCurrentTime(time);
-      return;
-    }
-
-    if (time < 0) {
+    } else if (clipsState.clips.length > 0 && time < 0) {
+      /* If the time exceeds the minimum duration, skip to start. */
       setIsSeeking(true);
       setVideoClipTimePlayed(0);
       setVideoClipTime(0);
       setCurrentTime(0);
       setCurrentIndex(clipsState.clips ? 0 : null);
-      return;
-    }
-
-    if (time > clipsState.totalDuration) {
+    } else if (clipsState.clips.length > 0 && time > clipsState.totalDuration) {
+      /* If the time exceeds the maximum duration, skip to end. */
+      const lastIndex = clipsState.clips.length - 1;
+      const lastClip = clipsState.clips[lastIndex];
       setIsSeeking(true);
       setCurrentTime(clipsState.totalDuration);
-      if (clipsState.clips) {
-        const lastIndex = clipsState.clips.length - 1;
-        const lastClip = clipsState.clips[lastIndex];
-        setVideoClipTimePlayed(clipsState.totalDuration - lastClip.duration);
-        setVideoClipTime(lastClip.duration);
-        setCurrentIndex(lastIndex);
-      }
-      return;
+      setVideoClipTimePlayed(clipsState.totalDuration - lastClip.duration);
+      setVideoClipTime(lastClip.duration);
+      setCurrentIndex(lastIndex);
     }
   };
 
+  /**
+   * If someone seeks a specific time in the slider, go to it.
+   */
+  useEffect(() => {
+    const { current: videoElem } = videoRef;
+
+    if (isSeeking && videoElem) {
+      videoElem.currentTime = videoClipTime;
+      setIsSeeking(false);
+      if (isPlaying) play(videoElem);
+    }
+  }, [isSeeking]);
+
   const value: VideoContextProps = {
+    videoRef,
     isPlaying,
     isSeeking,
     reloading,
@@ -178,6 +204,7 @@ const VideoProvider: React.FC = ({ children }) => {
     setVideoClipTimePlayed,
     play,
     playNext,
+    reset,
     seek,
   };
 

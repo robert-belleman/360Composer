@@ -10,7 +10,6 @@
  *
  * TODO potential performance improvements
  *  - lazy loading
- *  - optimize video size and resolution
  *  - caching
  *
  */
@@ -23,9 +22,6 @@ import axios from "axios";
 
 import Hls from "hls.js";
 import { HlsContext } from "../../../App";
-
-import VideoControls from "./VideoControls";
-
 import {
   Clip,
   UPDATE_CLIP,
@@ -34,9 +30,9 @@ import {
 } from "../ClipsContext";
 import { MINIMUM_CLIP_LENGTH } from "../Constants";
 import { useVideoContext } from "../VideoContext";
+import VideoControls from "./VideoControls";
 
 const VideoPreview: React.FC = () => {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
   const [loadedMeta, setLoadedMeta] = useState(false);
@@ -46,6 +42,7 @@ const VideoPreview: React.FC = () => {
   const { state: clipsState, dispatch } = useClipsContext();
 
   const {
+    videoRef,
     isPlaying,
     isSeeking,
     reloading,
@@ -147,12 +144,13 @@ const VideoPreview: React.FC = () => {
   useEffect(() => {
     const { current: videoElem } = videoRef;
 
-    if (currentIndex === null || !videoElem || !hls) {
-      if (clipsState.clips.length != 0) {
-        console.error(
-          "Error loading video: Video element or HLS not available."
-        );
-      }
+    if (currentIndex === null || clipsState.clips.length === 0) {
+      console.error("No available sources for the video.");
+      return;
+    }
+
+    if (!videoElem || !hls) {
+      console.error("Error loading video: Video element or HLS not available.");
       return;
     }
 
@@ -243,33 +241,14 @@ const VideoPreview: React.FC = () => {
       /* Try not to overlap with the onEnded() function. */
       const delta = currentClip.asset.duration - currentClip.duration;
       const overlapping = delta < MINIMUM_CLIP_LENGTH;
-      if (!overlapping) playNext(videoElem);
+      if (!overlapping) playNext();
     }
   };
 
   /**
    * Play the next video clip if the video source ends.
    */
-  const onEnded = () => {
-    const { current: videoElem } = videoRef;
-    if (!videoElem) {
-      console.error("Error: Video element not available");
-      return;
-    }
-    playNext(videoElem);
-  };
-
-  /**
-   * If someone seeks a specific time in the slider, go to it.
-   */
-  useEffect(() => {
-    const { current: videoElem } = videoRef;
-
-    if (isSeeking && videoElem) {
-      videoElem.currentTime = videoClipTime;
-      setIsSeeking(false);
-    }
-  }, [isSeeking]);
+  const onEnded = () => playNext();
 
   return (
     <Stack flexGrow={1} sx={{ backgroundColor: "snow" }}>
@@ -300,7 +279,7 @@ const VideoPreview: React.FC = () => {
         </Box>
       </Box>
 
-      <VideoControls videoRef={videoRef} />
+      <VideoControls />
     </Stack>
   );
 };

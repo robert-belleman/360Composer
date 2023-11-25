@@ -15,61 +15,47 @@ import Forward5Icon from "@mui/icons-material/Forward5";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import Replay5Icon from "@mui/icons-material/Replay5";
+import SkipNextIcon from "@mui/icons-material/SkipNext";
+import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import { Box, IconButton } from "@mui/material";
+
 import { useVideoContext } from "../VideoContext";
 
-type VideoControlsProps = {
-  videoRef: React.RefObject<HTMLVideoElement>;
-};
-
-const RewindIconButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
-  return (
-    <IconButton
-      id="rewindButton"
-      onClick={onClick}
-      color="primary"
-      size="large"
-      aria-label="Rewind 5 seconds"
-    >
-      <Replay5Icon />
-    </IconButton>
-  );
-};
-
-const PlayPauseIconButton: React.FC<{
+type ControlButtonProps = {
   onClick: () => void;
-  isPlaying: boolean;
-}> = ({ onClick, isPlaying }) => {
+  ariaLabel: string;
+  icon: React.ReactNode;
+};
+
+const ControlButton: React.FC<ControlButtonProps> = ({
+  onClick,
+  ariaLabel,
+  icon,
+}) => {
   return (
     <IconButton
-      id="playPauseButton"
       onClick={onClick}
+      aria-label={ariaLabel}
       color="primary"
       size="large"
-      aria-label={isPlaying ? "Pause" : "Play"}
     >
-      {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+      {icon}
     </IconButton>
   );
 };
 
-const ForwardIconButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
-  return (
-    <IconButton
-      id="forwardButton"
-      onClick={onClick}
-      color="primary"
-      size="large"
-      aria-label="Forward 5 seconds"
-    >
-      <Forward5Icon />
-    </IconButton>
-  );
-};
-
-const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
-  const { isPlaying, setIsPlaying, currentIndex, currentTime, play, seek } =
-    useVideoContext();
+const VideoControls: React.FC = () => {
+  const {
+    videoRef,
+    isPlaying,
+    setIsPlaying,
+    currentIndex,
+    currentTime,
+    currentDuration,
+    play,
+    reset,
+    seek,
+  } = useVideoContext();
 
   /**
    * Pause or resume playback of the video.
@@ -77,12 +63,11 @@ const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
   const togglePlayback = () => {
     const { current: videoElem } = videoRef;
     if (videoElem) {
-      if (isPlaying) {
-        videoElem.pause();
-      } else {
-        play(videoElem);
-      }
       if (videoElem.currentSrc) setIsPlaying(!isPlaying);
+
+      if (currentDuration <= currentTime) reset();
+      else if (isPlaying) videoElem.pause();
+      else play(videoElem);
     }
   };
 
@@ -106,9 +91,31 @@ const VideoControls: React.FC<VideoControlsProps> = ({ videoRef }) => {
 
   return (
     <Box height="auto" display="flex" justifyContent="center">
-      <RewindIconButton onClick={() => addTime(-5)} />
-      <PlayPauseIconButton isPlaying={isPlaying} onClick={togglePlayback} />
-      <ForwardIconButton onClick={() => addTime(5)} />
+      <ControlButton
+        onClick={() => seek(0)}
+        ariaLabel="Rewind to start"
+        icon={<SkipPreviousIcon />}
+      />
+      <ControlButton
+        onClick={() => addTime(-5)}
+        ariaLabel="Rewind 5 seconds"
+        icon={<Replay5Icon />}
+      />
+      <ControlButton
+        onClick={togglePlayback}
+        ariaLabel={isPlaying ? "Pause" : "Play"}
+        icon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+      />
+      <ControlButton
+        onClick={() => addTime(5)}
+        ariaLabel="Forward 5 seconds"
+        icon={<Forward5Icon />}
+      />
+      <ControlButton
+        onClick={() => seek(currentDuration - 1)}
+        ariaLabel="Forward to end"
+        icon={<SkipNextIcon />}
+      />
     </Box>
   );
 };
