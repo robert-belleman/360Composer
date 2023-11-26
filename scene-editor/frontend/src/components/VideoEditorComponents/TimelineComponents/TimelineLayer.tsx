@@ -32,16 +32,18 @@ import TimelineClip from "./SortableItem/TimelineClip";
 const TimelineLayer = () => {
   const { state: clipsState, dispatch } = useClipsContext();
   const { reloading, setReloading } = useVideoContext();
-  const { scale, items, setItems } = useTimelineContext();
+  const { items, setItems } = useTimelineContext();
 
   /**
    * If the clips update, change the items to render.
+   * NOTE: multiply clip.duration by 100, if MINIMUM_CLIP_LENGTH < 1. This is
+   *       to ensure that the flexGrow property is not between 0 and 1.
    */
   useEffect(() => {
     setItems(
       clipsState.clips.map((clip, index) => ({
         id: index + 1,
-        length: clip.duration,
+        length: clip.duration * 100,
         content: <TimelineClip clip={clip} />,
       }))
     );
@@ -81,7 +83,10 @@ const TimelineLayer = () => {
         (item: TimelineItem) => item.id === over.id
       );
 
-      dispatch({ type: ActionTypes.MOVE_CLIP, payload: { oldIndex, newIndex } });
+      dispatch({
+        type: ActionTypes.MOVE_CLIP,
+        payload: { oldIndex, newIndex },
+      });
       setReloading(!reloading);
 
       setItems((prevItems: TimelineItem[]) =>

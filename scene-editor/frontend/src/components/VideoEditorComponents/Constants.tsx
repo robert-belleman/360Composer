@@ -26,5 +26,8 @@ export const MEDIA_LIBRARY_WIDTH =
 export const TIMELINE_CLIP_HEIGHT = 100;
 
 /* Performance concering settings. */
-export const MINIMUM_CLIP_LENGTH = 1;
+/* NOTE: if MINIMUM_CLIP_LENGTH < 1, then the length in TimelineLayer.tsx
+         should be multiplied by 100. Otherwise the flexGrow attribute will
+         be between 0 and 1. */
+export const MINIMUM_CLIP_LENGTH = 0.166;
 export const CLIP_UNDO_STATES = 10;

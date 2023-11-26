@@ -24,6 +24,7 @@ import {
   ActionTypes,
   canRedo,
   canUndo,
+  seekIndex,
   useClipsContext,
 } from "../../ClipsContext";
 import { useVideoContext } from "../../VideoContext";
@@ -83,6 +84,7 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
   }, [dispatch]);
 
   const canSplit = () => {
+    /* This is slightly faster than using seekIndex() from clipsContext. */
     return currentTime - videoClipTimePlayed >= MINIMUM_CLIP_LENGTH;
   };
 
@@ -119,13 +121,13 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
         label="Split"
       />
       <TimelineButton
-        disabled={false}
+        disabled={clipsState.numSelected === 0}
         onClick={handleDeleteClips}
         icon={<DeleteIcon />}
         label="Delete"
       />
       <TimelineButton
-        disabled={false}
+        disabled={clipsState.numSelected === 0}
         onClick={handleDuplicateClips}
         icon={<ContentCopyIcon />}
         label="Duplicate"

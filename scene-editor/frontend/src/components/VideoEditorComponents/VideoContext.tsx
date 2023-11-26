@@ -121,9 +121,13 @@ const VideoProvider: React.FC = ({ children }) => {
    * Play the next video clip. If there is no next clip, stop playing.
    */
   const playNext = () => {
+    const { current: videoElem } = videoRef;
+    if (!videoElem) return
+
     /* If there is no next video clip, then stop. */
     if (currentIndex === null || currentIndex === clipsState.clips.length - 1) {
       setIsPlaying(false);
+      videoElem.pause();
       return;
     }
 

@@ -10,16 +10,25 @@ import React, { useState } from "react";
 
 import { Box } from "@mui/material";
 
-import { Clip, thumbnailUrl } from "../../ClipsContext";
+import {
+  ActionTypes,
+  Clip,
+  thumbnailUrl,
+  useClipsContext,
+} from "../../ClipsContext";
 import { TIMELINE_CLIP_HEIGHT } from "../../Constants";
+
+const selectClipAction = (clip: Clip) => ({
+  type: ActionTypes.SELECT_CLIP as const,
+  payload: { clip: clip },
+});
 
 function TimelineClip({ clip }: { clip: Clip }) {
   const [isHovered, setIsHovered] = useState(false);
-  const [, forceUpdate] = useState<{}>();
+  const { dispatch } = useClipsContext();
 
   const toggleSelect = () => {
-    clip.selected = !clip.selected;
-    forceUpdate({});
+    dispatch(selectClipAction(clip));
   };
 
   return (

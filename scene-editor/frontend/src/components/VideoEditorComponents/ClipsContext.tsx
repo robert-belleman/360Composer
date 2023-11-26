@@ -45,9 +45,11 @@ interface State {
   clips: Clip[];
   future: State[];
   totalDuration: number;
+  numSelected: number;
 }
 
 export enum ActionTypes {
+  SELECT_CLIP = "SELECT_CLIP",
   UPDATE_CLIP = "UPDATE_CLIP",
   APPEND_CLIP = "APPEND_CLIP",
   SPLIT_CLIP = "SPLIT_CLIP",
@@ -59,6 +61,7 @@ export enum ActionTypes {
 }
 
 type Action =
+  | { type: typeof ActionTypes.SELECT_CLIP; payload: { clip: Clip } }
   | { type: typeof ActionTypes.UPDATE_CLIP; payload: { clip: Clip } }
   | { type: typeof ActionTypes.APPEND_CLIP; payload: { clip: Clip } }
   | { type: typeof ActionTypes.SPLIT_CLIP; payload: { time: number } }
@@ -83,10 +86,28 @@ const initialState: State = {
   past: [],
   future: [],
   totalDuration: 0,
+  numSelected: 0,
 };
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
+    case ActionTypes.SELECT_CLIP: {
+      const { clip } = action.payload;
+
+      clip.selected = !clip.selected;
+      if (clip.selected) {
+        return {
+          ...state,
+          numSelected: state.numSelected + 1,
+        };
+      } else {
+        return {
+          ...state,
+          numSelected: state.numSelected - 1,
+        };
+      }
+    }
+
     case ActionTypes.UPDATE_CLIP: {
       const { clip } = action.payload;
 
@@ -121,13 +142,9 @@ const reducer = (state: State, action: Action): State => {
       const { time } = action.payload;
 
       const { index, timeInClip } = seekIndex(state, time);
-      if (index === null) return state;
+      if (index === null || !canSplit(state, index, timeInClip)) return state;
 
-      const firstPart = timeInClip;
-      const secondPart = state.clips[index].duration - timeInClip;
-      if (firstPart < MINIMUM_CLIP_LENGTH || secondPart < MINIMUM_CLIP_LENGTH) {
-        return state;
-      }
+      const wasSelected = state.clips[index].selected;
 
       const { first, second } = splitClip(state.clips[index], timeInClip);
 
@@ -141,6 +158,7 @@ const reducer = (state: State, action: Action): State => {
         ],
         past: [...state.past, state].slice(-CLIP_UNDO_STATES),
         future: [],
+        numSelected: wasSelected ? state.numSelected : state.numSelected + 1,
       };
     }
 
@@ -155,6 +173,7 @@ const reducer = (state: State, action: Action): State => {
         past: [...state.past, state].slice(-CLIP_UNDO_STATES),
         future: [],
         totalDuration: state.totalDuration - durationLost,
+        numSelected: 0,
       };
     }
 
@@ -278,6 +297,42 @@ const seekIndex = (
     elapsedTime += state.clips[i].duration;
   }
   return { index: null, timeInClip: 0 };
+};
+
+/**
+ * Check if you can split at time `time` in clips `state`.
+ * Use `isValidLeft` if you want to check the left side.
+ * Use `isValidRight` if you want to check the right side.
+ * @param state array of clips.
+ * @param time time to split at.
+ * @returns boolean.
+ */
+const canSplit = (state: State, index: number, timeInClip: number) => {
+  return isValidLeft(state, index, timeInClip);
+};
+
+/**
+ * Check if the left side of a split is long enough.
+ * @param _state
+ * @param _index
+ * @param timeInClip
+ * @returns boolean
+ */
+const isValidLeft = (_state: State, _index: number, timeInClip: number) => {
+  const firstPart = timeInClip;
+  return firstPart >= MINIMUM_CLIP_LENGTH;
+};
+
+/**
+ * Check if the right side of a split is long enough.
+ * @param _state
+ * @param _index
+ * @param timeInClip
+ * @returns boolean
+ */
+const isValidRight = (state: State, index: number, timeInClip: number) => {
+  const secondPart = state.clips[index].duration - timeInClip;
+  return secondPart >= MINIMUM_CLIP_LENGTH;
 };
 
 /**
