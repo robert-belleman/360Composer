@@ -392,20 +392,9 @@ const canRedo = (state: State): boolean => {
   return !!(state.future && state.future.length > 0);
 };
 
-/**
- * Check if the clip can be split.
- * Used for disabling buttons in certain situations.
- * @param state
- * @returns boolean
- */
-const canSplit = (state: State) => {
-  return MINIMUM_CLIP_LENGTH < state.totalDuration;
-};
-
 export {
   ClipsProvider,
   canRedo,
-  canSplit,
   canUndo,
   seekIndex,
   exportClips,

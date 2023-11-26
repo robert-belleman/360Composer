@@ -23,12 +23,12 @@ import { Grid, Hidden, IconButton, Typography } from "@mui/material";
 import {
   ActionTypes,
   canRedo,
-  canSplit,
   canUndo,
   useClipsContext,
-} from "../ClipsContext";
-import { useVideoContext } from "../VideoContext";
-import ZoomControls from "./ControlComponents/ZoomControls";
+} from "../../ClipsContext";
+import { useVideoContext } from "../../VideoContext";
+import ZoomControls from "./ZoomControls";
+import { MINIMUM_CLIP_LENGTH } from "../../Constants";
 
 export const undoAction = () => ({
   type: ActionTypes.UNDO as const,
@@ -70,6 +70,7 @@ const TimelineButton: React.FC<{
 });
 
 const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
+  const { videoClipTimePlayed } = useVideoContext();
   const { state: clipsState, dispatch } = useClipsContext();
 
   /* Clip manipulation functions. */
@@ -80,6 +81,10 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
   const handleRedo = useCallback(() => {
     dispatch(redoAction());
   }, [dispatch]);
+
+  const canSplit = () => {
+    return currentTime - videoClipTimePlayed >= MINIMUM_CLIP_LENGTH;
+  };
 
   const handleSplitClip = useCallback(() => {
     dispatch(splitClipAction(currentTime));
@@ -108,7 +113,7 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
         label="Redo"
       />
       <TimelineButton
-        disabled={!canSplit(clipsState)}
+        disabled={!canSplit()}
         onClick={handleSplitClip}
         icon={<ContentCutIcon />}
         label="Split"
