@@ -32,25 +32,31 @@ const Timeline: React.FC = () => {
   return (
     <Stack
       height={TIMELINE_HEIGHT}
-      overflow="hidden"
       paddingX={{ sx: 0, md: 2 }}
       sx={{ backgroundColor: "royalblue" }}
     >
       <TimelineControls />
-      <Stack
-        ref={timelineWindowRef}
+
+      <Box
         height={1}
+        paddingX={2}
         sx={{
           backgroundColor: "cornflowerblue",
-          borderStyle: "none dashed",
           overflowX: "scroll",
+          overflowY: "hidden" ,
         }}
       >
-        <Box sx={{ width: `${scale * 100}%` }}>
+        <Box
+          ref={timelineWindowRef}
+          width={`${scale * 100}%`}
+          height={1}
+          boxSizing="border-box"
+          sx={{ borderStyle: "none dashed" }}
+        >
           <VideoSlider />
           <TimelineLayer />
         </Box>
-      </Stack>
+      </Box>
     </Stack>
   );
 };
