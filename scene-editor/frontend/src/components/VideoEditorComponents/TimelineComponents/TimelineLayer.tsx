@@ -62,7 +62,7 @@ const TimelineLayer = () => {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={items} strategy={horizontalListSortingStrategy}>
-        <div style={{ display: "flex", width: `${scale * 100}%` }}>
+        <div style={{ display: "flex" }}>
           {items.map((props: TimelineItem) => (
             <SortableItem key={props.id} {...props} />
           ))}

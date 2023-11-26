@@ -19,10 +19,8 @@ export interface TimelineItem {
 
 interface TimelineSettings {
   timelineWindowRef: React.RefObject<HTMLDivElement>;
-  sliderTime: number;
   items: TimelineItem[];
   scale: number;
-  setSliderTime: React.Dispatch<React.SetStateAction<number>>;
   setItems: React.Dispatch<React.SetStateAction<TimelineItem[]>>;
   setScale: React.Dispatch<React.SetStateAction<number>>;
 }
@@ -33,16 +31,13 @@ const TimelineSettingsContext = React.createContext<
 
 const TimelineSettingsProvider: React.FC = ({ children }) => {
   const timelineWindowRef = useRef<HTMLDivElement>(null);
-  const [sliderTime, setSliderTime] = useState(0);
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [scale, setScale] = useState(1);
 
   const timelineSettings: TimelineSettings = {
     timelineWindowRef,
-    sliderTime,
     items,
     scale,
-    setSliderTime,
     setItems,
     setScale,
   };

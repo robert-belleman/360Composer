@@ -148,7 +148,6 @@ const VideoPreview: React.FC = () => {
     const { current: videoElem } = videoRef;
 
     if (currentIndex === null || clipsState.clips.length === 0) {
-      console.error("No available sources for the video.");
       return;
     }
 

@@ -17,7 +17,7 @@
 import React from "react";
 
 /* Third Party Imports */
-import { Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 
 /* Project Specific Imports */
 import { TIMELINE_HEIGHT } from "../Constants";
@@ -27,29 +27,29 @@ import TimelineControls from "./TimelineControls";
 import TimelineLayer from "./TimelineLayer";
 
 const Timeline: React.FC = () => {
-  const { timelineWindowRef } = useTimelineContext();
+  const { scale, timelineWindowRef } = useTimelineContext();
 
   return (
     <Stack
       height={TIMELINE_HEIGHT}
-      paddingX={{ sx: 0, md: 2 }}
       overflow="hidden"
+      paddingX={{ sx: 0, md: 2 }}
       sx={{ backgroundColor: "royalblue" }}
     >
       <TimelineControls />
-      <VideoSlider />
       <Stack
         ref={timelineWindowRef}
         height={1}
-        display="flex"
-        justifyContent="center"
         sx={{
           backgroundColor: "cornflowerblue",
           borderStyle: "none dashed",
-          overflowX: "auto",
+          overflowX: "scroll",
         }}
       >
-        <TimelineLayer />
+        <Box sx={{ width: `${scale * 100}%` }}>
+          <VideoSlider />
+          <TimelineLayer />
+        </Box>
       </Stack>
     </Stack>
   );
