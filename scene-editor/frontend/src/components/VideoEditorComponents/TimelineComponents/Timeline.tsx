@@ -38,16 +38,16 @@ const Timeline: React.FC = () => {
       <TimelineControls />
 
       <Box
+        ref={timelineWindowRef}
         height={1}
         paddingX={2}
         sx={{
           backgroundColor: "cornflowerblue",
           overflowX: "scroll",
-          overflowY: "hidden" ,
+          overflowY: "hidden",
         }}
       >
         <Box
-          ref={timelineWindowRef}
           width={`${scale * 100}%`}
           height={1}
           boxSizing="border-box"

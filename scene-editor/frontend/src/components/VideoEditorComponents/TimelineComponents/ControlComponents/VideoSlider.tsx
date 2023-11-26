@@ -12,33 +12,40 @@ import { Slider } from "@mui/material";
 
 import { useVideoContext } from "../../VideoContext";
 import { useTimelineContext } from "../TimelineContext";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 const THUMB_CIRCLE_SIZE = 16;
 
 const VideoSlider: React.FC = () => {
+  const [secondsInWindow, setSecondsInWindow] = useState(0);
   const [thumbStyles, setThumbStyles] = useState({
     height: "0px",
     marginTop: "0px",
   });
 
-  const { timelineWindowRef } = useTimelineContext();
+  const { scale, timelineWindowRef } = useTimelineContext();
   const { currentTime, currentDuration, seek } = useVideoContext();
+
+  /**
+   * When the scale changes, compute how many seconds fit on screen.
+   */
+  useLayoutEffect(() => {
+    setSecondsInWindow(currentDuration / scale);
+  }, [scale]);
 
   /**
    * Update the height of the thumb of the slider (vertical line).
    */
   useEffect(() => {
     const { current: timelineElem } = timelineWindowRef;
+    if (!timelineElem) return;
 
-    if (timelineElem) {
-      const thumbHeight = timelineElem.clientHeight;
+    const thumbHeight = timelineElem.clientHeight;
 
-      setThumbStyles({
-        height: `${thumbHeight}px`,
-        marginTop: `${thumbHeight + THUMB_CIRCLE_SIZE}px`,
-      });
-    }
+    setThumbStyles({
+      height: `${thumbHeight}px`,
+      marginTop: `${thumbHeight + THUMB_CIRCLE_SIZE}px`,
+    });
   }, [timelineWindowRef]);
 
   /**
@@ -51,7 +58,21 @@ const VideoSlider: React.FC = () => {
     if (typeof newTime !== "number" || !timelineElem) return;
 
     seek(newTime);
+
+    /* Prevent window from scrolling to the previous slider position. */
+    timelineElem.scrollLeft = timelineElem.scrollLeft;
   };
+
+  /**
+   * Whenever the slider goes offscreen, move the timeline a screen right.
+   */
+  useEffect(() => {
+    const { current: timelineElem } = timelineWindowRef;
+    if (!timelineElem) return;
+
+    const scroll = Math.floor(currentTime / secondsInWindow);
+    timelineElem.scrollLeft += timelineElem.clientWidth * scroll;
+  }, [currentTime]);
 
   return (
     <Slider
