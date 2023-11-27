@@ -122,7 +122,7 @@ const VideoProvider: React.FC = ({ children }) => {
    */
   const playNext = () => {
     const { current: videoElem } = videoRef;
-    if (!videoElem) return
+    if (!videoElem) return;
 
     /* If there is no next video clip, then stop. */
     if (currentIndex === null || currentIndex === clipsState.clips.length - 1) {

@@ -71,7 +71,8 @@ const TimelineButton: React.FC<{
 });
 
 const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
-  const { videoClipTimePlayed } = useVideoContext();
+  const { videoClipTimePlayed, currentIndex, setCurrentIndex } =
+    useVideoContext();
   const { state: clipsState, dispatch } = useClipsContext();
 
   /* Clip manipulation functions. */
@@ -97,8 +98,11 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
   }, [dispatch]);
 
   const handleDeleteClips = useCallback(() => {
+    if (currentIndex !== null && clipsState.clips[currentIndex].selected) {
+      setCurrentIndex(null);
+    }
     dispatch(deleteClipsAction());
-  }, [dispatch]);
+  }, [dispatch, currentIndex]);
 
   return (
     <>
