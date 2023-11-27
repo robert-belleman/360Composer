@@ -25,8 +25,7 @@ import {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-
-import axios from "axios";
+import { getAssets } from "../../../util/api";
 
 export interface Asset {
   id: string;
@@ -77,10 +76,12 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   const { projectID } = useParams();
 
   const fetchAssets = async () => {
+    if (projectID === undefined) return;
+
     try {
       setLoading(true);
       // Fetch assets for the current project
-      const res = await axios.get(`/api/project/${projectID}/assets`, {});
+      const res = await getAssets(projectID);
       setAssets(res.data);
     } catch (error) {
       console.error("Error fetching data:", error);

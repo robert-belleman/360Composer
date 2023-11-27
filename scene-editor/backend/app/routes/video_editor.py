@@ -256,7 +256,9 @@ def generate_asset_meta(
         video_path_str = video_path.as_posix()
         thumbnail_path_str = thumbnail_path.as_posix()
         if not create_thumbnail(video_path_str, thumbnail_path_str):
-            return
+            status = HTTPStatus.INTERNAL_SERVER_ERROR
+            msg = "Error generating thumbnail"
+            raise AssetMetaGenerationError(status, msg)
 
         return {
             "user_id": project.user_id,

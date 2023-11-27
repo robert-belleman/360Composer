@@ -32,6 +32,7 @@ import axios from "axios";
 import defaultImage from "../../static/images/default.jpg";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
 import { Asset } from "./MediaLibraryComponents/AssetsContext";
+import { exportVideoEdits } from "../../util/api";
 
 export interface Clip {
   asset: Asset; // Reference to an asset.
@@ -394,10 +395,6 @@ const visibleClips = (state: State, lower: number, upper: number) => {
  * @param title title to export with.
  */
 const exportClips = async (projectID: string, clips: Clip[], title: string) => {
-  const apiEndPoint = `/api/video-editor/${projectID}/edit`;
-
-  // TODO: check if clips with same asset are connected.
-
   const data = clips.map((clip) => ({
     asset_id: clip.asset.id,
     start_time: clip.startTime.toFixed(3),
@@ -406,21 +403,13 @@ const exportClips = async (projectID: string, clips: Clip[], title: string) => {
 
   const display_name = title.endsWith(".mp4") ? title : title + ".mp4";
 
-  console.log(data);
+  console.log("Exporting video edits: ", data);
 
   try {
-    const response = await axios.post(
-      apiEndPoint,
-      {
-        edits: data,
-        filename: display_name,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await exportVideoEdits(projectID, {
+      edits: data,
+      filename: display_name,
+    });
     console.log("API Response: ", response.data);
   } catch (error) {
     console.error("API Error:", error);

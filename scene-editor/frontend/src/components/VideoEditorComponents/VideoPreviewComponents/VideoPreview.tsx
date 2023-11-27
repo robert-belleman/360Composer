@@ -18,7 +18,6 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { Assets, Scene, Sky } from "@belivvr/aframe-react";
 import { Box, Stack } from "@mui/material";
-import axios from "axios";
 
 import Hls from "hls.js";
 import { HlsContext } from "../../../App";
@@ -31,6 +30,7 @@ import {
 import { MINIMUM_CLIP_LENGTH } from "../Constants";
 import { useVideoContext } from "../VideoContext";
 import VideoControls from "./VideoControls";
+import { initHLS } from "../../../util/api";
 
 const VideoPreview: React.FC = () => {
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -75,7 +75,7 @@ const VideoPreview: React.FC = () => {
     try {
       console.log(`Attempting to enable HLS for asset with id: ${assetId}`);
 
-      const res = await axios.put(`/api/asset/${assetId}/stream`, {});
+      const res = await initHLS(assetId);
       const updatedAsset = res.data;
 
       const updatedClip = createClip(updatedAsset);
