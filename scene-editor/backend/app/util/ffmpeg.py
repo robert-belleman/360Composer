@@ -29,115 +29,140 @@ def get_duration(path):
     return int(float(result.stdout))
 
 
-def ffmpeg_process_asset(input_path: str, output_path: str) -> bool:
-    """Process an asset so they can be joined together later."""
-    # TODO: ensure consistency in resolution, frame rate and codec.
-    # TODO: ensure consistency in stereoscopy.
-    command = []
-
-    try:
-        subprocess.run(command, check=True)
-        return True
-    except subprocess.CalledProcessError:
-        print(f"Failed to process video: {input_path}")
-        return False
-
-
-def ffmpeg_trim_asset(
-    start_time: str, duration: str, input_path: str, output_path: str
+def ffmpeg_process_and_trim(
+    start_time: str,
+    duration: str,
+    input_path: str,
+    output_path: str,
+    resolution: str = None,
+    frame_rate: str = None,
+    video_codec: str = None,
+    audio_codec: str = None,
+    input_stereo_format: str = None,
+    output_stereo_format: str = None,
 ) -> bool:
-    """Trim an asset from `input_path` to `output_path` from `start_time` to
-    `end_time`.
+    """Trim the file on `input_path` and write the result to `output_path`.
+    The trim is from `start_time` to (`start_time` + `duration`).
 
-    Note that you can only use either -vf or -c. The video filter graph (-vf)
-    should be used when precise trimming is necessary, otherwise you may use
-    copy as codec (-c) to copy the data from the original asset into the new
-    one (no re-encoding). Copying is good for performance, but it copies from
-    the nearest keyframe. This means that the start and end times may differ
-    from the indicated times.
+    If any of the keyword arguments are specified, then the file is also
+    processed. This is in the same function so that less re-encoding is
+    required.
 
-    Flags:
-        -i <input_path>, input path of the file to trim.
-        -ss <start_time>, start time of the trimmed asset.
-        -t <duration>, duration of the trimmed asset (starting from ss).
-        -vf <>, video filter graph to maintain spatial metadata.
-        -c <codec>, codec to use (copy to leave video data unchanged).
+    # resolution / frame_rate
+    Note that if the resolution or frame_rate is not specified, FFmpeg will
+    use the resolution and frame rate of the first video. In addition, FFmpeg
+    ignores the specified `resolution` and `frame_rate` arguments if the codec
+    is specified as 'copy'.
+
+    # codec
+    Note that when no codecs are specified, FFmpeg will use the default
+    behavior. The default is to attempt to copy when certain conditions
+    are met. If the conditions are not met, then the output has to be
+    re-encoded.
+
+    # stereo_format
+    Note that the stereo format keywords argumnts have not been tested.
+    Although specifying the stereo format allows FFmpeg to work more efficient.
+
+    Trim Flags:
+        -ss  <start time>  : specify the start time of the trim.
+        -t   <duration>    : specify duration of trim from `start_time`.
+        -i   <input path>  : specify the input path of the file to trim.
+             <output path> : specify the output path of the result.
+
+    Process Flags:
+        -vf  <options>     : specify resolution / stereo format to encode to.
+        -r   <frame rate>  : specify the frame rate to encode to.
+        -c:v <video codec> : specify the video codec to use in encoding.
+        -c:a <audio codec> : specify the audio codec to use in encoding.
+
+    Other Flags:
+        -strict <mode> : allow experimental codecs.
     """
-    command = [
-        'ffmpeg',
-        '-i', input_path,
-        '-ss', start_time,
-        '-t', duration,
-        # '-vf', 'in=eq=n=1:s=1[clip]; [clip]out=eq=n=1:s=1',
-        '-c', 'copy',
-        output_path
+    vf_filter = ""
+
+    if resolution:
+        vf_filter += f"scale={resolution}"
+
+    if input_stereo_format and output_stereo_format:
+        if vf_filter:
+            vf_filter += ","
+        vf_filter += (
+            f"v360=input_stereo_format={input_stereo_format}:"
+            f"output_stereo_format={output_stereo_format}"
+        )
+
+    cmd = [
+        "ffmpeg",
+        "-ss", start_time,
+        "-t", duration,
+        "-strict", "experimental",
+        "-i", input_path,
     ]
 
+    if vf_filter:
+        cmd.extend(["-vf", vf_filter])
+    if frame_rate:
+        cmd.extend(["-r", frame_rate])
+    if video_codec:
+        cmd.extend(["-c:v", video_codec])
+    if audio_codec:
+        cmd.extend(["-c:a", audio_codec])
+
+    cmd.append(output_path)
+
     try:
-        subprocess.run(command, check=True)
+        res = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        print(res.stdout)
+        print(res.stderr)
         return True
-    except subprocess.CalledProcessError:
-        print(f"Failed to trim video: {input_path}")
+    except subprocess.CalledProcessError as error:
+        print(f"Failed to process/trim {input_path}. Error: {error.stderr}")
         return False
 
 
-def ffmpeg_join_assets(input_paths: list[str], output_path: str) -> bool:
-    """Join the assets from `filepaths` to `output_path`.
+def ffmpeg_concat_assets(input_paths: list[str], output_path: str) -> bool:
+    """Concatenate the assets in `input_paths` to `output_path`.
 
-    Note that this function assumes that the files can be concatenated. In
-    other words, that the files have already been processed to the same view
-    type, etc. If you see a clear pause between clip transitions, then the
-    clips do not have similar attributes (codec, resolution, frame rate). As
-    a result, FFmpeg may introduce pauses to handle discrepancies.
-
-    Note that the input paths `input_paths` are written to a text file and
-    then the text file is used with FFmpeg. The reason for this is the length
-    of the command in a command line is limited. The limit is dependant on
-    the underlying operating system. To ensure that two join requests do not
-    write in the same file, the timestamp and the process id are included in
-    the filename. This makes the chance of multiple processes writing in the
-    same file extremely slim.
-
-    The temporary text file is removed after the join operation. This is so
-    that there will not be random files in the directory.
+    Every input path is written on a newline in a temporary .txt file to
+    circumvent the maximum commandline length. This temporary .txt file
+    is automatically removed after the function executes.
 
     Flags:
-        -f <format>, specify the format as concat.
-        -safe <mode>, mode = 0 disables safe mode and allow absolute paths.
-        -i <input_path>, path to the text file with each file to concat.
-        -c <codec>, codec to use (copy to leave video data unchanged).
+        -f    <format>      : input is a concatenation of media.
+        -safe <mode>        : disable safe mode to allow absolute paths.
+        -i    <input path>  : specify the temporary .txt file as input.
+              <output path> : specify the output path of the result.
     """
     # Generate a unique filename using a timestamp and process ID
     timestamp = int(time.time())
     process_id = os.getpid()
-    filename = f'/trimmed/input_{timestamp}_{process_id}.txt'
+    temp_filenames_txt = f"/trimmed/input_{timestamp}_{process_id}.txt"
 
     # Create a text file with the list of video paths
-    with open(filename, 'w', encoding="utf-8") as file:
+    with open(temp_filenames_txt, "w", encoding="utf-8") as file:
         for path in input_paths:
             file.write(f"file '{path}'\n")
 
-    command = [
-        'ffmpeg',
-        '-f', 'concat',
-        '-safe', '0',
-        '-i', filename,
-        '-c', 'copy',
-        output_path
+    cmd = [
+        "ffmpeg",
+        "-f", "concat",
+        "-safe", "0",
+        "-i", temp_filenames_txt,
+        output_path,
     ]
 
     try:
-        result = subprocess.run(command, check=True, capture_output=True, text=True)
-        print(result.stdout)
-        print(result.stderr)
+        res = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        print(res.stdout)
+        print(res.stderr)
         return True
     except subprocess.CalledProcessError as error:
-        print(f"Failed to join videos: {input_paths}")
-        print(error.stderr)
+        print(f"Failed to to join videos. Error: {error.stderr}")
         return False
     finally:
         try:
-            os.remove(filename)
+            os.remove(temp_filenames_txt)
         except OSError:
             pass
 

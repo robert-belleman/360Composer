@@ -23,8 +23,8 @@ from app.schemas.asset import asset_schema
 from app.util.auth import user_jwt_required, project_access_required
 from app.util.ffmpeg import (
     create_thumbnail,
-    ffmpeg_join_assets,
-    ffmpeg_trim_asset,
+    ffmpeg_concat_assets,
+    ffmpeg_process_and_trim,
     get_duration,
 )
 from app.util.util import random_file_name
@@ -35,7 +35,6 @@ from sqlalchemy.orm.exc import NoResultFound
 ns = api.namespace("video-editor")
 
 
-PROCESSED_DIR = "/processed/"
 TRIMMED_DIR = "/trimmed/"
 EXTENSION = ".mp4"
 
@@ -142,7 +141,7 @@ def edit_assets(clips: dict, video_path: Path) -> HTTPStatus:
         unique_assets = find_unique_assets(clips)
         unique_trims = perform_unique_trims(clips, unique_assets)
         video_clips = list_video_clips(clips, unique_trims)
-        return ffmpeg_join_assets(video_clips, video_path)
+        return ffmpeg_concat_assets(video_clips, video_path)
     finally:
         cleanup_temporary_files(unique_trims)
 
@@ -165,7 +164,17 @@ def trim_asset(clip: dict, src_path: Path, dst_path: Path):
     try:
         start_time = clip["start_time"]
         duration = clip["duration"]
-        return ffmpeg_trim_asset(start_time, duration, src_path, dst_path)
+        # TODO: allow user to set the keyword arguments.
+        return ffmpeg_process_and_trim(
+            start_time,
+            duration,
+            src_path,
+            dst_path,
+            resolution="3840:1920",
+            frame_rate="30",
+            video_codec="libx264",
+            audio_codec="aac",
+        )
     except Exception as error:
         status = HTTPStatus.INTERNAL_SERVER_ERROR
         msg = f"Error trimming asset with ID: {clip['asset_id']}"
