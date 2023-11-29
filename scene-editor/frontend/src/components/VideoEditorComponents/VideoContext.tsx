@@ -19,16 +19,8 @@ import React, {
 
 import Hls from "hls.js";
 import { HlsContext } from "../../App";
-import {
-  seekIndex,
-  useClipsContext,
-  ActionTypes,
-  createClip,
-  Clip,
-} from "./ClipsContext";
+import { Clip, seekIndex, useClipsContext } from "./ClipsContext";
 import { MINIMUM_CLIP_LENGTH } from "./Constants";
-import { initHLS } from "../../util/api";
-import { Asset } from "./MediaLibraryComponents/AssetsContext";
 
 interface VideoContextProps {
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -80,39 +72,6 @@ const VideoProvider: React.FC = ({ children }) => {
     setVideoDuration(clipsState.totalDuration);
   }, [clipsState.totalDuration]);
 
-  const _getStreamSource = async (clip: Clip, init: boolean = false) => {
-    let source = clip.asset.hls_path;
-
-    if (init && source === null) {
-      const updatedAsset = await _initiateHLS(clip.asset);
-      if (updatedAsset !== null) source = updatedAsset.hls_path;
-    }
-
-    return `/assets/${source}`;
-  };
-
-  const _initiateHLS = async (asset: Asset) => {
-    try {
-      console.log(`Attempting to enable HLS for '${asset.name}' (${asset.id})`);
-
-      const res = await initHLS(asset.id);
-      const updatedAsset = res.data;
-
-      const updatedClip = createClip(updatedAsset);
-      dispatch({
-        type: ActionTypes.UPDATE_CLIP,
-        payload: { clip: updatedClip },
-      });
-
-      console.log(`HLS has been enabled for '${asset.name}' (${asset.id})`);
-
-      return updatedAsset;
-    } catch (error) {
-      console.error("Error enabling HLS:", error);
-      return null;
-    }
-  };
-
   const _loadWithHls = (
     videoElem: HTMLVideoElement,
     hls: Hls,
@@ -158,7 +117,7 @@ const VideoProvider: React.FC = ({ children }) => {
       return;
     }
 
-    const hlsSource = await _getStreamSource(clip, true);
+    const hlsSource = `/assets/${clip.asset.hls_path}`;
     if (!hlsSource) {
       console.error("Error loading video: HLS source URL has no content");
       return;

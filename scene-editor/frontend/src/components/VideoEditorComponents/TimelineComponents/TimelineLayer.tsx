@@ -7,27 +7,27 @@
  *
  */
 
-import React, { useEffect, useState } from "react";
 import {
   DndContext,
-  closestCenter,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { restrictToParentElement } from "@dnd-kit/modifiers";
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { restrictToParentElement } from "@dnd-kit/modifiers";
+import { useEffect, useState } from "react";
 
-import SortableItem from "./SortableItem/SortableItem";
 import { ActionTypes, useClipsContext } from "../ClipsContext";
 import { useVideoContext } from "../VideoContext";
-import { useTimelineContext, TimelineItem } from "./TimelineContext";
+import SortableItem from "./SortableItem/SortableItem";
 import TimelineClip from "./SortableItem/TimelineClip";
+import { TimelineItem, useTimelineContext } from "./TimelineContext";
 
 const TimelineLayer = () => {
   const { state: clipsState, dispatch } = useClipsContext();

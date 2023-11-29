@@ -6,25 +6,27 @@
  *
  */
 
-import React from "react";
+import { useState } from "react";
 
+import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { styled } from "@mui/material/styles";
-import { IconButtonProps } from "@mui/material/IconButton";
 import {
   Card,
   CardContent,
   CardMedia,
+  CircularProgress,
   Collapse,
   IconButton,
   Stack,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import { IconButtonProps } from "@mui/material/IconButton";
+import { styled } from "@mui/material/styles";
 
-import { Asset } from "../AssetsContext";
-import { ActionTypes, createClip, useClipsContext } from "../../ClipsContext";
 import defaultImage from "../../../../static/images/default.jpg";
+import { ActionTypes, createClip, useClipsContext } from "../../ClipsContext";
+import { MAX_CONCURRENT_INIT_HLS_CALLS } from "../../Constants";
+import { Asset, useAssetsContext } from "../AssetsContext";
 
 const toDisplayTime = (seconds: number) => {
   let minutes = Math.floor(seconds / 60);
@@ -60,19 +62,34 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 function LibraryAsset({ asset }: { asset: Asset }) {
-  const [expanded, setExpanded] = React.useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [enablingHLS, setEnablingHLS] = useState(false);
 
   const { dispatch } = useClipsContext();
+  const { activeApiCalls, attemptInitHLS } = useAssetsContext();
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
-  const handleAppendClip = () => {
+  const handleAppendClip = (asset: Asset) => {
     dispatch({
       type: ActionTypes.APPEND_CLIP,
       payload: { clip: createClip(asset) },
     });
+  };
+
+  const handleAddToTimeline = async () => {
+    if (asset.hls_path === null) {
+      setEnablingHLS(true);
+
+      const updatedAsset = await attemptInitHLS(asset);
+      if (updatedAsset !== null) handleAppendClip(updatedAsset);
+
+      setEnablingHLS(false);
+      return;
+    }
+    handleAppendClip(asset);
   };
 
   const imgPath = asset.thumbnail_path
@@ -110,14 +127,21 @@ function LibraryAsset({ asset }: { asset: Asset }) {
             {toDisplayTime(asset.duration)}
           </Typography>
         </Stack>
-        <Stack>
-          <IconButton
-            onClick={handleAppendClip}
-            color="primary"
-            aria-label="add to timeline"
-          >
-            <AddIcon />
-          </IconButton>
+        <Stack alignItems="center">
+          {enablingHLS ? (
+            <IconButton>
+              <CircularProgress size={20} />
+            </IconButton>
+          ) : (
+            <IconButton
+              disabled={activeApiCalls >= MAX_CONCURRENT_INIT_HLS_CALLS}
+              onClick={handleAddToTimeline}
+              color="primary"
+              aria-label="add to timeline"
+            >
+              <AddIcon />
+            </IconButton>
+          )}
           <ExpandMore
             color="primary"
             expand={expanded}

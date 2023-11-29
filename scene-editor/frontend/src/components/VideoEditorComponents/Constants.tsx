@@ -31,3 +31,4 @@ export const TIMELINE_CLIP_HEIGHT = 100;
          be between 0 and 1. */
 export const MINIMUM_CLIP_LENGTH = 0.166;
 export const CLIP_UNDO_STATES = 10;
+export const MAX_CONCURRENT_INIT_HLS_CALLS = 2;

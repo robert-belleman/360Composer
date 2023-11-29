@@ -20,12 +20,14 @@ import {
   FC,
   ReactNode,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-import { getAssets } from "../../../util/api";
+import { getAssets, initHLS } from "../../../util/api";
+import { MAX_CONCURRENT_INIT_HLS_CALLS } from "../Constants";
 
 export interface Asset {
   id: string;
@@ -58,6 +60,8 @@ interface AssetsContextProps {
   filterAssets: (assets: Asset[]) => Asset[];
   filterSetting: string;
   changeFilterSetting: (newSetting: string) => void;
+  activeApiCalls: number;
+  attemptInitHLS: (asset: Asset) => Promise<Asset | null>;
 }
 
 const AssetsContext = createContext<AssetsContextProps | undefined>(undefined);
@@ -73,7 +77,44 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
   const [orderOption, setOrderOption] = useState("asc");
   const [filterOptions, setFilterOptions] = useState<string[]>([]);
   const [filterSetting, setFilterSetting] = useState("any");
+
+  const [activeApiCalls, setActiveApiCalls] = useState<number>(0);
+
   const { projectID } = useParams();
+
+  const initiateHLS = async (asset: Asset) => {
+    try {
+      console.log(`Attempting to enable HLS for '${asset.name}' (${asset.id})`);
+
+      const res = await initHLS(asset.id);
+      const updatedAsset = res.data;
+
+      console.log(`HLS has been enabled for '${asset.name}' (${asset.id})`);
+
+      return updatedAsset;
+    } catch (error) {
+      console.error("Error enabling HLS:", error);
+      return null;
+    }
+  };
+
+  const attemptInitHLS = useCallback(
+    async (asset: Asset) => {
+      if (activeApiCalls < MAX_CONCURRENT_INIT_HLS_CALLS) {
+        setActiveApiCalls((prevCount) => prevCount + 1);
+
+        const updatedAsset = await initiateHLS(asset);
+
+        setActiveApiCalls((prevCount) => prevCount - 1);
+
+        return updatedAsset;
+      } else {
+        console.log("Maximum concurrent API calls reached");
+        return null;
+      }
+    },
+    [activeApiCalls]
+  );
 
   const fetchAssets = async () => {
     if (projectID === undefined) return;
@@ -217,6 +258,8 @@ const AssetsProvider: FC<AssetsProviderProps> = ({ children }) => {
     filterAssets,
     filterSetting,
     changeFilterSetting,
+    activeApiCalls,
+    attemptInitHLS,
   };
 
   return (

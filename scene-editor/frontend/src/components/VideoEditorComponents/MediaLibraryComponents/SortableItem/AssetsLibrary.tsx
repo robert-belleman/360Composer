@@ -6,25 +6,25 @@
  *
  */
 
-import React, { useEffect, useState } from "react";
 import {
   DndContext,
-  closestCenter,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { restrictToParentElement } from "@dnd-kit/modifiers";
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { restrictToParentElement } from "@dnd-kit/modifiers";
+import React, { useEffect, useState } from "react";
 
-import SortableItem from "./SortableItem";
 import { Asset } from "../AssetsContext";
 import LibraryAsset from "./LibraryAsset";
+import SortableItem from "./SortableItem";
 
 export interface LibraryItem {
   id: number;

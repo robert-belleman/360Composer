@@ -27,12 +27,11 @@
 
 import React, { ReactNode, createContext, useContext, useReducer } from "react";
 
-import axios from "axios";
 
 import defaultImage from "../../static/images/default.jpg";
+import { exportVideoEdits } from "../../util/api";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
 import { Asset } from "./MediaLibraryComponents/AssetsContext";
-import { exportVideoEdits } from "../../util/api";
 
 export interface Clip {
   asset: Asset; // Reference to an asset.
@@ -439,11 +438,7 @@ const canRedo = (state: State): boolean => {
 export {
   ClipsProvider,
   canRedo,
-  canUndo,
-  seekIndex,
-  exportClips,
-  thumbnailUrl,
+  canUndo, createClip, exportClips, seekIndex, thumbnailUrl,
   useClipsContext,
-  visibleClips,
-  createClip,
+  visibleClips
 };

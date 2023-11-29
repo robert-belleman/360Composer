@@ -10,9 +10,9 @@
 
 import { Slider } from "@mui/material";
 
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useVideoContext } from "../../VideoContext";
 import { useTimelineContext } from "../TimelineContext";
-import { useEffect, useLayoutEffect, useState } from "react";
 
 const THUMB_CIRCLE_SIZE = 16;
 

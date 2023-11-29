@@ -26,9 +26,9 @@ import {
   canUndo,
   useClipsContext,
 } from "../../ClipsContext";
+import { MINIMUM_CLIP_LENGTH } from "../../Constants";
 import { useVideoContext } from "../../VideoContext";
 import ZoomControls from "./ZoomControls";
-import { MINIMUM_CLIP_LENGTH } from "../../Constants";
 
 export const undoAction = () => ({
   type: ActionTypes.UNDO as const,

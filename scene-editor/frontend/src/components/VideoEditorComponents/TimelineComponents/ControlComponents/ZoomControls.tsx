@@ -7,15 +7,15 @@
  *
  */
 
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
-import { Stack, IconButton } from "@mui/material";
+import { IconButton, Stack } from "@mui/material";
 
-import { useTimelineContext } from "../TimelineContext";
-import { useClipsContext } from "../../ClipsContext";
 import { useEffect, useState } from "react";
+import { useClipsContext } from "../../ClipsContext";
 import { useVideoContext } from "../../VideoContext";
+import { useTimelineContext } from "../TimelineContext";
 
 const ZoomControls = () => {
   const defaultExponent = 0;

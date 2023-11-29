@@ -21,9 +21,9 @@ import { Box, Stack } from "@mui/material";
 
 /* Project Specific Imports */
 import { TIMELINE_HEIGHT } from "../Constants";
+import TimelineControls from "./ControlComponents/TimelineControls";
 import VideoSlider from "./ControlComponents/VideoSlider";
 import { useTimelineContext } from "./TimelineContext";
-import TimelineControls from "./ControlComponents/TimelineControls";
 import TimelineLayer from "./TimelineLayer";
 
 const Timeline: React.FC = () => {

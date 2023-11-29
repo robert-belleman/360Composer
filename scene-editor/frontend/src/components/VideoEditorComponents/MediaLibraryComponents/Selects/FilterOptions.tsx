@@ -7,12 +7,12 @@
  *
  */
 
-import React, { useState, useRef, ChangeEvent } from "react";
+import React, { ChangeEvent, useRef, useState } from "react";
 
-import { Box, Button, Divider, Menu, MenuItem, TextField } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import { Box, Button, Divider, Menu, MenuItem, TextField } from "@mui/material";
 
 import { useAssetsContext } from "../AssetsContext";
 
