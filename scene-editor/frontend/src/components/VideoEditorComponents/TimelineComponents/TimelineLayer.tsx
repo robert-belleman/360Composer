@@ -7,7 +7,7 @@
  *
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -31,8 +31,19 @@ import TimelineClip from "./SortableItem/TimelineClip";
 
 const TimelineLayer = () => {
   const { state: clipsState, dispatch } = useClipsContext();
-  const { reloading, setReloading } = useVideoContext();
   const { items, setItems } = useTimelineContext();
+  const { reloadVideo } = useVideoContext();
+  const [movedClips, setMovedClips] = useState(false);
+
+  /**
+   * If the clips have been moved, the reload the video.
+   */
+  useEffect(() => {
+    if (movedClips) {
+      reloadVideo();
+      setMovedClips(false);
+    }
+  }, [movedClips]);
 
   /**
    * If the clips update, change the items to render.
@@ -87,7 +98,7 @@ const TimelineLayer = () => {
         type: ActionTypes.MOVE_CLIP,
         payload: { oldIndex, newIndex },
       });
-      setReloading(!reloading);
+      setMovedClips(true);
 
       setItems((prevItems: TimelineItem[]) =>
         arrayMove(prevItems, oldIndex, newIndex)

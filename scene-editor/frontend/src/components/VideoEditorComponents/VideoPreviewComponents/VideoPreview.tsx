@@ -14,23 +14,13 @@
  *
  */
 
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Assets, Scene, Sky } from "@belivvr/aframe-react";
 import { Box, Stack } from "@mui/material";
 
-import Hls from "hls.js";
-import { HlsContext } from "../../../App";
-import {
-  Clip,
-  ActionTypes,
-  createClip,
-  useClipsContext,
-} from "../ClipsContext";
-import { MINIMUM_CLIP_LENGTH } from "../Constants";
 import { useVideoContext } from "../VideoContext";
 import VideoControls from "./VideoControls";
-import { initHLS } from "../../../util/api";
 
 const VideoPreview: React.FC = () => {
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -38,136 +28,7 @@ const VideoPreview: React.FC = () => {
   const [loadedMeta, setLoadedMeta] = useState(false);
   const [videoSize, setVideoSize] = useState({ width: 1, height: 1 });
 
-  const hls = useContext<Hls | undefined>(HlsContext);
-  const { state: clipsState, dispatch } = useClipsContext();
-
-  const {
-    videoRef,
-    isPlaying,
-    isSeeking,
-    reloading,
-    currentIndex,
-    currentTime,
-    currentDuration,
-    videoClipTime,
-    videoClipTimePlayed,
-    setIsPlaying,
-    setIsSeeking,
-    setReloading,
-    setCurrentIndex,
-    setCurrentTime,
-    setVideoClipTime,
-    setVideoClipTimePlayed,
-    play,
-    playNext,
-    seek,
-  } = useVideoContext();
-
-  /**
-   * Enable HTTP Live-Streaming for an asset.
-   *
-   * Note: Updating is used in VideoPreview.tsx to reload the video. This is
-   *       in case the clip was added to the timeline before HLS was enabled.
-   *
-   * @param assetId asset to enable HLS for.
-   */
-  const initiateHLS = async (assetId: string) => {
-    try {
-      console.log(`Attempting to enable HLS for asset with id: ${assetId}`);
-
-      const res = await initHLS(assetId);
-      const updatedAsset = res.data;
-
-      const updatedClip = createClip(updatedAsset);
-      dispatch({
-        type: ActionTypes.UPDATE_CLIP,
-        payload: { clip: updatedClip },
-      });
-
-      console.log(`HLS has been enabled for asset with id: ${assetId}`);
-
-      return updatedAsset;
-    } catch (error) {
-      console.error("Error enabling HLS:", error);
-      return null;
-    }
-  };
-
-  const loadVideo = async (
-    videoElem: HTMLVideoElement,
-    hls: Hls,
-    clip: Clip
-  ) => {
-    let source = clip.asset.hls_path;
-    if (source === null) {
-      const updatedAsset = await initiateHLS(clip.asset.id);
-      if (updatedAsset !== null) source = updatedAsset.hls_path;
-    }
-
-    // Check if HLS path is still null after initiation
-    if (source === null) {
-      console.error("Error loading video: HLS source URL is still null");
-      return;
-    }
-
-    const hlsSource = `/assets/${source}`;
-    if (!hlsSource) {
-      console.error(
-        "Error loading video: HLS source URL is empty or undefined"
-      );
-      return;
-    }
-
-    const loadWithHls = (source: string) => {
-      try {
-        hls.loadSource(source);
-        hls.attachMedia(videoElem);
-        console.log("Loaded HLS source:", source);
-      } catch (error) {
-        console.error("Error loading video:", error);
-      }
-    };
-
-    const loadSource = (source: string) => {
-      if (Hls.isSupported()) {
-        loadWithHls(source);
-      } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
-        videoElem.src = source;
-      } else {
-        console.error("No HLS support");
-      }
-    };
-
-    loadSource(hlsSource);
-  };
-
-  /**
-   * When the video clip changes, load the source.
-   */
-  useEffect(() => {
-    const { current: videoElem } = videoRef;
-
-    if (currentIndex === null || clipsState.clips.length === 0) {
-      return;
-    }
-
-    if (!videoElem || !hls) {
-      console.error("Error loading video: Video element or HLS not available.");
-      return;
-    }
-
-    const currentClip = clipsState.clips[currentIndex];
-    loadVideo(videoElem, hls, currentClip);
-
-    if (!isSeeking) videoElem.currentTime = currentClip.startTime;
-
-    if (reloading) {
-      seek(currentTime);
-      setReloading(false);
-    }
-
-    if (isPlaying) play(videoElem);
-  }, [currentIndex, hls, reloading]);
+  const { videoRef, handleTimeUpdate, handleEnded } = useVideoContext();
 
   /**
    * Update the dimensions of the Box to maximize video size while maintaining
@@ -217,40 +78,10 @@ const VideoPreview: React.FC = () => {
    * Update dimensions to maximize video area inside Box.
    * Update state to ley play() know it can play without buffer.
    */
-  const onLoadedMetadata = () => {
+  const handleLoadedMetadata = () => {
     updateDimensions();
     setLoadedMeta(true);
   };
-
-  /**
-   * Update time state variables on time update.
-   */
-  const onTimeUpdate = () => {
-    const { current: videoElem } = videoRef;
-
-    if (!videoElem || currentIndex === null) {
-      console.error("Error: Video element not available");
-      return;
-    }
-
-    /* Update state variables for time. */
-    setVideoClipTime(videoElem.currentTime);
-    setCurrentTime(videoElem.currentTime + videoClipTimePlayed);
-
-    const currentClip = clipsState.clips[currentIndex];
-    /* If the duration of the clip has been exceeded, play the next clip. */
-    if (currentClip.duration <= videoElem.currentTime) {
-      /* Try not to overlap with the onEnded() function. */
-      const delta = currentClip.asset.duration - currentClip.duration;
-      const overlapping = delta < MINIMUM_CLIP_LENGTH;
-      if (!overlapping) playNext();
-    }
-  };
-
-  /**
-   * Play the next video clip if the video source ends.
-   */
-  const onEnded = () => playNext();
 
   return (
     <Stack flexGrow={1} sx={{ backgroundColor: "snow" }}>
@@ -270,9 +101,9 @@ const VideoPreview: React.FC = () => {
                 autoPlay={false}
                 loop={false}
                 crossOrigin="anonymous"
-                onTimeUpdate={onTimeUpdate}
-                onLoadedMetadata={onLoadedMetadata}
-                onEnded={onEnded}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onEnded={handleEnded}
                 src="" // Set an empty placeholder.
               />
             </Assets>

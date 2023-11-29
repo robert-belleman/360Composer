@@ -24,7 +24,6 @@ import {
   ActionTypes,
   canRedo,
   canUndo,
-  seekIndex,
   useClipsContext,
 } from "../../ClipsContext";
 import { useVideoContext } from "../../VideoContext";
@@ -58,20 +57,15 @@ const TimelineButton: React.FC<{
   icon: React.ReactNode;
   label: string;
 }> = memo(({ disabled, onClick, icon, label }) => {
-  const { isSeeking } = useVideoContext();
   return (
-    <IconButton
-      disabled={disabled || isSeeking}
-      onClick={onClick}
-      aria-label={label}
-    >
+    <IconButton disabled={disabled} onClick={onClick} aria-label={label}>
       {icon}
     </IconButton>
   );
 });
 
 const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
-  const { videoClipTimePlayed, currentIndex, setCurrentIndex } =
+  const { videoPlayedClipsDuration, videoIndex, handleVideoDeleted } =
     useVideoContext();
   const { state: clipsState, dispatch } = useClipsContext();
 
@@ -86,7 +80,7 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
 
   const canSplit = () => {
     /* This is slightly faster than using seekIndex() from clipsContext. */
-    return currentTime - videoClipTimePlayed >= MINIMUM_CLIP_LENGTH;
+    return currentTime - videoPlayedClipsDuration >= MINIMUM_CLIP_LENGTH;
   };
 
   const handleSplitClip = useCallback(() => {
@@ -98,11 +92,11 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
   }, [dispatch]);
 
   const handleDeleteClips = useCallback(() => {
-    if (currentIndex !== null && clipsState.clips[currentIndex].selected) {
-      setCurrentIndex(null);
+    if (videoIndex !== null && clipsState.clips[videoIndex].selected) {
+      handleVideoDeleted();
     }
     dispatch(deleteClipsAction());
-  }, [dispatch, currentIndex]);
+  }, [dispatch, videoIndex]);
 
   return (
     <>
@@ -141,7 +135,8 @@ const ClipManipulationButtons = ({ currentTime }: { currentTime: number }) => {
 };
 
 const TimelineControls = () => {
-  const { currentTime, currentDuration } = useVideoContext();
+  const { videoTime, videoDuration } =
+    useVideoContext();
 
   /**
    * Convert seconds to a user friendly display format. Note that the fractional
@@ -150,7 +145,7 @@ const TimelineControls = () => {
    * @returns The time string.
    */
   const toDisplayTime = (totalSeconds: number) => {
-    const clamped = Math.min(Math.max(totalSeconds, 0), currentDuration);
+    const clamped = Math.min(Math.max(totalSeconds, 0), videoDuration);
     const minutes = String(Math.floor(clamped / 60)).padStart(2, "0");
     const seconds = String(Math.floor(clamped % 60)).padStart(2, "0");
     return `${minutes}:${seconds}`;
@@ -159,7 +154,7 @@ const TimelineControls = () => {
   const DisplayTime = () => {
     return (
       <Typography color={"black"}>
-        {toDisplayTime(currentTime)}/{toDisplayTime(currentDuration)}
+        {toDisplayTime(videoTime)}/{toDisplayTime(videoDuration)}
       </Typography>
     );
   };
@@ -174,7 +169,7 @@ const TimelineControls = () => {
       {/* For larger screens, show both sets of buttons */}
       <Hidden smDown>
         <Grid item md={5}>
-          <ClipManipulationButtons currentTime={currentTime} />
+          <ClipManipulationButtons currentTime={videoTime} />
         </Grid>
         <Grid item md={2} display="flex" justifyContent="center">
           <DisplayTime />
@@ -187,7 +182,7 @@ const TimelineControls = () => {
       {/* For smaller screens, buttons are combined with display time below */}
       <Hidden smUp>
         <Grid item xs={7}>
-          <ClipManipulationButtons currentTime={currentTime} />
+          <ClipManipulationButtons currentTime={videoTime} />
         </Grid>
         <Grid item xs={5}>
           <ZoomControls />

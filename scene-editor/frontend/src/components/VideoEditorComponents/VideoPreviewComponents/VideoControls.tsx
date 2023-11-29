@@ -45,49 +45,8 @@ const ControlButton: React.FC<ControlButtonProps> = ({
 };
 
 const VideoControls: React.FC = () => {
-  const {
-    videoRef,
-    isPlaying,
-    setIsPlaying,
-    currentIndex,
-    currentTime,
-    currentDuration,
-    play,
-    reset,
-    seek,
-  } = useVideoContext();
-
-  /**
-   * Pause or resume playback of the video.
-   */
-  const togglePlayback = () => {
-    const { current: videoElem } = videoRef;
-    if (videoElem) {
-      if (videoElem.currentSrc) setIsPlaying(!isPlaying);
-
-      if (currentDuration <= currentTime) reset();
-      else if (isPlaying) videoElem.pause();
-      else play(videoElem);
-    }
-  };
-
-  /**
-   * Add or subtract a number of seconds to the current time.
-   * @param delta The number of seconds to add or subtract.
-   */
-  const addTime = (delta: number) => {
-    const { current: videoElem } = videoRef;
-    if (videoElem) {
-      const newTime = videoElem.currentTime + delta;
-      const exceedClipEnd = newTime > videoElem.duration;
-      const exceedClipStart = newTime < 0;
-      if (exceedClipEnd || exceedClipStart) {
-        if (currentIndex !== null) seek(currentTime + delta);
-      } else {
-        videoElem.currentTime = newTime;
-      }
-    }
-  };
+  const { isPlaying, videoTime, videoDuration, handleTogglePlayback, seek } =
+    useVideoContext();
 
   return (
     <Box height="auto" display="flex" justifyContent="center">
@@ -97,22 +56,22 @@ const VideoControls: React.FC = () => {
         icon={<SkipPreviousIcon />}
       />
       <ControlButton
-        onClick={() => addTime(-5)}
+        onClick={() => seek(videoTime - 5)}
         ariaLabel="Rewind 5 seconds"
         icon={<Replay5Icon />}
       />
       <ControlButton
-        onClick={togglePlayback}
+        onClick={handleTogglePlayback}
         ariaLabel={isPlaying ? "Pause" : "Play"}
         icon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
       />
       <ControlButton
-        onClick={() => addTime(5)}
+        onClick={() => seek(videoTime + 5)}
         ariaLabel="Forward 5 seconds"
         icon={<Forward5Icon />}
       />
       <ControlButton
-        onClick={() => seek(currentDuration - 1)}
+        onClick={() => seek(videoDuration)}
         ariaLabel="Forward to end"
         icon={<SkipNextIcon />}
       />

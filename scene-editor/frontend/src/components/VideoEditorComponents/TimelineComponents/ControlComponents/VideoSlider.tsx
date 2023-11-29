@@ -17,20 +17,20 @@ import { useEffect, useLayoutEffect, useState } from "react";
 const THUMB_CIRCLE_SIZE = 16;
 
 const VideoSlider: React.FC = () => {
-  const [secondsInWindow, setSecondsInWindow] = useState(0);
+  const [onscreenSeconds, setOnscreenSeconds] = useState(0);
   const [thumbStyles, setThumbStyles] = useState({
     height: "0px",
     marginTop: "0px",
   });
 
   const { scale, timelineWindowRef } = useTimelineContext();
-  const { currentTime, currentDuration, seek } = useVideoContext();
+  const { videoTime, videoDuration, seek } = useVideoContext();
 
   /**
    * When the scale changes, compute how many seconds fit on screen.
    */
   useLayoutEffect(() => {
-    setSecondsInWindow(currentDuration / scale);
+    setOnscreenSeconds(videoDuration / scale);
   }, [scale]);
 
   /**
@@ -58,9 +58,23 @@ const VideoSlider: React.FC = () => {
     if (typeof newTime !== "number" || !timelineElem) return;
 
     seek(newTime);
+  };
 
-    /* Prevent window from scrolling to the previous slider position. */
-    timelineElem.scrollLeft = timelineElem.scrollLeft;
+  const _movedOffscreenRight = () => {
+    const { current: timelineElem } = timelineWindowRef;
+    if (!timelineElem) return;
+
+    /* Compute the total length of the video tape. */
+    const tapeTotalLength = timelineElem.clientWidth * scale;
+
+    /* Compute the length of the video tape to the left of the screen. */
+    const tapeOffscreenLeftLength = timelineElem.scrollLeft / tapeTotalLength;
+
+    /* Convert the length to seconds. */
+    const offscreenSeconds = tapeOffscreenLeftLength * videoDuration;
+
+    /* Check if `videoTime` exceeds the rightside of the screen. */
+    return offscreenSeconds + onscreenSeconds <= videoTime;
   };
 
   /**
@@ -70,18 +84,19 @@ const VideoSlider: React.FC = () => {
     const { current: timelineElem } = timelineWindowRef;
     if (!timelineElem) return;
 
-    const scroll = Math.floor(currentTime / secondsInWindow);
-    timelineElem.scrollLeft += timelineElem.clientWidth * scroll;
-  }, [currentTime]);
+    if (_movedOffscreenRight()) {
+      timelineElem.scrollLeft += timelineElem.clientWidth;
+    }
+  }, [videoTime]);
 
   return (
     <Slider
       aria-label="Time Slider"
       min={0}
-      max={currentDuration}
+      max={videoDuration}
       step={0.01}
       track={false}
-      value={currentTime}
+      value={videoTime}
       onChange={handleSliderChange}
       sx={{
         color: "gold",

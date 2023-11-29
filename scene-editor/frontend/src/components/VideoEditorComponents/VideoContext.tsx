@@ -7,15 +7,9 @@
  * the state of video clips between different files. All functions and
  * effect that change the state of the video should be defined here.
  *
- * Examples:
- * - play(): attempt to play the current video source.
- * - seek(): seek to a certain time in the video (all clips).
- *
  */
 
 import React, {
-  Dispatch,
-  SetStateAction,
   createContext,
   useContext,
   useEffect,
@@ -23,29 +17,35 @@ import React, {
   useState,
 } from "react";
 
-import { seekIndex, useClipsContext } from "./ClipsContext";
+import Hls from "hls.js";
+import { HlsContext } from "../../App";
+import {
+  seekIndex,
+  useClipsContext,
+  ActionTypes,
+  createClip,
+  Clip,
+} from "./ClipsContext";
+import { MINIMUM_CLIP_LENGTH } from "./Constants";
+import { initHLS } from "../../util/api";
+import { Asset } from "./MediaLibraryComponents/AssetsContext";
 
 interface VideoContextProps {
   videoRef: React.RefObject<HTMLVideoElement>;
   isPlaying: boolean;
-  isSeeking: boolean;
-  reloading: boolean;
-  currentIndex: number | null;
-  currentTime: number;
-  currentDuration: number;
-  videoClipTime: number;
-  videoClipTimePlayed: number;
-  setIsPlaying: Dispatch<SetStateAction<boolean>>;
-  setIsSeeking: Dispatch<SetStateAction<boolean>>;
-  setReloading: Dispatch<SetStateAction<boolean>>;
-  setCurrentIndex: Dispatch<SetStateAction<number | null>>;
-  setCurrentTime: Dispatch<SetStateAction<number>>;
-  setVideoClipTime: Dispatch<SetStateAction<number>>;
-  setVideoClipTimePlayed: Dispatch<SetStateAction<number>>;
-  play: (videoElem: HTMLVideoElement) => void;
-  playNext: () => void;
-  reset: () => void;
+  videoIndex: number | null;
+  videoTime: number;
+  videoDuration: number;
+  videoPlayedClipsDuration: number;
+  playVideo: () => void;
+  nextVideo: () => void;
+  resetVideo: () => void;
+  reloadVideo: () => void;
   seek: (time: number) => void;
+  handleTogglePlayback: () => void;
+  handleVideoDeleted: () => void;
+  handleTimeUpdate: () => void;
+  handleEnded: () => void;
 }
 
 const VideoContext = createContext<VideoContextProps | undefined>(undefined);
@@ -53,45 +53,131 @@ const VideoContext = createContext<VideoContextProps | undefined>(undefined);
 const VideoProvider: React.FC = ({ children }) => {
   /* Reference to the HTMLVideoElement. */
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  /* Indicate when playback of the video changes. */
+  /* Indicate if the video is playing. */
   const [isPlaying, setIsPlaying] = useState(false);
-  /* Indicate when time is changed and things like ontimeupdate should stop. */
-  const [isSeeking, setIsSeeking] = useState(false);
-  /* Set to true if you want to forec reload the current source. */
-  const [reloading, setReloading] = useState(false);
-  /* Index of the current clip in the clips array. */
-  const [currentIndex, setCurrentIndex] = useState<number | null>(null);
-  /* Indicate the current time in the video (all clips). */
-  const [currentTime, setCurrentTime] = useState(0);
-  /* Indicate the full duration of the video (all clips). */
-  const [currentDuration, setCurrentDuration] = useState(0);
+  /* Indicate the video's index in the clips array. */
+  const [videoIndex, setVideoIndex] = useState<number | null>(null);
+  /* Indicate current time in the video (all clips). */
+  const [videoTime, setVideoTime] = useState(0);
+  /* Indicate total time of the video (all clips). */
+  const [videoDuration, setVideoDuration] = useState(0);
+  /* Indicate total time of completed clips before the current index. */
+  const [videoPlayedClipsDuration, setVideoPlayedClipsDuration] = useState(0);
 
-  /* Indicate the current time in the current clip. */
-  const [videoClipTime, setVideoClipTime] = useState(0);
-  /* Indicate the amount of time that has already been played before clip. */
-  const [videoClipTimePlayed, setVideoClipTimePlayed] = useState(0);
+  const { state: clipsState, dispatch } = useClipsContext();
+  const hls = useContext<Hls | undefined>(HlsContext);
 
-  const { state: clipsState } = useClipsContext();
-
-  /* After any changes to the length, start on the head. */
+  // TODO: TEMP
   useEffect(() => {
     if (clipsState.clips.length === 1) {
-      seek(0);
-    } else if (clipsState.clips.length > 1) {
-      seek(currentTime);
+      setVideoIndex(0);
+      loadVideo(clipsState.clips[0]);
     }
   }, [clipsState.clips.length]);
 
   /* If the total time changes, update the state of the total time. */
   useEffect(() => {
-    setCurrentDuration(clipsState.totalDuration);
+    setVideoDuration(clipsState.totalDuration);
   }, [clipsState.totalDuration]);
 
+  const _getStreamSource = async (clip: Clip, init: boolean = false) => {
+    let source = clip.asset.hls_path;
+
+    if (init && source === null) {
+      const updatedAsset = await _initiateHLS(clip.asset);
+      if (updatedAsset !== null) source = updatedAsset.hls_path;
+    }
+
+    return `/assets/${source}`;
+  };
+
+  const _initiateHLS = async (asset: Asset) => {
+    try {
+      console.log(`Attempting to enable HLS for '${asset.name}' (${asset.id})`);
+
+      const res = await initHLS(asset.id);
+      const updatedAsset = res.data;
+
+      const updatedClip = createClip(updatedAsset);
+      dispatch({
+        type: ActionTypes.UPDATE_CLIP,
+        payload: { clip: updatedClip },
+      });
+
+      console.log(`HLS has been enabled for '${asset.name}' (${asset.id})`);
+
+      return updatedAsset;
+    } catch (error) {
+      console.error("Error enabling HLS:", error);
+      return null;
+    }
+  };
+
+  const _loadWithHls = (
+    videoElem: HTMLVideoElement,
+    hls: Hls,
+    source: string
+  ) => {
+    try {
+      hls.loadSource(source);
+      hls.attachMedia(videoElem);
+      console.log("Loaded HLS source:", source);
+    } catch (error) {
+      console.error("Error loading video:", error);
+    }
+  };
+
+  const _loadSource = (
+    videoElem: HTMLVideoElement,
+    hls: Hls,
+    source: string
+  ) => {
+    if (Hls.isSupported()) {
+      _loadWithHls(videoElem, hls, source);
+    } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
+      videoElem.src = source;
+    } else {
+      console.error("No HLS support");
+    }
+  };
+
   /**
-   * Play the video of `videoElem`. If the video ended, restart from time = 0.
-   * @param videoElem element to play video of.
+   * Load the video source of the clip `clip`. The video element will start
+   * playback at the start time indicated by the Clip object. If an offset
+   * is given, then the video element starts at the sum of the start time
+   * and the offset. In summary, if you want to start playback `x` seconds
+   * into the clip `clip`, then `offset` should be set to `x`.
+   * @param clip clip to load.
+   * @param offset time in the clip to start on.
    */
-  const play = (videoElem: HTMLVideoElement) => {
+  const loadVideo = async (clip: Clip | null, offset: number = 0) => {
+    const { current: videoElem } = videoRef;
+
+    if (!videoElem || !hls || clip === null) {
+      console.error("Error loading video: Video element or HLS unavailable.");
+      return;
+    }
+
+    const hlsSource = await _getStreamSource(clip, true);
+    if (!hlsSource) {
+      console.error("Error loading video: HLS source URL has no content");
+      return;
+    }
+
+    _loadSource(videoElem, hls, hlsSource);
+
+    videoElem.currentTime = clip.startTime + offset;
+
+    if (isPlaying) playVideo();
+  };
+
+  /**
+   * Play the video when enough data has loaded.
+   */
+  const playVideo = () => {
+    const { current: videoElem } = videoRef;
+    if (!videoElem) return;
+
     const onCanPlay = () => {
       videoElem.removeEventListener("canplay", onCanPlay);
       videoElem.play().catch((error) => {
@@ -120,28 +206,43 @@ const VideoProvider: React.FC = ({ children }) => {
   /**
    * Play the next video clip. If there is no next clip, stop playing.
    */
-  const playNext = () => {
-    const { current: videoElem } = videoRef;
-    if (!videoElem) return;
-
-    /* If there is no next video clip, then stop. */
-    if (currentIndex === null || currentIndex === clipsState.clips.length - 1) {
-      setIsPlaying(false);
-      videoElem.pause();
+  const nextVideo = () => {
+    if (videoIndex !== null && videoIndex < clipsState.clips.length - 1) {
+      const duration = clipsState.clips[videoIndex].duration;
+      const newIndex = videoIndex + 1;
+      setVideoPlayedClipsDuration(videoPlayedClipsDuration + duration);
+      setVideoIndex(newIndex);
+      loadVideo(clipsState.clips[newIndex]);
       return;
     }
 
-    /* Seek to the start of next clip. */
-    seek(videoClipTimePlayed + clipsState.clips[currentIndex].duration);
+    const { current: videoElem } = videoRef;
+    if (!videoElem) return;
+
+    setIsPlaying(false);
+    videoElem.pause();
   };
 
   /**
    * Reset to the start of the video.
+   * @param play if true, then play the video after resetting.
    */
-  const reset = () => {
-    if (clipsState.clips.length) {
-      seek(0);
-    }
+  const resetVideo = async (play: boolean = false) => {
+    setVideoPlayedClipsDuration(0);
+    setVideoTime(0);
+    setVideoIndex(0);
+    await loadVideo(clipsState.clips[0], 0);
+    if (play) playVideo();
+  };
+
+  /**
+   * Reload the video after changes have been made in the order of the clips.
+   *
+   * NOTE: this function should be called frmo a useEffect() to ensure that
+   * the clips array has been updated.
+   */
+  const reloadVideo = () => {
+    seek(videoTime);
   };
 
   /**
@@ -149,67 +250,107 @@ const VideoProvider: React.FC = ({ children }) => {
    * @param time time to got to.
    */
   const seek = (time: number) => {
-    const { index, timeInClip } = seekIndex(clipsState, time);
+    const { current: videoElem } = videoRef;
+    if (!videoElem || clipsState.clips.length === 0) return;
 
+    const { index, timeInClip } = seekIndex(clipsState, time);
     if (index !== null) {
-      setIsSeeking(true);
-      setVideoClipTimePlayed(time - timeInClip);
-      setVideoClipTime(timeInClip);
-      setCurrentIndex(index);
-      setCurrentTime(time);
-    } else if (clipsState.clips.length > 0 && time < 0) {
+      const currentClip = clipsState.clips[index];
+      setVideoPlayedClipsDuration(time - timeInClip);
+      setVideoTime(time);
+      setVideoIndex(index);
+      loadVideo(currentClip, timeInClip);
+    } else if (time <= 0) {
       /* If the time exceeds the minimum duration, skip to start. */
-      setIsSeeking(true);
-      setVideoClipTimePlayed(0);
-      setVideoClipTime(0);
-      setCurrentTime(0);
-      setCurrentIndex(clipsState.clips ? 0 : null);
-    } else if (clipsState.clips.length > 0 && time > clipsState.totalDuration) {
+      const firstClip = clipsState.clips[0];
+      setVideoPlayedClipsDuration(0);
+      setVideoTime(0);
+      setVideoIndex(clipsState.clips ? 0 : null);
+      loadVideo(firstClip, 0);
+    } else if (time >= clipsState.totalDuration) {
       /* If the time exceeds the maximum duration, skip to end. */
       const lastIndex = clipsState.clips.length - 1;
       const lastClip = clipsState.clips[lastIndex];
-      setIsSeeking(true);
-      setCurrentTime(clipsState.totalDuration);
-      setVideoClipTimePlayed(clipsState.totalDuration - lastClip.duration);
-      setVideoClipTime(lastClip.duration);
-      setCurrentIndex(lastIndex);
+      setVideoPlayedClipsDuration(clipsState.totalDuration - lastClip.duration);
+      setVideoTime(clipsState.totalDuration);
+      setVideoIndex(lastIndex);
+      loadVideo(lastClip, lastClip.duration);
     }
   };
 
   /**
-   * If someone seeks a specific time in the slider, go to it.
+   * Pause or resume playback of the video.
    */
-  useEffect(() => {
+  const handleTogglePlayback = () => {
+    const { current: videoElem } = videoRef;
+    if (!videoElem) return;
+
+    if (videoElem.currentSrc) setIsPlaying(!isPlaying);
+
+    if (videoDuration <= videoTime) {
+      resetVideo(true);
+    } else if (isPlaying) {
+      videoElem.pause();
+    } else {
+      playVideo();
+    }
+  };
+
+  /**
+   * When a video is deleted, handle the update of related states.
+   */
+  const handleVideoDeleted = () => {
+    setVideoIndex(null);
+  };
+
+  /**
+   * Update time state variables on time update.
+   */
+  const handleTimeUpdate = () => {
     const { current: videoElem } = videoRef;
 
-    if (isSeeking && videoElem) {
-      videoElem.currentTime = videoClipTime;
-      setIsSeeking(false);
-      if (isPlaying) play(videoElem);
+    if (!videoElem || videoIndex === null) {
+      console.error("Error: Video element not available");
+      return;
     }
-  }, [isSeeking]);
+
+    /* Update state variables for time. */
+    const currentClip = clipsState.clips[videoIndex];
+    const currentClipTime = videoElem.currentTime - currentClip.startTime;
+    setVideoTime(currentClipTime + videoPlayedClipsDuration);
+
+    /* If the duration of the clip has been exceeded, play the next clip. */
+    if (currentClip.duration <= currentClipTime) {
+      /* Try not to overlap with the onEnded() function. */
+      const delta = currentClip.asset.duration - currentClip.duration;
+      const overlapping = delta < MINIMUM_CLIP_LENGTH;
+      if (!overlapping) nextVideo();
+    }
+  };
+
+  /**
+   * When a video clip ends, attempt to play the next one.
+   */
+  const handleEnded = () => {
+    nextVideo();
+  };
 
   const value: VideoContextProps = {
     videoRef,
     isPlaying,
-    isSeeking,
-    reloading,
-    currentIndex,
-    currentTime,
-    currentDuration,
-    videoClipTime,
-    videoClipTimePlayed,
-    setIsPlaying,
-    setIsSeeking,
-    setReloading,
-    setCurrentIndex,
-    setCurrentTime,
-    setVideoClipTime,
-    setVideoClipTimePlayed,
-    play,
-    playNext,
-    reset,
+    videoIndex,
+    videoTime,
+    videoDuration,
+    videoPlayedClipsDuration,
+    playVideo,
+    nextVideo,
+    resetVideo,
+    reloadVideo,
     seek,
+    handleTogglePlayback,
+    handleVideoDeleted,
+    handleTimeUpdate,
+    handleEnded,
   };
 
   return (

@@ -27,20 +27,20 @@ const ZoomControls = () => {
 
   const { setScale } = useTimelineContext();
   const { state: clipsState } = useClipsContext();
-  const { currentDuration } = useVideoContext();
+  const { videoDuration } = useVideoContext();
 
   useEffect(() => {
     /* If the duration is too small to zoom in, then do not allow zooming. */
-    if (currentDuration <= minSecondsOnscreen) {
+    if (videoDuration <= minSecondsOnscreen) {
       setMaxExponent(0);
       return;
     }
 
     /* Otherwise, compute how many times you can divide by two. */
     /* Note that log2() is hardcoded because it is more efficient. */
-    const exp = Math.floor(Math.log2(currentDuration));
+    const exp = Math.floor(Math.log2(videoDuration));
     setMaxExponent(exp - 1);
-  }, [currentDuration]);
+  }, [videoDuration]);
 
   function calculateScale(value: number) {
     return 2 ** value;
