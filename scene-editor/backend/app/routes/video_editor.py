@@ -20,13 +20,9 @@ from app.models.database import db
 from app.models.project import Project as ProjectModel
 from app.routes.api import api
 from app.schemas.asset import asset_schema
-from app.util.auth import user_jwt_required, project_access_required
-from app.util.ffmpeg import (
-    create_thumbnail,
-    ffmpeg_concat_assets,
-    ffmpeg_process_and_trim,
-    get_duration,
-)
+from app.util.auth import project_access_required, user_jwt_required
+from app.util.ffmpeg import (create_thumbnail, ffmpeg_concat_assets,
+                             ffmpeg_process_and_trim, get_duration)
 from app.util.util import random_file_name
 from flask_jwt_extended import get_jwt
 from flask_restx import Resource, reqparse
@@ -101,7 +97,9 @@ def perform_unique_trims(clips: dict, asset_paths: dict) -> dict:
     the id of the asset, the start time of the trim, and the duration.
 
     Returns:
-        a dictionary with (asset_id, start_time, duration) as key and"""
+        a dictionary with (asset_id, start_time, duration) as key and
+        each unique trim as value.
+    """
     trimmed_paths = {}
     for clip in clips:
         if _trim_key(clip) not in trimmed_paths:
@@ -125,9 +123,6 @@ def edit_assets(clips: dict, video_path: Path) -> HTTPStatus:
             dictionary with trimming information of the clip.
         dst_path : Path
             file to write the trim result to.
-
-    Returns:
-        True on succes, False on error.
     """
     try:
         # Put the result in ASSET_DIR directly if there is only one trim.
@@ -141,7 +136,10 @@ def edit_assets(clips: dict, video_path: Path) -> HTTPStatus:
         unique_assets = find_unique_assets(clips)
         unique_trims = perform_unique_trims(clips, unique_assets)
         video_clips = list_video_clips(clips, unique_trims)
-        return ffmpeg_concat_assets(video_clips, video_path)
+        if not ffmpeg_concat_assets(video_clips, video_path):
+            status = HTTPStatus.INTERNAL_SERVER_ERROR
+            msg = f"Error joining asset with ID: {clip['asset_id']}"
+            raise FFmpegException(status, msg)
     finally:
         cleanup_temporary_files(unique_trims)
 
@@ -157,28 +155,25 @@ def trim_asset(clip: dict, src_path: Path, dst_path: Path):
             file to read the asset to trim from.
         dst_path : Path
             file to write the trim result to.
-
-    Returns:
-        True on succes, False on error.
     """
-    try:
-        start_time = clip["start_time"]
-        duration = clip["duration"]
-        # TODO: allow user to set the keyword arguments.
-        return ffmpeg_process_and_trim(
-            start_time,
-            duration,
-            src_path,
-            dst_path,
-            resolution="3840:1920",
-            frame_rate="30",
-            video_codec="libx264",
-            audio_codec="aac",
-        )
-    except Exception as error:
+    start_time = clip["start_time"]
+    duration = clip["duration"]
+    # TODO: allow user to set the keyword arguments.
+    ffmpeg_status = ffmpeg_process_and_trim(
+        start_time,
+        duration,
+        src_path,
+        dst_path,
+        resolution="3840:1920",
+        frame_rate="30",
+        video_codec="libx264",
+        audio_codec="aac",
+    )
+
+    if not ffmpeg_status:
         status = HTTPStatus.INTERNAL_SERVER_ERROR
         msg = f"Error trimming asset with ID: {clip['asset_id']}"
-        raise FFmpegException(status, msg) from error
+        raise FFmpegException(status, msg)
 
 
 def find_project(project_id: int) -> ProjectModel | None:
