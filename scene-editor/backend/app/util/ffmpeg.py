@@ -2,10 +2,12 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from app.models.asset import ViewType
-import os
-import time
 
 import ffmpeg
+
+
+# The maximum number of characters a commandline command may have.
+MAX_COMMAND_LENGTH = 8191
 
 
 def create_thumbnail(in_path: str, out_path: str):
@@ -29,87 +31,101 @@ def get_duration(path):
     return int(float(result.stdout))
 
 
-def ffmpeg_process_and_trim(
-    start_time: str,
-    duration: str,
-    input_path: str,
+def ffmpeg_trim_concat(
+    input_paths: list[str],
     output_path: str,
+    trims: list[str],
     resolution: str = None,
     frame_rate: str = None,
     video_codec: str = None,
     audio_codec: str = None,
-    input_stereo_format: str = None,
-    output_stereo_format: str = None,
-) -> bool:
-    """Trim the file on `input_path` and write the result to `output_path`.
-    The trim is from `start_time` to (`start_time` + `duration`).
+    bitrate: str = None,
+):
+    """Trim each file in `input_paths` and concatenate them. Put the
+    result in `output_path`. Note that if only a single file is given,
+    then that file it trimmed and stored in `output_path`.
 
-    If any of the keyword arguments are specified, then the file is also
-    processed. This is in the same function so that less re-encoding is
-    required.
+    # Trims
+    The trims are performed according to the given list of strings `trims`,
+    where each string should take one of the following forms:
+        '<start_time>:<end_time>',
+        '<start_time>:duration<duration>'.
 
-    # resolution / frame_rate
-    Note that if the resolution or frame_rate is not specified, FFmpeg will
-    use the resolution and frame rate of the first video. In addition, FFmpeg
-    ignores the specified `resolution` and `frame_rate` arguments if the codec
-    is specified as 'copy'.
+    # Keyword Arguments
+    The function will process the videos to use the given resolution,
+    frame rate, video codec, audio codec and bitrate. If these arguments
+    are omitted, then FFmpeg will use its default behavior. This often
+    means that it will use the parameters of the first video.
 
-    # codec
-    Note that when no codecs are specified, FFmpeg will use the default
-    behavior. The default is to attempt to copy when certain conditions
-    are met. If the conditions are not met, then the output has to be
-    re-encoded.
+    # Limitations
+    The commandline has a maximum length that depends on the operating
+    system. The function will return False when the length of the command
+    exceeds the length of MAX_COMMAND_LENGTH.
 
-    # stereo_format
-    Note that the stereo format keywords argumnts have not been tested.
-    Although specifying the stereo format allows FFmpeg to work more efficient.
+    Assuming that someone uses all 128 available characters for all their
+    assets they want to trim and concatenate, then each asset will add
+    approximately 320 characters to the total length of the command. If
+    we use the limit of the Windows operating system in this example, then
+    someone requested to trim and concatenate 8191 / 320 ≈ 25 assets. This
+    is an absurd amount and will therefore be considered as an attack and
+    be ignored.
 
-    Trim Flags:
-        -ss  <start time>  : specify the start time of the trim.
-        -t   <duration>    : specify duration of trim from `start_time`.
-        -i   <input path>  : specify the input path of the file to trim.
-             <output path> : specify the output path of the result.
-
-    Process Flags:
-        -vf  <options>     : specify resolution / stereo format to encode to.
-        -r   <frame rate>  : specify the frame rate to encode to.
-        -c:v <video codec> : specify the video codec to use in encoding.
-        -c:a <audio codec> : specify the audio codec to use in encoding.
-
-    Other Flags:
-        -strict <mode> : allow experimental codecs.
+    Returns:
+        True on succes, False otherwise.
     """
-    vf_filter = ""
+    if not input_paths or not trims:
+        print("Input paths or trims are empty. Nothing to process.")
+        return False
 
-    if resolution:
-        vf_filter += f"scale={resolution}"
+    cmd = ["ffmpeg"]
 
-    if input_stereo_format and output_stereo_format:
-        if vf_filter:
-            vf_filter += ","
-        vf_filter += (
-            f"v360=input_stereo_format={input_stereo_format}:"
-            f"output_stereo_format={output_stereo_format}"
-        )
+    # Generate the filter_complex string.
+    labels = ""
+    filter_complex = ""
+    for i, trim in enumerate(trims):
+        cmd.extend(["-i", input_paths[i]])
 
-    cmd = [
-        "ffmpeg",
-        "-ss", start_time,
-        "-t", duration,
-        "-strict", "experimental",
-        "-i", input_path,
-    ]
+        video_label, audio_label = f"[v{i}]", f"[a{i}]"
+        labels += f"{video_label}{audio_label}"
 
-    if vf_filter:
-        cmd.extend(["-vf", vf_filter])
-    if frame_rate:
-        cmd.extend(["-r", frame_rate])
+        # Trim video stream.
+        filter_complex += f"[{i}:v]"
+        if trim:
+            filter_complex += f"trim={trim},setpts=PTS-STARTPTS,"
+        if resolution:
+            filter_complex += f"scale={resolution},setsar=1,"
+        if frame_rate:
+            filter_complex += f"framerate={frame_rate}"
+        filter_complex += f"{video_label};"
+
+        # Trim audio stream.
+        filter_complex += f"[{i}:a]"
+        if trim is not None:
+            filter_complex += f"atrim={trim},asetpts=PTS-STARTPTS"
+        filter_complex += f"{audio_label};"
+    filter_complex += f"{labels}concat=n={len(trims)}:v=1:a=1[vout][aout]"
+
+    # Apply filters and options for the output.
+    cmd.extend(
+        [
+            "-filter_complex", filter_complex,
+            "-map", "[vout]",
+            "-map", "[aout]",
+        ]  # fmt: skip
+    )
     if video_codec:
         cmd.extend(["-c:v", video_codec])
     if audio_codec:
         cmd.extend(["-c:a", audio_codec])
+    if bitrate:
+        cmd.extend(["-b:a", bitrate])
+    cmd.extend(["-strict", "experimental", output_path])
 
-    cmd.append(output_path)
+    # Check the total length of the command.
+    total_cmd_length = sum(len(arg) for arg in cmd)
+    if total_cmd_length > MAX_COMMAND_LENGTH:
+        print("Command is too long.")
+        return False
 
     try:
         res = subprocess.run(cmd, check=True, capture_output=True, text=True)
@@ -117,54 +133,8 @@ def ffmpeg_process_and_trim(
         print(res.stderr)
         return True
     except subprocess.CalledProcessError as error:
-        print(f"Failed to process/trim {input_path}. Error: {error.stderr}")
+        print(f"Failed to trim and concat. Error: {error.stderr}")
         return False
-
-
-def ffmpeg_concat_assets(input_paths: list[str], output_path: str) -> bool:
-    """Concatenate the assets in `input_paths` to `output_path`.
-
-    Every input path is written on a newline in a temporary .txt file to
-    circumvent the maximum commandline length. This temporary .txt file
-    is automatically removed after the function executes.
-
-    Flags:
-        -f    <format>      : input is a concatenation of media.
-        -safe <mode>        : disable safe mode to allow absolute paths.
-        -i    <input path>  : specify the temporary .txt file as input.
-              <output path> : specify the output path of the result.
-    """
-    # Generate a unique filename using a timestamp and process ID
-    timestamp = int(time.time())
-    process_id = os.getpid()
-    temp_filenames_txt = f"/trimmed/input_{timestamp}_{process_id}.txt"
-
-    # Create a text file with the list of video paths
-    with open(temp_filenames_txt, "w", encoding="utf-8") as file:
-        for path in input_paths:
-            file.write(f"file '{path}'\n")
-
-    cmd = [
-        "ffmpeg",
-        "-f", "concat",
-        "-safe", "0",
-        "-i", temp_filenames_txt,
-        output_path,
-    ]
-
-    try:
-        res = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print(res.stdout)
-        print(res.stderr)
-        return True
-    except subprocess.CalledProcessError as error:
-        print(f"Failed to to join videos. Error: {error.stderr}")
-        return False
-    finally:
-        try:
-            os.remove(temp_filenames_txt)
-        except OSError:
-            pass
 
 
 @dataclass

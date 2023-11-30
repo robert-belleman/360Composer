@@ -21,8 +21,11 @@ from app.models.project import Project as ProjectModel
 from app.routes.api import api
 from app.schemas.asset import asset_schema
 from app.util.auth import project_access_required, user_jwt_required
-from app.util.ffmpeg import (create_thumbnail, ffmpeg_concat_assets,
-                             ffmpeg_process_and_trim, get_duration)
+from app.util.ffmpeg import (
+    create_thumbnail,
+    get_duration,
+    ffmpeg_trim_concat,
+)
 from app.util.util import random_file_name
 from flask_jwt_extended import get_jwt
 from flask_restx import Resource, reqparse
@@ -33,6 +36,14 @@ ns = api.namespace("video-editor")
 
 TRIMMED_DIR = "/trimmed/"
 EXTENSION = ".mp4"
+
+
+class EditsValueException(Exception):
+    """Exception for ValueErrors in the `edits` dictionary ."""
+
+    def __init__(self, status_code, message):
+        self.status_code = status_code
+        self.message = message
 
 
 class FFmpegException(Exception):
@@ -67,112 +78,68 @@ class NoProjectFound(Exception):
         self.message = message
 
 
-def _asset_key(clip: dict):
-    """Return the part of `clip` that uniquely identifies an asset."""
-    return clip["asset_id"]
-
-
-def _trim_key(clip: dict) -> tuple[str]:
-    """Return the part of `clip` that uniquely identifies a trim."""
-    return clip["asset_id"], clip["start_time"], clip["duration"]
-
-
-def find_unique_assets(clips: dict) -> dict:
-    """Find all unique assets in `clips`. An asset is uniquely defined by
-    the id.
-
-    Returns:
-        a dict with asset id as key and asset path as value.
-    """
-    asset_paths = {}
-    for clip in clips:
-        if _asset_key(clip) not in asset_paths:
-            asset: AssetModel = find_asset(clip["asset_id"])
-            asset_paths[_asset_key(clip)] = Path(ASSET_DIR, asset.path)
-    return asset_paths
-
-
-def perform_unique_trims(clips: dict, asset_paths: dict) -> dict:
-    """Perform all unique trims in `clips`. A trim is uniquely defined by
-    the id of the asset, the start time of the trim, and the duration.
-
-    Returns:
-        a dictionary with (asset_id, start_time, duration) as key and
-        each unique trim as value.
-    """
-    trimmed_paths = {}
-    for clip in clips:
-        if _trim_key(clip) not in trimmed_paths:
-            src_path = asset_paths[_asset_key(clip)]
-            dst_path = Path(TRIMMED_DIR, random_file_name() + EXTENSION)
-            trim_asset(clip, src_path, dst_path)
-            trimmed_paths[_trim_key(clip)] = dst_path
-    return trimmed_paths
-
-
-def list_video_clips(clips: dict, trimmed_paths: dict) -> list:
-    """List all trimmed assets in chronological order to concatenate."""
-    return [trimmed_paths[_trim_key(clip)] for clip in clips]
-
-
-def edit_assets(clips: dict, video_path: Path) -> HTTPStatus:
-    """Trim and concatenate the video clips together in `video_path`.
+def add_float_strings(float_a: str, float_b: str):
+    """Compute the sum of two strings that can be parsed to floats.
+    Return the sum as a string.
 
     Parameters:
-        clip : dict
-            dictionary with trimming information of the clip.
-        dst_path : Path
-            file to write the trim result to.
+        float_a : str
+            string of a float.
+        float_b : str
+            string of a float.
+
+    Returns:
+        the sum of the float strings.
     """
     try:
-        # Put the result in ASSET_DIR directly if there is only one trim.
-        if len(clips) == 1:
-            clip = clips[0]
-            asset: AssetModel = find_asset(asset_id=clip["asset_id"])
-            src_path = Path(ASSET_DIR, asset.path)
-            trim_asset(clip, src_path, video_path)
-
-        # Otherwise, perform unique trims and concatenate them together.
-        unique_assets = find_unique_assets(clips)
-        unique_trims = perform_unique_trims(clips, unique_assets)
-        video_clips = list_video_clips(clips, unique_trims)
-        if not ffmpeg_concat_assets(video_clips, video_path):
-            status = HTTPStatus.INTERNAL_SERVER_ERROR
-            msg = f"Error joining asset with ID: {clip['asset_id']}"
-            raise FFmpegException(status, msg)
-    finally:
-        cleanup_temporary_files(unique_trims)
+        result = float(float_a) + float(float_b)
+        return str(result)
+    except ValueError:
+        return None
 
 
-def trim_asset(clip: dict, src_path: Path, dst_path: Path):
-    """Trim an asset using the information of dictionary `clip`. The asset can
-    be found on `src_path` and the result will be written to `dst_path`.
+def edit_assets(clips: dict, video_path: Path) -> None:
+    """Trim and concatenate the clips `clips` and store the result in
+    Path `video_path`.
 
     Parameters:
-        clip : dict
-            dictionary with trimming information of the clip.
-        src_path : Path
-            file to read the asset to trim from.
-        dst_path : Path
-            file to write the trim result to.
+        clips : dict
+            dictionary containing information of each clip.
+        video_path : str
+            Path to store the result in.
     """
-    start_time = clip["start_time"]
-    duration = clip["duration"]
-    # TODO: allow user to set the keyword arguments.
-    ffmpeg_status = ffmpeg_process_and_trim(
-        start_time,
-        duration,
-        src_path,
-        dst_path,
+    input_files = []
+    trims = []
+    for clip in clips:
+        asset_id = clip["asset_id"]
+        start_time = clip["start_time"]
+        duration = clip["duration"]
+
+        asset: AssetModel = find_asset(asset_id=asset_id)
+        path = Path(ASSET_DIR, asset.path)
+        input_files.append(path)
+
+        end_time = add_float_strings(start_time, duration)
+        if not end_time:
+            status = HTTPStatus.BAD_REQUEST
+            msg = "Invalid input. Please provide valid float strings."
+            raise EditsValueException(status, msg)
+        trims.append(f"{start_time}:{end_time}")
+
+    ffmpeg_status = ffmpeg_trim_concat(
+        input_paths=input_files,
+        trims=trims,
+        output_path=video_path,
         resolution="3840:1920",
         frame_rate="30",
         video_codec="libx264",
         audio_codec="aac",
+        bitrate="192k",
     )
 
     if not ffmpeg_status:
         status = HTTPStatus.INTERNAL_SERVER_ERROR
-        msg = f"Error trimming asset with ID: {clip['asset_id']}"
+        msg = "Error trimming and joining assets"
         raise FFmpegException(status, msg)
 
 
@@ -357,6 +324,7 @@ class EditAssets(Resource):
             db.session.commit()
             return asset, HTTPStatus.CREATED
         except (
+            EditsValueException,
             NoAssetFound,
             NoProjectFound,
             FFmpegException,
