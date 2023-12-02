@@ -14,7 +14,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { Box, Button, Divider, Menu, MenuItem, TextField } from "@mui/material";
 
-import { useAssetsContext } from "../AssetsContext";
+import { useAssetsContext } from "./AssetsContext";
 
 const SELECTED_COLOR = "paleturquoise";
 const FILTER_VIDEO = "asset_type:AssetType.Video";

@@ -11,7 +11,7 @@
 import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { Box, Button, Divider, Menu, MenuItem } from "@mui/material";
 import React, { useRef, useState } from "react";
-import { useAssetsContext } from "../AssetsContext";
+import { useAssetsContext } from "./AssetsContext";
 
 const SELECTED_COLOR = "paleturquoise";
 

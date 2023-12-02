@@ -26,10 +26,10 @@ import { Button, Grid, Stack } from "@mui/material";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import NewAssetDialog from "../../ProjectComponents/AssetViewComponents/NewAssetDialog";
-import { useAssetsContext } from "./AssetsContext";
-import FilterOptions from "./Selects/FilterOptions";
-import SortingOptions from "./Selects/SortingOptions";
-import AssetsLibrary from "./SortableItem/AssetsLibrary";
+import { Asset, useAssetsContext } from "./AssetsContext";
+import FilterOptions from "./FilterOptions";
+import SortingOptions from "./SortOptions";
+import LibraryAsset from "./LibraryAsset";
 
 const ImportMediaButton: React.FC<{
   setIsImporting: React.Dispatch<React.SetStateAction<boolean>>;
@@ -78,7 +78,9 @@ const MediaLibrary: React.FC = () => {
       </Grid>
 
       <Stack overflow="auto">
-        <AssetsLibrary assets={sortedFilteredAssets} />
+        {sortedFilteredAssets.map((asset: Asset, index: number) => (
+          <LibraryAsset key={index} asset={asset} />
+        ))}
       </Stack>
 
       <NewAssetDialog

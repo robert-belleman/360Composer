@@ -23,10 +23,10 @@ import {
 import { IconButtonProps } from "@mui/material/IconButton";
 import { styled } from "@mui/material/styles";
 
-import defaultImage from "../../../../static/images/default.jpg";
-import { ActionTypes, createClip, useClipsContext } from "../../ClipsContext";
-import { MAX_CONCURRENT_INIT_HLS_CALLS } from "../../Constants";
-import { Asset, useAssetsContext } from "../AssetsContext";
+import defaultImage from "../../../static/images/default.jpg";
+import { ActionTypes, createClip, useClipsContext } from "../ClipsContext";
+import { MAX_CONCURRENT_INIT_HLS_CALLS } from "../Constants";
+import { Asset, useAssetsContext } from "./AssetsContext";
 
 const toDisplayTime = (seconds: number) => {
   let minutes = Math.floor(seconds / 60);
@@ -61,7 +61,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
-function LibraryAsset({ asset }: { asset: Asset }) {
+const LibraryAsset = ({ asset }: { asset: Asset }) => {
   const [expanded, setExpanded] = useState(false);
   const [enablingHLS, setEnablingHLS] = useState(false);
 
@@ -163,7 +163,7 @@ function LibraryAsset({ asset }: { asset: Asset }) {
               alt={asset.name}
             />
             <CardContent>
-              <Typography>{`Asset last updated: ${asset.updated_at}`}</Typography>
+              <Typography>{`Last updated: ${asset.updated_at}`}</Typography>
               <Typography>{`View type: ${viewType(
                 asset.view_type
               )}`}</Typography>
@@ -173,6 +173,6 @@ function LibraryAsset({ asset }: { asset: Asset }) {
       </Collapse>
     </Card>
   );
-}
+};
 
 export default LibraryAsset;

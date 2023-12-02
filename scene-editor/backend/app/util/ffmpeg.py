@@ -6,10 +6,6 @@ from app.models.asset import ViewType
 import ffmpeg
 
 
-# The maximum number of characters a commandline command may have.
-MAX_COMMAND_LENGTH = 8191
-
-
 def create_thumbnail(in_path: str, out_path: str):
     try:
         ffmpeg.input(in_path, ss=1) \
@@ -57,24 +53,12 @@ def ffmpeg_trim_concat(
     are omitted, then FFmpeg will use its default behavior. This often
     means that it will use the parameters of the first video.
 
-    # Limitations
-    The commandline has a maximum length that depends on the operating
-    system. The function will return False when the length of the command
-    exceeds the length of MAX_COMMAND_LENGTH.
-
-    Assuming that someone uses all 128 available characters for all their
-    assets they want to trim and concatenate, then each asset will add
-    approximately 320 characters to the total length of the command. If
-    we use the limit of the Windows operating system in this example, then
-    someone requested to trim and concatenate 8191 / 320 ≈ 25 assets. This
-    is an absurd amount and will therefore be considered as an attack and
-    be ignored.
-
     Returns:
         True on succes, False otherwise.
     """
-    if not input_paths or not trims:
-        print("Input paths or trims are empty. Nothing to process.")
+    # Limit the amount of clips a user can edit in one request.
+    if not input_paths or not trims or len(input_paths) > 25:
+        print(f"Either too many or no files were given. Files: {input_paths}")
         return False
 
     cmd = ["ffmpeg"]
@@ -120,12 +104,6 @@ def ffmpeg_trim_concat(
     if bitrate:
         cmd.extend(["-b:a", bitrate])
     cmd.extend(["-strict", "experimental", output_path])
-
-    # Check the total length of the command.
-    total_cmd_length = sum(len(arg) for arg in cmd)
-    if total_cmd_length > MAX_COMMAND_LENGTH:
-        print("Command is too long.")
-        return False
 
     try:
         res = subprocess.run(cmd, check=True, capture_output=True, text=True)
