@@ -34,7 +34,6 @@ from sqlalchemy.orm.exc import NoResultFound
 ns = api.namespace("video-editor")
 
 
-TRIMMED_DIR = "/trimmed/"
 EXTENSION = ".mp4"
 
 
@@ -98,7 +97,7 @@ def add_float_strings(float_a: str, float_b: str):
         return None
 
 
-def edit_assets(clips: dict, video_path: Path) -> None:
+def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
     """Trim and concatenate the clips `clips` and store the result in
     Path `video_path`.
 
@@ -107,6 +106,8 @@ def edit_assets(clips: dict, video_path: Path) -> None:
             dictionary containing information of each clip.
         video_path : str
             Path to store the result in.
+        settings : dict
+            settings of the output video.
     """
     input_files = []
     trims = []
@@ -126,15 +127,21 @@ def edit_assets(clips: dict, video_path: Path) -> None:
             raise EditsValueException(status, msg)
         trims.append(f"{start_time}:{end_time}")
 
+    resolution = settings["resolution"]
+    frame_rate = settings["frame_rate"]
+    video_codec = settings["video_codec"]
+    audio_codec = settings["audio_codec"]
+    bitrate = settings["bitrate"]
+
     ffmpeg_status = ffmpeg_trim_concat(
         input_paths=input_files,
         trims=trims,
         output_path=video_path,
-        resolution="3840:1920",
-        frame_rate="30",
-        video_codec="libx264",
-        audio_codec="aac",
-        bitrate="192k",
+        resolution=resolution if resolution else "3840:1920",
+        frame_rate=frame_rate if frame_rate else "30",
+        video_codec=video_codec if video_codec else None,
+        audio_codec=audio_codec if audio_codec else None,
+        bitrate=bitrate if bitrate else None,
     )
 
     if not ffmpeg_status:
@@ -282,9 +289,9 @@ asset_export.add_argument(
     required=True,
 )
 asset_export.add_argument(
-    "filename",
-    type=str,
-    help="Output filename for the resulting video",
+    "settings",
+    type=dict,
+    help="Dictionary of video settings for resolution, fps, etc.",
     required=True,
 )
 
@@ -308,14 +315,17 @@ class EditAssets(Resource):
             # Retrieve edit information.
             args = asset_export.parse_args()
             clips = args.get("edits", [])
-            display_name = args.get("filename", "Untitled_Video" + EXTENSION)
+            settings = args.get("settings", [])
+            display_name = settings.get("name", "Untitled_Video" + EXTENSION)
+            if not display_name.endswith(EXTENSION):
+                display_name += EXTENSION
 
             # Define the location of the resulting video.
             base_name = random_file_name()
             video_filename = base_name + EXTENSION
             video_path = Path(ASSET_DIR, base_name + EXTENSION)
 
-            edit_assets(clips, video_path)
+            edit_assets(clips, video_path, settings)
 
             # Add video to database.
             meta = generate_asset_meta(project, base_name, video_path)

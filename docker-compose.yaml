@@ -21,9 +21,6 @@ services:
         - type: bind
           source: ./assets
           target: /assets
-        - type: bind
-          source: ./trimmed
-          target: /trimmed
     command: bash -c "/entrypoint.sh"
     depends_on:
         - postgres

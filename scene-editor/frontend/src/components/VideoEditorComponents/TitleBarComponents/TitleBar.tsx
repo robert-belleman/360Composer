@@ -23,11 +23,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
 import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
-import { Button, Stack, TextField, Typography } from "@mui/material";
+import { Button, Stack, Typography, CircularProgress } from "@mui/material";
 
 /* Project Specific Imports */
-import { Clip, exportClips, useClipsContext } from "../ClipsContext";
+import { Clip, useClipsContext } from "../ClipsContext";
 import { useAssetsContext } from "../MediaLibraryComponents/AssetsContext";
+import { exportVideoEdits } from "../../../util/api";
+import SettingsDialog from "./VideoSettingsDialog";
 
 const DEFAULT_TITLE = "Untitled Video";
 
@@ -46,43 +48,48 @@ const useNavigateBack = (projectID: string) => {
 };
 
 /**
- * Trim the title and set it as the new state of `title`.
- * @param setTitle Function to change the state of `title`.
- * @returns Callback function that changes the title `title`.
- */
-const useTitleChange = (
-  setTitle: React.Dispatch<React.SetStateAction<string>>
-) => {
-  return useCallback(
-    (e) => {
-      const trimmedTitle = e.target.value.trim();
-      setTitle(trimmedTitle == "" ? DEFAULT_TITLE : trimmedTitle);
-    },
-    [setTitle]
-  );
-};
-
-/**
  * Export the clips `clips` with the title `title`.
  * @param clips clips to export.
  * @param title title of the video created from combining the clips.
  * @returns Callback function that exports the clips with title.
  */
-const useExportClips = (
+const useExportClips = async (
   projectID: string,
   clips: Clip[],
-  title: string,
+  settings: any,
   fetchAssets: () => Promise<void>
 ) => {
-  return useCallback(async () => {
+  try {
+    /* Parse edits */
+    const edits =
+      clips.length > 0
+        ? clips.map((clip) => ({
+            asset_id: clip.asset.id,
+            start_time: clip.startTime.toFixed(3),
+            duration: clip.duration.toFixed(3),
+          }))
+        : {};
+
+    /* Parse display name */
+    settings.name = settings.name.trim() === "" ? DEFAULT_TITLE : settings.name;
+
+    console.log(settings);
+
     try {
-      // Wait for exportClips to complete before moving to the next step
-      await exportClips(projectID, clips, title == "" ? DEFAULT_TITLE : title);
-      await fetchAssets();
+      console.log("Exporting video edit:", edits, settings);
+      const response = await exportVideoEdits(projectID, {
+        edits: edits,
+        settings: settings,
+      });
+      console.log("API Response: ", response.data);
     } catch (error) {
-      console.error("Error during export and fetch:", error);
+      console.error("API Error:", error);
     }
-  }, [clips, title]);
+
+    await fetchAssets();
+  } catch (error) {
+    console.error("Error during export and fetch:", error);
+  }
 };
 
 /* Components */
@@ -107,32 +114,18 @@ const BackButton = memo(() => {
   );
 });
 
-const TitleTextField = memo(
-  ({
-    setTitle,
-  }: {
-    setTitle: React.Dispatch<React.SetStateAction<string>>;
-  }) => {
-    const changeTitle = useTitleChange(setTitle);
+const ExportButton = () => {
+  const [openDialog, setOpenDialog] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
-    return (
-      <TextField
-        size="small"
-        variant="outlined"
-        sx={{
-          flexGrow: 1,
-          borderRadius: { xs: 0, md: 8 },
-          backgroundColor: "aliceblue",
-          overflow: "hidden",
-        }}
-        placeholder={DEFAULT_TITLE}
-        onChange={changeTitle}
-      />
-    );
-  }
-);
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
 
-const ExportButton = memo(({ title }: { title: string }) => {
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
   const { state } = useClipsContext();
   const { fetchAssets } = useAssetsContext();
   const { projectID } = useParams();
@@ -146,28 +139,54 @@ const ExportButton = memo(({ title }: { title: string }) => {
     );
   }
 
-  const handleExport = useExportClips(
-    projectID,
-    state.clips,
-    title,
-    fetchAssets
-  );
+  const handleExport = async (settings: any) => {
+    setIsExporting(true);
+
+    try {
+      await useExportClips(projectID, state.clips, settings, fetchAssets);
+    } catch (error) {
+      console.error("Error exporting clips:", error);
+    } finally {
+      setIsExporting(false);
+      handleCloseDialog();
+    }
+  };
+
+  /* Default settings. */
+  const settings = {
+    name: DEFAULT_TITLE,
+    resolution: "3840:1920",
+    frame_rate: "30",
+    video_codec: "libx264",
+    audio_codec: "aac",
+    bitrate: "192K",
+  };
 
   return (
-    <Button
-      variant="contained"
-      startIcon={<UpgradeIcon />}
-      onClick={handleExport}
-      sx={{
-        backgroundColor: "aliceblue",
-        color: "royalblue",
-        "&:hover": { backgroundColor: "lightgrey" },
-      }}
-    >
-      Export
-    </Button>
+    <>
+      <Button
+        variant="contained"
+        startIcon={
+          isExporting ? <CircularProgress size={20} /> : <UpgradeIcon />
+        }
+        onClick={handleOpenDialog}
+        sx={{
+          backgroundColor: "aliceblue",
+          color: "royalblue",
+          "&:hover": { backgroundColor: "lightgrey" },
+        }}
+      >
+        Export
+      </Button>
+      <SettingsDialog
+        open={openDialog}
+        handleClose={handleCloseDialog}
+        currentSettings={settings}
+        handleExport={handleExport}
+      />
+    </>
   );
-});
+};
 
 const ToggleMediaLibraryButton = ({ onclick }: { onclick: () => void }) => {
   return (
@@ -187,8 +206,6 @@ const ToggleMediaLibraryButton = ({ onclick }: { onclick: () => void }) => {
 
 const TitleBar: React.FC<{ toggleMediaLibrary: () => void }> = memo(
   ({ toggleMediaLibrary }) => {
-    const [title, setTitle] = useState("");
-
     return (
       <Stack
         direction="row"
@@ -198,8 +215,7 @@ const TitleBar: React.FC<{ toggleMediaLibrary: () => void }> = memo(
       >
         <ToggleMediaLibraryButton onclick={toggleMediaLibrary} />
         <BackButton />
-        <TitleTextField setTitle={setTitle} />
-        <ExportButton title={title} />
+        <ExportButton />
       </Stack>
     );
   }

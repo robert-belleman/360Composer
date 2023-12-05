@@ -112,9 +112,9 @@ const VideoEditor: React.FC = () => {
   const renderMainContentArea = () => (
     <Box sx={getMainContentStyles()}>
       <Stack height="100vh">
-        <TitleBar toggleMediaLibrary={toggleMediaLibrary} />
-
         <VideoProvider>
+          <TitleBar toggleMediaLibrary={toggleMediaLibrary} />
+
           <Stack height={1}>
             <VideoPreview />
             <TimelineSettingsProvider>

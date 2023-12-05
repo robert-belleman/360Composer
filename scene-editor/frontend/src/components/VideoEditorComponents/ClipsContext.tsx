@@ -27,7 +27,6 @@
 
 import React, { ReactNode, createContext, useContext, useReducer } from "react";
 
-
 import defaultImage from "../../static/images/default.jpg";
 import { exportVideoEdits } from "../../util/api";
 import { CLIP_UNDO_STATES, MINIMUM_CLIP_LENGTH } from "./Constants";
@@ -389,33 +388,6 @@ const visibleClips = (state: State, lower: number, upper: number) => {
 };
 
 /**
- * Export the clips `clips` with title `title`.
- * @param clips clips to export.
- * @param title title to export with.
- */
-const exportClips = async (projectID: string, clips: Clip[], title: string) => {
-  const data = clips.map((clip) => ({
-    asset_id: clip.asset.id,
-    start_time: clip.startTime.toFixed(3),
-    duration: clip.duration.toFixed(3),
-  }));
-
-  const display_name = title.endsWith(".mp4") ? title : title + ".mp4";
-
-  console.log("Exporting video edits: ", data);
-
-  try {
-    const response = await exportVideoEdits(projectID, {
-      edits: data,
-      filename: display_name,
-    });
-    console.log("API Response: ", response.data);
-  } catch (error) {
-    console.error("API Error:", error);
-  }
-};
-
-/**
  * Check if the state can be undone.
  * Used for disabling buttons in certain situations.
  * @param state
@@ -438,7 +410,10 @@ const canRedo = (state: State): boolean => {
 export {
   ClipsProvider,
   canRedo,
-  canUndo, createClip, exportClips, seekIndex, thumbnailUrl,
+  canUndo,
+  createClip,
+  seekIndex,
+  thumbnailUrl,
   useClipsContext,
-  visibleClips
+  visibleClips,
 };
