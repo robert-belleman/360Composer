@@ -77,11 +77,11 @@ const MediaLibrary: React.FC = () => {
         </Grid>
       </Grid>
 
-      <Stack overflow="auto">
+      <div style={{ height: "100%", overflowY: "auto" }}>
         {sortedFilteredAssets.map((asset: Asset, index: number) => (
           <LibraryAsset key={index} asset={asset} />
         ))}
-      </Stack>
+      </div>
 
       <NewAssetDialog
         activeProject={projectID!}
