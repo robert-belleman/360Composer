@@ -77,6 +77,59 @@ class NoProjectFound(Exception):
         self.message = message
 
 
+def parse_settings(settings: dict):
+    """Parse settings from display name to ffmpeg value."""
+    display_name = settings.get("name", "Untitled_Video" + EXTENSION)
+    if not display_name.endswith(EXTENSION):
+        display_name += EXTENSION
+
+    resolution = settings.get("resolution", "3840:1920").replace("x", ":")
+    frame_rate = settings.get("frame_rate", "30")
+    video_codec = video_codec_to_ffmpeg(settings.get("video_codec", ""))
+    audio_codec = audio_codec_to_ffmpeg(settings.get("audio_codec", ""))
+    bitrate = settings.get("bitrate", "")
+
+    parsed_settings = {
+        "name": display_name,
+        "resolution": resolution,
+        "frame_rate": frame_rate,
+        "video_codec": video_codec,
+        "audio_codec": audio_codec,
+        "bitrate": bitrate,
+    }
+    return parsed_settings
+
+
+def video_codec_to_ffmpeg(codec: str):
+    """Parse video codecs from display name to ffmpeg value."""
+    codec_mappings = {
+        "default": "",
+        "h.264 (avc)": "libx264",
+        "h.265 (hevc)": "libx265",
+        "vp9": "libvpx-vp9",
+        "av1": "libaom-av1",
+        # Add more mappings as needed
+    }
+
+    normalized_codec = codec.lower()
+    return codec_mappings.get(normalized_codec, None)
+
+
+def audio_codec_to_ffmpeg(codec: str):
+    """Parse audio codecs from display name to ffmpeg value."""
+    audio_codec_mappings = {
+        "default": "",
+        "aac": "aac",
+        "opus": "libopus",
+        "vorbis": "libvorbis",
+        "mp3": "libmp3lame",
+        # Add more mappings as needed
+    }
+
+    normalized_codec = codec.lower()
+    return audio_codec_mappings.get(normalized_codec, None)
+
+
 def add_float_strings(float_a: str, float_b: str):
     """Compute the sum of two strings that can be parsed to floats.
     Return the sum as a string.
@@ -127,21 +180,15 @@ def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
             raise EditsValueException(status, msg)
         trims.append(f"{start_time}:{end_time}")
 
-    resolution = settings["resolution"]
-    frame_rate = settings["frame_rate"]
-    video_codec = settings["video_codec"]
-    audio_codec = settings["audio_codec"]
-    bitrate = settings["bitrate"]
-
     ffmpeg_status = ffmpeg_trim_concat(
         input_paths=input_files,
         trims=trims,
         output_path=video_path,
-        resolution=resolution if resolution else "3840:1920",
-        frame_rate=frame_rate if frame_rate else "30",
-        video_codec=video_codec if video_codec else None,
-        audio_codec=audio_codec if audio_codec else None,
-        bitrate=bitrate if bitrate else None,
+        resolution=settings["resolution"],
+        frame_rate=settings["frame_rate"],
+        video_codec=settings["video_codec"],
+        audio_codec=settings["audio_codec"],
+        bitrate=settings["bitrate"],
     )
 
     if not ffmpeg_status:
@@ -315,10 +362,7 @@ class EditAssets(Resource):
             # Retrieve edit information.
             args = asset_export.parse_args()
             clips = args.get("edits", [])
-            settings = args.get("settings", [])
-            display_name = settings.get("name", "Untitled_Video" + EXTENSION)
-            if not display_name.endswith(EXTENSION):
-                display_name += EXTENSION
+            settings = parse_settings(args.get("settings", {}))
 
             # Define the location of the resulting video.
             base_name = random_file_name()
@@ -329,7 +373,7 @@ class EditAssets(Resource):
 
             # Add video to database.
             meta = generate_asset_meta(project, base_name, video_path)
-            asset = create_asset(display_name, video_filename, meta)
+            asset = create_asset(settings["name"], video_filename, meta)
             db.session.add(asset)
             db.session.commit()
             return asset, HTTPStatus.CREATED

@@ -3,16 +3,8 @@
  *
  * Description:
  * This component represents the title bar of the VideoEditor. It includes
- * features such as a back button to navigate to the assets tab, a text field
- * for setting the video title, and an export button to export the video clips.
- *
- * Components:
- * - BackButton: Navigates back to the assets tab on the project page.
- * - TitleTextField: Allows the user to input and edit the video title.
- * - ExportButton: Exports the video clips with the specified title.
- *
- * State:
- * - title: The current title of the video, managed using the useState hook.
+ * features such as a back button to navigate to the assets tab and a way
+ * to export the current video edit.
  *
  */
 
@@ -69,11 +61,6 @@ const useExportClips = async (
             duration: clip.duration.toFixed(3),
           }))
         : {};
-
-    /* Parse display name */
-    settings.name = settings.name.trim() === "" ? DEFAULT_TITLE : settings.name;
-
-    console.log(settings);
 
     try {
       console.log("Exporting video edit:", edits, settings);
@@ -155,11 +142,12 @@ const ExportButton = () => {
   /* Default settings. */
   const settings = {
     name: DEFAULT_TITLE,
-    resolution: "3840:1920",
+    resolution: "3840x1920",
     frame_rate: "30",
-    video_codec: "libx264",
-    audio_codec: "aac",
-    bitrate: "192K",
+    video_codec: "H.264 (AVC)",
+    video_bitrate: "Default",
+    audio_codec: "AAC",
+    audio_bitrate: "Default",
   };
 
   return (
