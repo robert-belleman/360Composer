@@ -87,7 +87,8 @@ def parse_settings(settings: dict):
     frame_rate = settings.get("frame_rate", "30")
     video_codec = video_codec_to_ffmpeg(settings.get("video_codec", ""))
     audio_codec = audio_codec_to_ffmpeg(settings.get("audio_codec", ""))
-    bitrate = settings.get("bitrate", "")
+    video_bitrate = settings.get("video_bitrate", "")
+    audio_bitrate = settings.get("audio_bitrate", "")
 
     parsed_settings = {
         "name": display_name,
@@ -95,14 +96,15 @@ def parse_settings(settings: dict):
         "frame_rate": frame_rate,
         "video_codec": video_codec,
         "audio_codec": audio_codec,
-        "bitrate": bitrate,
+        "video_bitrate": "" if video_bitrate == "Default" else video_bitrate,
+        "audio_bitrate": "" if audio_bitrate == "Default" else audio_bitrate,
     }
     return parsed_settings
 
 
 def video_codec_to_ffmpeg(codec: str):
     """Parse video codecs from display name to ffmpeg value."""
-    codec_mappings = {
+    video_codec_mappings = {
         "default": "",
         "h.264 (avc)": "libx264",
         "h.265 (hevc)": "libx265",
@@ -112,7 +114,7 @@ def video_codec_to_ffmpeg(codec: str):
     }
 
     normalized_codec = codec.lower()
-    return codec_mappings.get(normalized_codec, None)
+    return video_codec_mappings.get(normalized_codec, None)
 
 
 def audio_codec_to_ffmpeg(codec: str):
@@ -188,7 +190,8 @@ def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
         frame_rate=settings["frame_rate"],
         video_codec=settings["video_codec"],
         audio_codec=settings["audio_codec"],
-        bitrate=settings["bitrate"],
+        video_bitrate=settings["video_bitrate"],
+        audio_bitrate=settings["audio_bitrate"],
     )
 
     if not ffmpeg_status:

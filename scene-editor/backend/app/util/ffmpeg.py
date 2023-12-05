@@ -35,7 +35,8 @@ def ffmpeg_trim_concat(
     frame_rate: str = None,
     video_codec: str = None,
     audio_codec: str = None,
-    bitrate: str = None,
+    video_bitrate: str = None,
+    audio_bitrate: str = None,
 ):
     """Trim each file in `input_paths` and concatenate them. Put the
     result in `output_path`. Note that if only a single file is given,
@@ -101,8 +102,10 @@ def ffmpeg_trim_concat(
         cmd.extend(["-c:v", video_codec])
     if audio_codec:
         cmd.extend(["-c:a", audio_codec])
-    if bitrate:
-        cmd.extend(["-b:a", bitrate])
+    if video_bitrate:
+        cmd.extend(["-b:v", video_bitrate])
+    if audio_bitrate:
+        cmd.extend(["-b:a", audio_bitrate])
     cmd.extend(["-strict", "experimental", output_path])
 
     try:
