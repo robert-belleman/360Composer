@@ -27,6 +27,7 @@ interface Settings {
   name: string;
   resolution: string;
   frame_rate: string;
+  stereo_format: string;
   video_codec: string;
   video_bitrate: string;
   audio_codec: string;
@@ -36,7 +37,6 @@ interface Settings {
 interface SettingsDialogProps {
   open: boolean;
   handleClose: () => void;
-  currentSettings: Settings;
   handleExport: (settings: Settings) => void;
 }
 
@@ -44,9 +44,17 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
   open,
   handleClose,
   handleExport,
-  currentSettings,
 }) => {
-  const [settings, setSettings] = useState<Settings>({ ...currentSettings });
+  const [settings, setSettings] = useState<Settings>({
+    name: "Untitled Video",
+    resolution: "3840x1920",
+    frame_rate: "30",
+    stereo_format: "2d",
+    video_codec: "H.264 (AVC)",
+    video_bitrate: "Default",
+    audio_codec: "AAC",
+    audio_bitrate: "Default",
+  });
 
   const handleChange = (field: keyof Settings, value: string) => {
     setSettings((prevSettings) => ({
@@ -59,40 +67,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     handleExport(settings);
     handleClose();
   };
-
-  const commonlyUsedResolutions = [
-    "3840x1920",
-    "5760x2880",
-    "7680x3840",
-    // Add more resolutions as needed
-  ];
-
-  const commonlyUsedFrameRates = [
-    "24",
-    "30",
-    "60",
-    "120",
-    "240",
-    // Add more frame rates as needed
-  ];
-
-  const commonlyUsedVideoCodecs = [
-    "Default",
-    "H.264 (AVC)",
-    "H.265 (HEVC)",
-    "VP9",
-    "AV1",
-    // Add more video codecs as needed (also add the mapping to ffmpeg)
-  ];
-
-  const commonlyUsedAudioCodecs = [
-    "Default",
-    "AAC",
-    "Opus",
-    "Vorbis",
-    "MP3",
-    // Add more audio codecs as needed (also add the mapping to ffmpeg)
-  ];
 
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -119,11 +93,9 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("resolution", e.target.value as string)
             }
           >
-            {commonlyUsedResolutions.map((resolution) => (
-              <MenuItem key={resolution} value={resolution}>
-                {resolution}
-              </MenuItem>
-            ))}
+            <MenuItem value="3840x1920">3840x1920</MenuItem>
+            <MenuItem value="5760x2880">5760x2880</MenuItem>
+            <MenuItem value="7680x3840">7680x3840</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
@@ -136,11 +108,26 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("frame_rate", e.target.value as string)
             }
           >
-            {commonlyUsedFrameRates.map((frameRate) => (
-              <MenuItem key={frameRate} value={frameRate}>
-                {frameRate} FPS
-              </MenuItem>
-            ))}
+            <MenuItem value="24">24 FPS</MenuItem>
+            <MenuItem value="30">30 FPS</MenuItem>
+            <MenuItem value="60">60 FPS</MenuItem>
+            <MenuItem value="120">120 FPS</MenuItem>
+            <MenuItem value="240">240 FPS</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl fullWidth sx={{ marginTop: 2 }}>
+          <InputLabel id="stereo-format-label">View Type</InputLabel>
+          <Select
+            labelId="stereo-format-label"
+            id="stereo-format"
+            value={settings.stereo_format}
+            onChange={(e: SelectChangeEvent<string>) =>
+              handleChange("stereo_format", e.target.value)
+            }
+          >
+            <MenuItem value="2d">Mono</MenuItem>
+            <MenuItem value="sbs">Side-by-Side (SBS)</MenuItem>
+            <MenuItem value="tb">Top-Bottom (TB)</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
@@ -153,11 +140,11 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("video_codec", e.target.value)
             }
           >
-            {commonlyUsedVideoCodecs.map((codec) => (
-              <MenuItem key={codec} value={codec}>
-                {codec}
-              </MenuItem>
-            ))}
+            <MenuItem value="Default">Default</MenuItem>
+            <MenuItem value="H.264 (AVC)">H.264 (AVC)</MenuItem>
+            <MenuItem value="H.265 (HEVC)">H.265 (HEVC)</MenuItem>
+            <MenuItem value="VP9">VP9</MenuItem>
+            <MenuItem value="AV1">AV1</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
@@ -170,11 +157,11 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("audio_codec", e.target.value)
             }
           >
-            {commonlyUsedAudioCodecs.map((codec) => (
-              <MenuItem key={codec} value={codec}>
-                {codec}
-              </MenuItem>
-            ))}
+            <MenuItem value="Default">Default</MenuItem>
+            <MenuItem value="AAC">AAC</MenuItem>
+            <MenuItem value="Opus">Opus</MenuItem>
+            <MenuItem value="Vorbis">Vorbis</MenuItem>
+            <MenuItem value="MP3">MP3</MenuItem>
           </Select>
         </FormControl>
         <TextField

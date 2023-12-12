@@ -24,7 +24,9 @@ from app.util.auth import project_access_required, user_jwt_required
 from app.util.ffmpeg import (
     create_thumbnail,
     get_duration,
-    ffmpeg_trim_concat,
+    ffmpeg_trim_concat_convert,
+    VideoEditorClip,
+    VideoEditorEdit,
 )
 from app.util.util import random_file_name
 from flask_jwt_extended import get_jwt
@@ -85,6 +87,7 @@ def parse_settings(settings: dict):
 
     resolution = settings.get("resolution", "3840:1920").replace("x", ":")
     frame_rate = settings.get("frame_rate", "30")
+    stereo_format = settings.get("stereo_format", "mono")
     video_codec = video_codec_to_ffmpeg(settings.get("video_codec", ""))
     audio_codec = audio_codec_to_ffmpeg(settings.get("audio_codec", ""))
     video_bitrate = settings.get("video_bitrate", "")
@@ -94,6 +97,7 @@ def parse_settings(settings: dict):
         "name": display_name,
         "resolution": resolution,
         "frame_rate": frame_rate,
+        "stereo_format": stereo_format,
         "video_codec": video_codec,
         "audio_codec": audio_codec,
         "video_bitrate": "" if video_bitrate == "Default" else video_bitrate,
@@ -152,6 +156,22 @@ def add_float_strings(float_a: str, float_b: str):
         return None
 
 
+def parse_clip(clip: dict) -> VideoEditorClip:
+    asset_id = clip["asset_id"]
+    start_time = clip["start_time"]
+    duration = clip["duration"]
+    end_time = add_float_strings(start_time, duration)
+
+    asset: AssetModel = find_asset(asset_id=asset_id)
+    path = Path(ASSET_DIR, asset.path)
+
+    return VideoEditorClip(
+        filepath=path,
+        trim=f"{start_time}:{end_time}",
+        stereo_format=asset.view_type,
+    )
+
+
 def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
     """Trim and concatenate the clips `clips` and store the result in
     Path `video_path`.
@@ -164,37 +184,24 @@ def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
         settings : dict
             settings of the output video.
     """
-    input_files = []
-    trims = []
-    for clip in clips:
-        asset_id = clip["asset_id"]
-        start_time = clip["start_time"]
-        duration = clip["duration"]
+    video_clips = [parse_clip(clip) for clip in clips]
 
-        asset: AssetModel = find_asset(asset_id=asset_id)
-        path = Path(ASSET_DIR, asset.path)
-        input_files.append(path)
-
-        end_time = add_float_strings(start_time, duration)
-        if not end_time:
-            status = HTTPStatus.BAD_REQUEST
-            msg = "Invalid input. Please provide valid float strings."
-            raise EditsValueException(status, msg)
-        trims.append(f"{start_time}:{end_time}")
-
-    ffmpeg_status = ffmpeg_trim_concat(
-        input_paths=input_files,
-        trims=trims,
-        output_path=video_path,
-        resolution=settings["resolution"],
+    width, height = settings["resolution"].split(":")
+    edit = VideoEditorEdit(
+        clips=video_clips,
+        filepath=video_path,
+        width=width,
+        height=height,
         frame_rate=settings["frame_rate"],
+        stereo_format="2d",
+        # projection_format=
         video_codec=settings["video_codec"],
         audio_codec=settings["audio_codec"],
         video_bitrate=settings["video_bitrate"],
         audio_bitrate=settings["audio_bitrate"],
     )
 
-    if not ffmpeg_status:
+    if not ffmpeg_trim_concat_convert(edit):
         status = HTTPStatus.INTERNAL_SERVER_ERROR
         msg = "Error trimming and joining assets"
         raise FFmpegException(status, msg)
@@ -239,26 +246,6 @@ def find_asset(asset_id: int) -> AssetModel | None:
         status = HTTPStatus.NOT_FOUND
         msg = f"Asset not found with ID: {asset_id}"
         raise NoAssetFound(status, msg) from error
-
-
-def cleanup_temporary_files(filepaths: list | dict) -> None:
-    """Remove the files specified by `filepaths`.
-
-    Parameters:
-        filepaths : list[str]
-            list or dictionary of filepaths to remove.
-
-    Side effects:
-        removes files.
-    """
-    if isinstance(filepaths, list):
-        for path in filepaths:
-            Path(path).unlink()
-    elif isinstance(filepaths, dict):
-        for path in filepaths.values():
-            Path(path).unlink()
-    else:
-        raise TypeError("Unsupported type for filepaths. Use list or dict.")
 
 
 def generate_asset_meta(

@@ -23,8 +23,6 @@ import { useAssetsContext } from "../MediaLibraryComponents/AssetsContext";
 import { exportVideoEdits } from "../../../util/api";
 import SettingsDialog from "./VideoSettingsDialog";
 
-const DEFAULT_TITLE = "Untitled Video";
-
 /* Callback functions */
 /**
  * Navigate back to assets tab on the project page.
@@ -139,17 +137,6 @@ const ExportButton = () => {
     }
   };
 
-  /* Default settings. */
-  const settings = {
-    name: DEFAULT_TITLE,
-    resolution: "3840x1920",
-    frame_rate: "30",
-    video_codec: "H.264 (AVC)",
-    video_bitrate: "Default",
-    audio_codec: "AAC",
-    audio_bitrate: "Default",
-  };
-
   return (
     <>
       <Button
@@ -169,7 +156,6 @@ const ExportButton = () => {
       <SettingsDialog
         open={openDialog}
         handleClose={handleCloseDialog}
-        currentSettings={settings}
         handleExport={handleExport}
       />
     </>
