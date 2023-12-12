@@ -1,9 +1,14 @@
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from app.config import ASSET_DIR
 from app.models.asset import ViewType
+from app.util.util import generate_random_filename
 
 import ffmpeg
+
+
+MAX_COMMAND_LENGTH = 1000
 
 
 def create_thumbnail(in_path: str, out_path: str):
@@ -36,6 +41,19 @@ class VideoEditorClip:
         trim (str): Information about the trim.
         stereo_format (str): Stereo format of the asset.
         projection_format (str): Projection format of the asset.
+
+    Notes:
+      - The attributes `stereo_format` and `projection_format` should
+        be set according to FFmpeg's syntax. For instance, the stereo
+        format should be set to '2d' instead of mono (FFmpeg v4.4.2).
+      - Format specific options for a projection format can be added
+        using the colon `:` as separator. For instance, to specify a
+        cubemap with a 3x2 layout and a ouput padding of 1%:
+
+        projection_format="c3x2:out_pad=0.01"
+
+        For further information regarding options, see the 'v360'
+        video filter of FFmpeg.
     """
 
     filepath: str
@@ -60,6 +78,24 @@ class VideoEditorEdit:
         audio_codec (str): Codec for the audio.
         video_bitrate (str): Bitrate of the video.
         audio_bitrate (str): Bitrate of the audio.
+
+    Notes:
+      - Attributes that are listed after the `filepath` attribute are
+        options for the output. Attempts will be made to convert each
+        clip in the edit to those specified attributes. If not enough
+        information is provided, then no special transformations are
+        performed. Instead, it will be treated as a general video.
+      - The attributes `stereo_format` and `projection_format` should
+        be set according to FFmpeg's syntax. For instance, the stereo
+        format should be set to '2d' instead of mono (FFmpeg v4.4.2).
+      - Format specific options for a projection format can be added
+        using the colon `:` as separator. For instance, to specify a
+        cubemap with a 3x2 layout and a ouput padding of 1%:
+
+        projection_format="c3x2:out_pad=0.01"
+
+        For further information regarding options, see the 'v360'
+        video filter of FFmpeg.
     """
 
     clips: list[VideoEditorClip]
@@ -75,7 +111,9 @@ class VideoEditorEdit:
     audio_bitrate: str = None
 
 
-def _video_editor_generate_input_options(clips: list[VideoEditorClip]):
+def _video_editor_generate_input_options(
+    clips: list[VideoEditorClip],
+) -> list[str]:
     """Generate the input options of the FFmpeg command for the video editor.
     The asset of each clip is added to the command using the `-i` flag.
     """
@@ -87,7 +125,10 @@ def _video_editor_generate_input_options(clips: list[VideoEditorClip]):
     return options
 
 
-def _video_editor_v360_options(clip: VideoEditorClip, edit: VideoEditorEdit):
+def _video_editor_v360_options(
+    clip: VideoEditorClip,
+    edit: VideoEditorEdit,
+) -> str:
     """Specify the filter options for the `v360` video filter of FFmpeg.
     This filter enables conversion in projection format or stereo format.
     """
@@ -109,7 +150,10 @@ def _video_editor_v360_options(clip: VideoEditorClip, edit: VideoEditorEdit):
     return ":".join(options)
 
 
-def _video_editor_video_options(clip: VideoEditorClip, edit: VideoEditorEdit):
+def _video_editor_video_options(
+    clip: VideoEditorClip,
+    edit: VideoEditorEdit,
+) -> list[str]:
     """Specify the video options for an input video in a complex filter graph
     of FFmpeg. The content of a clip is trimmed and the frame rate is changed.
     If the resolution could not be changed in the `v360` video filter, then
@@ -131,7 +175,7 @@ def _video_editor_video_options(clip: VideoEditorClip, edit: VideoEditorEdit):
     return ",".join(options)
 
 
-def _video_editor_audio_options(clip: VideoEditorClip):
+def _video_editor_audio_options(clip: VideoEditorClip) -> list[str]:
     """Specify the audio options for an input video in a complex filter graph
     of FFmpeg. The content of a clip is trimmed.
     """
@@ -143,7 +187,7 @@ def _video_editor_audio_options(clip: VideoEditorClip):
     return ",".join(options)
 
 
-def _video_editor_generate_filter_complex(edit: VideoEditorEdit):
+def _video_editor_generate_filter_complex(edit: VideoEditorEdit) -> list[str]:
     """Generate the complex filtergraph filter for the given edit `edit`."""
     filter_options = []
     labels = ""
@@ -173,7 +217,7 @@ def _video_editor_generate_filter_complex(edit: VideoEditorEdit):
     return options
 
 
-def _video_editor_generate_output_options(edit: VideoEditorEdit):
+def _video_editor_generate_output_options(edit: VideoEditorEdit) -> list[str]:
     """Specify the output options of the video edit `edit`."""
     options = []
 
@@ -191,11 +235,13 @@ def _video_editor_generate_output_options(edit: VideoEditorEdit):
     return options
 
 
-def _run_ffmpeg_command(
+def _video_editor_run_ffmpeg_command(
     command: list[str],
     error_message="Command failed.",
-):
-    """Run a FFmpeg command.
+) -> bool:
+    """Run a FFmpeg command. If the command is too long, then write the
+    filter to a script instead. The command is changed to use another
+    flag accordingly.
 
     Parameters:
         command (list[str]): FFmpeg command to execute.
@@ -203,18 +249,49 @@ def _run_ffmpeg_command(
 
     TODO: Use logging instead of print().
     """
+    script_path = None
+
+    # Check if the length of the command is too long.
+    if MAX_COMMAND_LENGTH < sum(map(len, map(str, command))):
+        # Write the filter complex to a file.
+        script_path = Path(ASSET_DIR, generate_random_filename(".txt"))
+        filter_index = command.index("-filter_complex")
+        filter_complex = command[filter_index + 1]
+        script_path.write_text(filter_complex, encoding="utf-8")
+
+        # Update the command to use the file.
+        command[filter_index] = "-filter_complex_script"
+        command[filter_index + 1] = script_path
+
     try:
         subprocess.run(command, check=True, capture_output=True, text=True)
         return True
     except subprocess.CalledProcessError as error:
         print(f"{error_message} Error: {error.stderr}")
         return False
+    finally:
+        # Remove the file after execution.
+        if script_path and script_path.exists():
+            script_path.unlink()
 
 
-def ffmpeg_trim_concat_convert(edit: VideoEditorEdit):
+def ffmpeg_trim_concat_convert(edit: VideoEditorEdit) -> bool:
     """Generate and execute a command that trims and concatenates each clip
     in the video edit `edit`. If a `projection_format` or `stereo_format`
     conversion is required, also include those in the command.
+
+    TODO:
+      - The function trims the video and audio stream of an asset. A problem
+        occurs when a video file does not have exactly one audio stream. For
+        the videos without audio streams, an error will occur. For the other
+        videos, trimming will only be performed on their first audio stream.
+      - If the length of the command is too long, then the `filter_complex`
+        is written to a '.txt' file. The command is then altered to use the
+        new script instead of specifying the filter in-line. A problem will
+        occur when too many input videos are specified. The command without
+        the `filter_complex` may still exceed the maximum command length. A
+        solution is to limit the number of clips that can be inside an edit
+        in the frontend as well as the backend.
     """
     if not 0 < len(edit.clips):
         return False
@@ -224,7 +301,7 @@ def ffmpeg_trim_concat_convert(edit: VideoEditorEdit):
     command.extend(_video_editor_generate_filter_complex(edit))
     command.extend(_video_editor_generate_output_options(edit))
 
-    return _run_ffmpeg_command(
+    return _video_editor_run_ffmpeg_command(
         command,
         error_message="Failed to trim, concatenate or convert.",
     )

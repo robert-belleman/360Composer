@@ -2,12 +2,21 @@ import datetime
 import binascii
 import os
 
+
 def random_file_name() -> str:
     # create random filename
     basename = "asset"
     prefix = datetime.datetime.now().strftime("%y%m%d%H%M")
     random = binascii.b2a_hex(os.urandom(8)).decode()
     return ''.join([basename, prefix, random])
+
+
+def generate_random_filename(extension: str) -> str:
+    """Generate a random filename with the given extension `extension`."""
+    prefix = datetime.datetime.now().strftime("%y%m%d%H%M")
+    random = binascii.b2a_hex(os.urandom(8)).decode()
+    return ''.join([prefix, random, extension])
+
 
 def write_file(request, path, file) -> None:
     # save the file to system and create the database entry

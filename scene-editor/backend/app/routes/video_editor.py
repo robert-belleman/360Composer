@@ -79,7 +79,7 @@ class NoProjectFound(Exception):
         self.message = message
 
 
-def parse_settings(settings: dict):
+def parse_settings(settings: dict) -> dict:
     """Parse settings from display name to ffmpeg value."""
     display_name = settings.get("name", "Untitled_Video" + EXTENSION)
     if not display_name.endswith(EXTENSION):
@@ -106,7 +106,7 @@ def parse_settings(settings: dict):
     return parsed_settings
 
 
-def video_codec_to_ffmpeg(codec: str):
+def video_codec_to_ffmpeg(codec: str) -> str:
     """Parse video codecs from display name to ffmpeg value."""
     video_codec_mappings = {
         "default": "",
@@ -121,7 +121,7 @@ def video_codec_to_ffmpeg(codec: str):
     return video_codec_mappings.get(normalized_codec, None)
 
 
-def audio_codec_to_ffmpeg(codec: str):
+def audio_codec_to_ffmpeg(codec: str) -> str:
     """Parse audio codecs from display name to ffmpeg value."""
     audio_codec_mappings = {
         "default": "",
@@ -136,7 +136,7 @@ def audio_codec_to_ffmpeg(codec: str):
     return audio_codec_mappings.get(normalized_codec, None)
 
 
-def add_float_strings(float_a: str, float_b: str):
+def add_float_strings(float_a: str, float_b: str) -> str | None:
     """Compute the sum of two strings that can be parsed to floats.
     Return the sum as a string.
 
@@ -157,6 +157,13 @@ def add_float_strings(float_a: str, float_b: str):
 
 
 def parse_clip(clip: dict) -> VideoEditorClip:
+    """Parse the information inside the dictionary `clip` to the syntax of
+    FFmpeg.
+
+    Parameters:
+        clips : dict
+            dictionary containing information of each clip.
+    """
     asset_id = clip["asset_id"]
     start_time = clip["start_time"]
     duration = clip["duration"]
