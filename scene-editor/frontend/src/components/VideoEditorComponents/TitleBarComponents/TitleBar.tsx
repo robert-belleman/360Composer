@@ -111,7 +111,7 @@ const ExportButton = () => {
     setOpenDialog(false);
   };
 
-  const { state } = useClipsContext();
+  const { state: clipsState } = useClipsContext();
   const { fetchAssets } = useAssetsContext();
   const { projectID } = useParams();
 
@@ -128,7 +128,7 @@ const ExportButton = () => {
     setIsExporting(true);
 
     try {
-      await useExportClips(projectID, state.clips, settings, fetchAssets);
+      await useExportClips(projectID, clipsState.clips, settings, fetchAssets);
     } catch (error) {
       console.error("Error exporting clips:", error);
     } finally {
@@ -144,6 +144,7 @@ const ExportButton = () => {
         startIcon={
           isExporting ? <CircularProgress size={20} /> : <UpgradeIcon />
         }
+        disabled={clipsState.clips.length === 0}
         onClick={handleOpenDialog}
         sx={{
           backgroundColor: "aliceblue",
@@ -167,13 +168,14 @@ const ToggleMediaLibraryButton = ({ onclick }: { onclick: () => void }) => {
     <Button
       variant="contained"
       onClick={onclick}
+      startIcon={<VideoLibraryIcon />}
       sx={{
         backgroundColor: "aliceblue",
         color: "royalblue",
         "&:hover": { backgroundColor: "lightgrey" },
       }}
     >
-      <VideoLibraryIcon />
+      Media Library
     </Button>
   );
 };
@@ -185,10 +187,11 @@ const TitleBar: React.FC<{ toggleMediaLibrary: () => void }> = memo(
         direction="row"
         padding={{ xs: 1, md: 2 }}
         spacing={{ xs: 1, md: 2 }}
+        justifyContent="space-between"
         sx={{ backgroundColor: "#2196f3" }}
       >
-        <ToggleMediaLibraryButton onclick={toggleMediaLibrary} />
         <BackButton />
+        <ToggleMediaLibraryButton onclick={toggleMediaLibrary} />
         <ExportButton />
       </Stack>
     );

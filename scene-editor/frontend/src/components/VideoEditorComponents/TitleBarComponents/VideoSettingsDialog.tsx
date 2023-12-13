@@ -23,6 +23,8 @@ import {
   TextField,
 } from "@mui/material";
 
+const MAX_CHARACTERS_NAME = 128;
+
 interface Settings {
   name: string;
   resolution: string;
@@ -46,15 +48,17 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
   handleExport,
 }) => {
   const [settings, setSettings] = useState<Settings>({
-    name: "Untitled Video",
+    name: "",
     resolution: "3840x1920",
     frame_rate: "30",
     stereo_format: "2d",
-    video_codec: "H.264 (AVC)",
+    video_codec: "Default",
     video_bitrate: "Default",
-    audio_codec: "AAC",
+    audio_codec: "Default",
     audio_bitrate: "Default",
   });
+
+  const isExportButtonDisabled = !settings.name;
 
   const handleChange = (field: keyof Settings, value: string) => {
     setSettings((prevSettings) => ({
@@ -75,6 +79,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
         <DialogContentText>Modify the settings as needed.</DialogContentText>
         <TextField
           label="Name"
+          required
           fullWidth
           value={settings.name}
           placeholder="Untitled Video"
@@ -82,6 +87,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             handleChange("name", e.target.value)
           }
           sx={{ marginTop: 2 }}
+          inputProps={{ maxLength: MAX_CHARACTERS_NAME }}
         />
         <FormControl fullWidth sx={{ marginTop: 2 }}>
           <InputLabel id="resolution-label">Resolution</InputLabel>
@@ -90,7 +96,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             id="resolution"
             value={settings.resolution}
             onChange={(e: SelectChangeEvent<string>) =>
-              handleChange("resolution", e.target.value as string)
+              handleChange("resolution", e.target.value)
             }
           >
             <MenuItem value="3840x1920">3840x1920</MenuItem>
@@ -105,7 +111,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             id="framerate"
             value={settings.frame_rate}
             onChange={(e: SelectChangeEvent<string>) =>
-              handleChange("frame_rate", e.target.value as string)
+              handleChange("frame_rate", e.target.value)
             }
           >
             <MenuItem value="24">24 FPS</MenuItem>
@@ -125,7 +131,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("stereo_format", e.target.value)
             }
           >
-            <MenuItem value="2d">Mono</MenuItem>
+            <MenuItem value="2d">Monoscopic</MenuItem>
             <MenuItem value="sbs">Side-by-Side (SBS)</MenuItem>
             <MenuItem value="tb">Top-Bottom (TB)</MenuItem>
           </Select>
@@ -187,7 +193,9 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Save</Button>
-        <Button onClick={handleSave}>Export</Button>
+        <Button onClick={handleSave} disabled={isExportButtonDisabled}>
+          Export
+        </Button>
       </DialogActions>
     </Dialog>
   );
