@@ -117,4 +117,4 @@ const VideoPreview: React.FC = () => {
   );
 };
 
-export default VideoPreview;
+export default React.memo(VideoPreview);

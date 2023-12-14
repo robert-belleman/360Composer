@@ -15,7 +15,7 @@ from pathlib import Path
 
 from app.config import ASSET_DIR
 from app.models.asset import Asset as AssetModel
-from app.models.asset import AssetType
+from app.models.asset import AssetType, ViewType
 from app.models.database import db
 from app.models.project import Project as ProjectModel
 from app.routes.api import api
@@ -87,7 +87,7 @@ def parse_settings(settings: dict) -> dict:
 
     resolution = settings.get("resolution", "3840:1920").replace("x", ":")
     frame_rate = settings.get("frame_rate", "30")
-    stereo_format = settings.get("stereo_format", "mono")
+    stereo_format = settings.get("stereo_format", "2d")
     video_codec = video_codec_to_ffmpeg(settings.get("video_codec", ""))
     audio_codec = audio_codec_to_ffmpeg(settings.get("audio_codec", ""))
     video_bitrate = settings.get("video_bitrate", "")
@@ -136,6 +136,17 @@ def audio_codec_to_ffmpeg(codec: str) -> str:
     return audio_codec_mappings.get(normalized_codec, None)
 
 
+def stereo_format_to_ffmepg(stereo_format: str) -> str:
+    """Parse view type from display name to ffmpeg value."""
+    view_type_mappings = {
+        ViewType.mono: "2d",
+        ViewType.sidetoside: "sbs",
+        ViewType.toptobottom: "tb",
+    }
+
+    return view_type_mappings.get(stereo_format, None)
+
+
 def add_float_strings(float_a: str, float_b: str) -> str | None:
     """Compute the sum of two strings that can be parsed to floats.
     Return the sum as a string.
@@ -175,7 +186,8 @@ def parse_clip(clip: dict) -> VideoEditorClip:
     return VideoEditorClip(
         filepath=path,
         trim=f"{start_time}:{end_time}",
-        stereo_format=asset.view_type,
+        stereo_format=stereo_format_to_ffmepg(asset.view_type),
+        # projection_format="equirect",
     )
 
 
@@ -200,8 +212,8 @@ def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
         width=width,
         height=height,
         frame_rate=settings["frame_rate"],
-        stereo_format="2d",
-        # projection_format=
+        stereo_format=settings["stereo_format"],
+        # projection_format="equirect",
         video_codec=settings["video_codec"],
         audio_codec=settings["audio_codec"],
         video_bitrate=settings["video_bitrate"],

@@ -47,3 +47,7 @@ export const initHLS = async (assetId: string) => {
 export const exportVideoEdits = async (activeProject: string, data: any) => {
   return await axios.post(`/api/video-editor/${activeProject}/edit`, data);
 };
+
+export const changeViewType = async (newViewType: string, assetId: string) => {
+  return await axios.post(`/api/asset/${assetId}/setview/${newViewType}`);
+};

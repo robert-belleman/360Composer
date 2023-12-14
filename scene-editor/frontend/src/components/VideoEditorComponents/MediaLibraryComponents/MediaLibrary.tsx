@@ -21,15 +21,24 @@
  *
  */
 
-import AddIcon from "@mui/icons-material/Add";
-import { Button, Grid, Stack } from "@mui/material";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
+
+import AddIcon from "@mui/icons-material/Add";
+import {
+  Alert,
+  AlertColor,
+  Button,
+  Grid,
+  Snackbar,
+  Stack,
+} from "@mui/material";
+
 import NewAssetDialog from "../../ProjectComponents/AssetViewComponents/NewAssetDialog";
 import { Asset, useAssetsContext } from "./AssetsContext";
 import FilterOptions from "./FilterOptions";
-import SortingOptions from "./SortOptions";
 import LibraryAsset from "./LibraryAsset";
+import SortingOptions from "./SortOptions";
 
 const ImportMediaButton: React.FC<{
   setIsImporting: React.Dispatch<React.SetStateAction<boolean>>;
@@ -50,6 +59,12 @@ const ImportMediaButton: React.FC<{
 
 const MediaLibrary: React.FC = () => {
   const [isImporting, setIsImporting] = useState(false);
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+
   const { assets, fetchAssets, sortAssets, filterAssets } = useAssetsContext();
   const { projectID } = useParams();
   const sortedFilteredAssets = sortAssets(filterAssets(assets));
@@ -57,6 +72,42 @@ const MediaLibrary: React.FC = () => {
   const handleAssetCreated = () => {
     setIsImporting(false);
     fetchAssets();
+  };
+
+  const handleSetAlert = (message: string, severity: string) => {
+    setAlert({
+      open: true,
+      message: message,
+      severity: severity,
+    });
+  };
+
+  const AlertSnackbar = ({
+    open,
+    handleClose,
+    message,
+    severity,
+  }: {
+    open: boolean;
+    handleClose: () => void;
+    message: string;
+    severity: string;
+  }) => {
+    return (
+      <Snackbar
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        open={open}
+        autoHideDuration={3000}
+        onClose={handleClose}
+      >
+        <Alert onClose={handleClose} severity={severity as AlertColor}>
+          {message}
+        </Alert>
+      </Snackbar>
+    );
   };
 
   return (
@@ -79,7 +130,11 @@ const MediaLibrary: React.FC = () => {
 
       <div style={{ height: "100%", overflowY: "auto" }}>
         {sortedFilteredAssets.map((asset: Asset, index: number) => (
-          <LibraryAsset key={index} asset={asset} />
+          <LibraryAsset
+            key={index}
+            asset={asset}
+            handleSetAlert={handleSetAlert}
+          />
         ))}
       </div>
 
@@ -89,8 +144,14 @@ const MediaLibrary: React.FC = () => {
         closeHandler={() => setIsImporting(false)}
         onAssetCreated={handleAssetCreated}
       />
+      <AlertSnackbar
+        open={alert.open}
+        handleClose={() => setAlert({ ...alert, open: false })}
+        message={alert.message}
+        severity={alert.severity}
+      />
     </Stack>
   );
 };
 
-export default MediaLibrary;
+export default React.memo(MediaLibrary);

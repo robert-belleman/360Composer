@@ -17,6 +17,8 @@ import {
   CircularProgress,
   Collapse,
   IconButton,
+  MenuItem,
+  Select,
   Stack,
   Typography,
 } from "@mui/material";
@@ -27,6 +29,7 @@ import defaultImage from "../../../static/images/default.jpg";
 import { ActionTypes, createClip, useClipsContext } from "../ClipsContext";
 import { MAX_CONCURRENT_INIT_HLS_CALLS } from "../Constants";
 import { Asset, useAssetsContext } from "./AssetsContext";
+import { changeViewType } from "../../../util/api";
 
 const toDisplayTime = (seconds: number) => {
   let minutes = Math.floor(seconds / 60);
@@ -36,11 +39,11 @@ const toDisplayTime = (seconds: number) => {
   return `${strMinutes}:${strSeconds}`;
 };
 
-const viewType = (viewtype: string) => {
+const viewTypeToValue = (viewtype: string) => {
   const viewtypeText = {
-    "ViewType.mono": "monoscopic",
-    "ViewType.sidetoside": "side-by-side",
-    "ViewType.toptobottom": "top-bottom",
+    "ViewType.mono": "mono",
+    "ViewType.sidetoside": "sidetoside",
+    "ViewType.toptobottom": "toptobottom",
   }[viewtype];
 
   return viewtypeText === undefined ? "Unknown type" : viewtypeText;
@@ -61,12 +64,17 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
-const LibraryAsset = ({ asset }: { asset: Asset }) => {
+type AssetViewProps = {
+  asset: Asset;
+  handleSetAlert: (message: string, severity: string) => void;
+};
+
+const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
   const [expanded, setExpanded] = useState(false);
   const [enablingHLS, setEnablingHLS] = useState(false);
 
   const { dispatch } = useClipsContext();
-  const { activeApiCalls, attemptInitHLS } = useAssetsContext();
+  const { activeApiCalls, attemptInitHLS, fetchAssets } = useAssetsContext();
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -90,6 +98,19 @@ const LibraryAsset = ({ asset }: { asset: Asset }) => {
       return;
     }
     handleAppendClip(asset);
+  };
+
+  const handleChangeViewType = async (newViewType: string, assetId: string) => {
+    try {
+      await changeViewType(newViewType, assetId);
+      handleSetAlert(
+        `Asset's view type succesfully changed to ${newViewType}`,
+        "success"
+      );
+      await fetchAssets();
+    } catch (error) {
+      console.log('An error occured whilst editing asset "view type"', error);
+    }
   };
 
   const imgPath = asset.thumbnail_path
@@ -164,9 +185,25 @@ const LibraryAsset = ({ asset }: { asset: Asset }) => {
             />
             <CardContent>
               <Typography>{`Last updated: ${asset.updated_at}`}</Typography>
-              <Typography>{`View type: ${viewType(
+              <Select
+                labelId="viewtype"
+                id="viewtype-select"
+                value={viewTypeToValue(asset.view_type)}
+                label="View Type"
+                onChange={(event) =>
+                  handleChangeViewType(event.target.value, asset.id)
+                }
+                autoWidth={true}
+                variant="outlined"
+                size="small"
+              >
+                <MenuItem value={"mono"}>Monoscopic</MenuItem>
+                <MenuItem value={"sidetoside"}>Side by Side</MenuItem>
+                <MenuItem value={"toptobottom"}>Top-Bottom</MenuItem>
+              </Select>
+              {/* <Typography>{`View type: ${viewType(
                 asset.view_type
-              )}`}</Typography>
+              )}`}</Typography> */}
             </CardContent>
           </>
         )}

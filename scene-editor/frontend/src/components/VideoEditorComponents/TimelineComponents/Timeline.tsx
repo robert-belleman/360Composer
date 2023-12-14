@@ -61,4 +61,4 @@ const Timeline: React.FC = () => {
   );
 };
 
-export default Timeline;
+export default React.memo(Timeline);

@@ -37,46 +37,6 @@ const useNavigateBack = (projectID: string) => {
   }, [projectID, navigate]);
 };
 
-/**
- * Export the clips `clips` with the title `title`.
- * @param clips clips to export.
- * @param title title of the video created from combining the clips.
- * @returns Callback function that exports the clips with title.
- */
-const useExportClips = async (
-  projectID: string,
-  clips: Clip[],
-  settings: any,
-  fetchAssets: () => Promise<void>
-) => {
-  try {
-    /* Parse edits */
-    const edits =
-      clips.length > 0
-        ? clips.map((clip) => ({
-            asset_id: clip.asset.id,
-            start_time: clip.startTime.toFixed(3),
-            duration: clip.duration.toFixed(3),
-          }))
-        : {};
-
-    try {
-      console.log("Exporting video edit:", edits, settings);
-      const response = await exportVideoEdits(projectID, {
-        edits: edits,
-        settings: settings,
-      });
-      console.log("API Response: ", response.data);
-    } catch (error) {
-      console.error("API Error:", error);
-    }
-
-    await fetchAssets();
-  } catch (error) {
-    console.error("Error during export and fetch:", error);
-  }
-};
-
 /* Components */
 const BackButton = memo(() => {
   const { projectID } = useParams<"projectID">();
@@ -128,7 +88,27 @@ const ExportButton = () => {
     setIsExporting(true);
 
     try {
-      await useExportClips(projectID, clipsState.clips, settings, fetchAssets);
+      /* Parse edits */
+      const edits =
+        clipsState.clips.length > 0
+          ? clipsState.clips.map((clip) => ({
+              asset_id: clip.asset.id,
+              start_time: clip.startTime.toFixed(3),
+              duration: clip.duration.toFixed(3),
+            }))
+          : {};
+
+      try {
+        console.log("Exporting video edit:", edits, settings);
+        const response = await exportVideoEdits(projectID, {
+          edits: edits,
+          settings: settings,
+        });
+        console.log("API Response: ", response.data);
+        await fetchAssets();
+      } catch (error) {
+        console.error("Error during export and fetch:", error);
+      }
     } catch (error) {
       console.error("Error exporting clips:", error);
     } finally {
