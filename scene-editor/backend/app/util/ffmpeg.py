@@ -132,24 +132,19 @@ def _video_editor_v360_options(
     """Specify the filter options for the `v360` video filter of FFmpeg.
     This filter enables conversion in projection format or stereo format.
     """
-    options = []
+    options = [f"v360=output={edit.projection_format}"]
 
-    if clip.projection_format and edit.projection_format:
-        options.append(
-            f"v360={clip.projection_format}:{edit.projection_format}",
+    if clip.projection_format:
+        options.append(f"input={clip.projection_format}")
+
+    if clip.stereo_format != edit.stereo_format:
+        options.extend(
+            [
+                f"in_stereo={clip.stereo_format}",
+                f"out_stereo={edit.stereo_format}",
+            ]
         )
-        if (
-            clip.stereo_format
-            and edit.stereo_format
-            and clip.stereo_format != edit.stereo_format
-        ):
-            options.extend(
-                [
-                    f"in_stereo={clip.stereo_format}",
-                    f"out_stereo={edit.stereo_format}",
-                ]
-            )
-        options.extend([f"w={edit.width}", f"h={edit.height}"])
+    options.extend([f"w={edit.width}", f"h={edit.height}"])
 
     return ":".join(options)
 
@@ -160,8 +155,6 @@ def _video_editor_video_options(
 ) -> list[str]:
     """Specify the video options for an input video in a complex filter graph
     of FFmpeg. The content of a clip is trimmed and the frame rate is changed.
-    If the resolution could not be changed in the `v360` video filter, then
-    the resolution is changed using `scale`.
     """
     options = []
 
@@ -171,8 +164,6 @@ def _video_editor_video_options(
 
     if clip.trim:
         options.extend([f"trim={clip.trim}", "setpts=PTS-STARTPTS"])
-    if not clip.projection_format or not edit.projection_format:
-        options.extend([f"scale={edit.width}:{edit.height}", "setsar=1"])
     if edit.frame_rate:
         options.append(f"framerate={edit.frame_rate}")
 

@@ -208,7 +208,7 @@ def parse_clip(clip: dict) -> VideoEditorClip:
         filepath=path,
         trim=f"{start_time}:{end_time}",
         stereo_format=stereo_format_to_ffmpeg(asset.view_type),
-        projection_format="equirect",
+        # projection_format="equirect",
     )
 
 
@@ -315,14 +315,11 @@ def generate_asset_meta(
             msg = "Error generating thumbnail"
             raise AssetMetaGenerationError(status, msg)
 
-        # TODO: check proj_format and change to type ViewType.
-        view_type = settings["stereo_format"]
-
         return {
             "user_id": project.user_id,
             "duration": get_duration(video_path),
             "thumbnail_path": thumbnail_path.name,
-            "view_type": view_type,
+            "view_type": settings["stereo_format"],
             "file_size": video_path.stat().st_size,
             "projects": [project],
         }
