@@ -55,6 +55,14 @@ class FFmpegException(Exception):
         self.message = message
 
 
+class SettingsParsingException(Exception):
+    """Exception when parsing of settings fails."""
+
+    def __init__(self, status_code, message):
+        self.status_code = status_code
+        self.message = message
+
+
 class AssetMetaGenerationError(Exception):
     """Exception for errors during metadata generation."""
 
@@ -87,7 +95,19 @@ def parse_settings(settings: dict) -> dict:
 
     resolution = settings.get("resolution", "3840:1920").replace("x", ":")
     frame_rate = settings.get("frame_rate", "30")
-    stereo_format = settings.get("stereo_format", "2d")
+
+    # Convert str to ViewType enum.
+    try:
+        stereo_format = getattr(
+            ViewType,
+            settings.get("stereo_format", "mono"),
+        )
+    except AttributeError as error:
+        status = HTTPStatus.INTERNAL_SERVER_ERROR
+        msg = f"AttributeError with view type: {settings['stereo_format']}."
+        raise SettingsParsingException(status, msg) from error
+
+    projection_format = settings.get("projection_format", "")
     video_codec = video_codec_to_ffmpeg(settings.get("video_codec", ""))
     audio_codec = audio_codec_to_ffmpeg(settings.get("audio_codec", ""))
     video_bitrate = settings.get("video_bitrate", "")
@@ -98,6 +118,7 @@ def parse_settings(settings: dict) -> dict:
         "resolution": resolution,
         "frame_rate": frame_rate,
         "stereo_format": stereo_format,
+        "projection_format": projection_format,
         "video_codec": video_codec,
         "audio_codec": audio_codec,
         "video_bitrate": "" if video_bitrate == "Default" else video_bitrate,
@@ -136,7 +157,7 @@ def audio_codec_to_ffmpeg(codec: str) -> str:
     return audio_codec_mappings.get(normalized_codec, None)
 
 
-def stereo_format_to_ffmepg(stereo_format: str, reverse: bool = False) -> str:
+def stereo_format_to_ffmpeg(stereo_format: str) -> str:
     """Parse view type from display name to ffmpeg value."""
     view_type_mappings = {
         ViewType.mono: "2d",
@@ -144,14 +165,6 @@ def stereo_format_to_ffmepg(stereo_format: str, reverse: bool = False) -> str:
         ViewType.toptobottom: "tb",
     }
 
-    reverse_mappings = {
-        "2d": ViewType.mono,
-        "sbs": ViewType.sidetoside,
-        "tb": ViewType.toptobottom,
-    }
-
-    if reverse:
-        return reverse_mappings.get(stereo_format, None)
     return view_type_mappings.get(stereo_format, None)
 
 
@@ -194,8 +207,8 @@ def parse_clip(clip: dict) -> VideoEditorClip:
     return VideoEditorClip(
         filepath=path,
         trim=f"{start_time}:{end_time}",
-        stereo_format=stereo_format_to_ffmepg(asset.view_type),
-        # projection_format="equirect",
+        stereo_format=stereo_format_to_ffmpeg(asset.view_type),
+        projection_format="equirect",
     )
 
 
@@ -220,12 +233,10 @@ def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
         width=width,
         height=height,
         frame_rate=settings["frame_rate"],
-        stereo_format=settings["stereo_format"],
-        # projection_format="equirect",
+        stereo_format=stereo_format_to_ffmpeg(settings["stereo_format"]),
+        projection_format=settings["projection_format"],
         video_codec=settings["video_codec"],
         audio_codec=settings["audio_codec"],
-        video_bitrate=settings["video_bitrate"],
-        audio_bitrate=settings["audio_bitrate"],
     )
 
     if not ffmpeg_trim_concat_convert(edit):
@@ -305,7 +316,7 @@ def generate_asset_meta(
             raise AssetMetaGenerationError(status, msg)
 
         # TODO: check proj_format and change to type ViewType.
-        view_type = stereo_format_to_ffmepg(settings["stereo_format"], True)
+        view_type = settings["stereo_format"]
 
         return {
             "user_id": project.user_id,
@@ -407,5 +418,6 @@ class EditAssets(Resource):
             NoProjectFound,
             FFmpegException,
             AssetMetaGenerationError,
+            SettingsParsingException,
         ) as error:
             return {"message": error.message}, error.status_code

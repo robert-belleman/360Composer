@@ -138,7 +138,11 @@ def _video_editor_v360_options(
         options.append(
             f"v360={clip.projection_format}:{edit.projection_format}",
         )
-        if clip.stereo_format != edit.stereo_format:
+        if (
+            clip.stereo_format
+            and edit.stereo_format
+            and clip.stereo_format != edit.stereo_format
+        ):
             options.extend(
                 [
                     f"in_stereo={clip.stereo_format}",

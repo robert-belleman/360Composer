@@ -30,10 +30,9 @@ interface Settings {
   resolution: string;
   frame_rate: string;
   stereo_format: string;
+  projection_format: string;
   video_codec: string;
-  video_bitrate: string;
   audio_codec: string;
-  audio_bitrate: string;
 }
 
 interface SettingsDialogProps {
@@ -51,11 +50,10 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     name: "",
     resolution: "3840x1920",
     frame_rate: "30",
-    stereo_format: "2d",
+    stereo_format: "mono",
+    projection_format: "equirect",
     video_codec: "Default",
-    video_bitrate: "Default",
     audio_codec: "Default",
-    audio_bitrate: "Default",
   });
 
   const isExportButtonDisabled = settings.name.trim().length === 0;
@@ -123,6 +121,20 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
+          <InputLabel id="proj-format-label">Projection Format</InputLabel>
+          <Select
+            labelId="proj-format-label"
+            id="proj-format"
+            value={settings.projection_format}
+            onChange={(e: SelectChangeEvent<string>) =>
+              handleChange("projection_format", e.target.value)
+            }
+          >
+            <MenuItem value="equirect">Equirectangular</MenuItem>
+            <MenuItem value="ball">Spherical</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl fullWidth sx={{ marginTop: 2 }}>
           <InputLabel id="stereo-format-label">View Type</InputLabel>
           <Select
             labelId="stereo-format-label"
@@ -132,9 +144,9 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("stereo_format", e.target.value)
             }
           >
-            <MenuItem value="2d">Monoscopic</MenuItem>
-            <MenuItem value="sbs">Side-by-Side (SBS)</MenuItem>
-            <MenuItem value="tb">Top-Bottom (TB)</MenuItem>
+            <MenuItem value="mono">Monoscopic</MenuItem>
+            <MenuItem value="sidetoside">Side-by-Side (SBS)</MenuItem>
+            <MenuItem value="toptobottom">Top-Bottom (TB)</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
@@ -171,26 +183,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             <MenuItem value="MP3">MP3</MenuItem>
           </Select>
         </FormControl>
-        <TextField
-          label="Video Bitrate"
-          fullWidth
-          disabled={true}
-          value={settings.video_bitrate}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            handleChange("video_bitrate", e.target.value)
-          }
-          sx={{ marginTop: 2 }}
-        />
-        <TextField
-          label="Audio Bitrate"
-          fullWidth
-          disabled={true}
-          value={settings.audio_bitrate}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            handleChange("audio_bitrate", e.target.value)
-          }
-          sx={{ marginTop: 2 }}
-        />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Save</Button>
