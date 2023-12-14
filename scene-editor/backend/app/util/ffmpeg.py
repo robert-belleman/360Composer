@@ -8,15 +8,169 @@ from app.util.util import generate_random_filename
 import ffmpeg
 
 
-MAX_COMMAND_LENGTH = 1000
+MAX_COMMAND_LENGTH = 8191
+
+
+class VideoEditorClip:
+    """Represents a single clip of an edit in the Video Editor.
+
+    This class is responsible for parsing data from the frontend to how
+    FFmpeg wants it.
+
+    Attributes:
+        filepath (str): Path to the asset.
+        start_time (str): Time to start the trim.
+        duration (str): Duration of the trim.
+        stereo_format (str): Stereo format of the asset.
+        projection_format (str): Projection format of the asset.
+
+    Last updated: FFmpeg Version 5.1.4
+    """
+
+    def __init__(
+        self,
+        filepath: Path,
+        start_time: str,
+        duration: str,
+        stereo_format: str,
+        projection_format: str = None,
+    ) -> None:
+        self.filepath = filepath
+        self.start_time = start_time
+        self.end_time = self._add_float_strings(start_time, duration)
+        self.stereo_format = self._parse_stereo_format(stereo_format)
+        self.projection_format = projection_format
+
+    def __str__(self):
+        return (
+            f"VideoEditorClip(filepath={self.filepath}, "
+            f"trim={self.start_time}:{self.end_time}, "
+            f"stereo_format={self.stereo_format}, "
+            f"projection_format='{self.projection_format}')"
+        )
+
+    def _add_float_strings(self, float_a: str, float_b: str) -> str | None:
+        """Compute the sum of two strings that can be parsed to floats.
+        Return the sum as a string."""
+        try:
+            result = float(float_a) + float(float_b)
+            return str(result)
+        except ValueError:
+            return None
+
+    def _parse_stereo_format(self, stereo_format: str) -> str:
+        """Parse view type from display name to ffmpeg value."""
+        view_type_mappings = {
+            ViewType.mono: "2d",
+            ViewType.sidetoside: "sbs",
+            ViewType.toptobottom: "tb",
+        }
+
+        return view_type_mappings.get(stereo_format, None)
+
+
+class VideoEditorEdit:
+    """Represents the entire video edit in the Video Editor.
+
+    This class is responsible for parsing data from the frontend to how
+    FFmpeg wants it.
+
+    Attributes:
+        clips (List[VideoEditorClip]): List of clips in the video edit.
+        filepath (str): Path to store the output asset.
+        resolution (str): Resolution of the video (separated with 'x').
+        frame_rate (str): Frame rate of the output.
+        stereo_format (str): Stereo format of the output.
+        projection_format (str): Projection format of the output.
+        video_codec (str): Codec for the video.
+        audio_codec (str): Codec for the audio.
+
+    Last updated: FFmpeg Version 5.1.4
+    """
+
+    def __init__(
+        self,
+        clips: list[VideoEditorClip],
+        filepath: Path,
+        resolution: str,
+        frame_rate: str,
+        stereo_format: str,
+        projection_format: str,
+        video_codec: str = None,
+        audio_codec: str = None,
+    ):
+        self.clips = clips
+        self.filepath = filepath
+        self.width, self.height = resolution.split("x")
+        self.frame_rate = frame_rate
+        self.stereo_format = self._parse_stereo_format(stereo_format)
+        self.projection_format = projection_format
+        self.video_codec = self._parse_video_codec(video_codec)
+        self.audio_codec = self._parse_audio_codec(audio_codec)
+
+    def __str__(self):
+        clips_str = ", ".join(str(clip) for clip in self.clips)
+        return (
+            f"VideoEditorEdit(clips={clips_str}, "
+            f"filepath={self.filepath}, "
+            f"resolution={self.width}:{self.height}, "
+            f"frame_rate={self.frame_rate}, "
+            f"stereo_format={self.stereo_format}, "
+            f"projection_format='{self.projection_format}', "
+            f"video_codec='{self.video_codec}', "
+            f"audio_codec='{self.audio_codec}')"
+        )
+
+    def _parse_video_codec(self, codec: str) -> str:
+        """Parse video codecs from display name to ffmpeg value."""
+        if not codec:
+            return None
+
+        video_codec_mappings = {
+            "default": "",
+            "h.264 (avc)": "libx264",
+            "h.265 (hevc)": "libx265",
+            "vp9": "libvpx-vp9",
+            "av1": "libaom-av1",
+            # Add more mappings as needed
+        }
+
+        normalized_codec = codec.lower()
+        return video_codec_mappings.get(normalized_codec, None)
+
+    def _parse_audio_codec(self, codec: str) -> str:
+        """Parse audio codecs from display name to ffmpeg value."""
+        if not codec:
+            return None
+
+        audio_codec_mappings = {
+            "default": "",
+            "aac": "aac",
+            "opus": "libopus",
+            "vorbis": "libvorbis",
+            "mp3": "libmp3lame",
+            # Add more mappings as needed
+        }
+
+        normalized_codec = codec.lower()
+        return audio_codec_mappings.get(normalized_codec, None)
+
+    def _parse_stereo_format(self, stereo_format: str) -> str:
+        """Parse view type from display name to ffmpeg value."""
+        view_type_mappings = {
+            ViewType.mono: "2d",
+            ViewType.sidetoside: "sbs",
+            ViewType.toptobottom: "tb",
+        }
+
+        return view_type_mappings.get(stereo_format, None)
 
 
 def create_thumbnail(in_path: str, out_path: str):
     try:
-        ffmpeg.input(in_path, ss=1) \
-              .filter('scale', 500, -1) \
-              .output(out_path, vframes=1) \
-              .run()
+        ffmpeg.input(in_path, ss=1).filter("scale", 500, -1).output(
+            out_path, vframes=1
+        ).run()
         return True
     except ffmpeg.Error as e:
         print(e)
@@ -24,91 +178,21 @@ def create_thumbnail(in_path: str, out_path: str):
 
 
 def get_duration(path):
-    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-                             "format=duration", "-of",
-                             "default=noprint_wrappers=1:nokey=1", path],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
+    result = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            path,
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
     return int(float(result.stdout))
-
-
-@dataclass
-class VideoEditorClip:
-    """Represents a single clip of an edit in the Video Editor.
-
-    Attributes:
-        filepath (str): Path to the asset.
-        trim (str): Information about the trim.
-        stereo_format (str): Stereo format of the asset.
-        projection_format (str): Projection format of the asset.
-
-    Notes:
-      - The attributes `stereo_format` and `projection_format` should
-        be set according to FFmpeg's syntax. For instance, the stereo
-        format should be set to '2d' instead of mono (FFmpeg v4.4.2).
-      - Format specific options for a projection format can be added
-        using the colon `:` as separator. For instance, to specify a
-        cubemap with a 3x2 layout and a ouput padding of 1%:
-
-        projection_format="c3x2:out_pad=0.01"
-
-        For further information regarding options, see the 'v360'
-        video filter of FFmpeg.
-    """
-
-    filepath: str
-    trim: str
-    stereo_format: str
-    projection_format: str = None
-
-
-@dataclass
-class VideoEditorEdit:
-    """Represents the entire video edit in the Video Editor.
-
-    Attributes:
-        clips (List[VideoEditorClip]): List of clips in the video edit.
-        filepath (str): Path to store the output asset.
-        width (str): Width of the output.
-        height (str): Height of the output.
-        frame_rate (str): Frame rate of the output.
-        stereo_format (str): Stereo format of the output.
-        projection_format (str): Projection format of the output.
-        video_codec (str): Codec for the video.
-        audio_codec (str): Codec for the audio.
-        video_bitrate (str): Bitrate of the video.
-        audio_bitrate (str): Bitrate of the audio.
-
-    Notes:
-      - Attributes that are listed after the `filepath` attribute are
-        options for the output. Attempts will be made to convert each
-        clip in the edit to those specified attributes. If not enough
-        information is provided, then no special transformations are
-        performed. Instead, it will be treated as a general video.
-      - The attributes `stereo_format` and `projection_format` should
-        be set according to FFmpeg's syntax. For instance, the stereo
-        format should be set to '2d' instead of mono (FFmpeg v4.4.2).
-      - Format specific options for a projection format can be added
-        using the colon `:` as separator. For instance, to specify a
-        cubemap with a 3x2 layout and a ouput padding of 1%:
-
-        projection_format="c3x2:out_pad=0.01"
-
-        For further information regarding options, see the 'v360'
-        video filter of FFmpeg.
-    """
-
-    clips: list[VideoEditorClip]
-    filepath: str
-    width: str
-    height: str
-    frame_rate: str
-    stereo_format: str
-    projection_format: str = None
-    video_codec: str = None
-    audio_codec: str = None
-    video_bitrate: str = None
-    audio_bitrate: str = None
 
 
 def _video_editor_generate_input_options(
@@ -162,8 +246,10 @@ def _video_editor_video_options(
     if v360_options:
         options.append(v360_options)
 
-    if clip.trim:
-        options.extend([f"trim={clip.trim}", "setpts=PTS-STARTPTS"])
+    if clip.start_time and clip.end_time:
+        options.extend(
+            [f"trim={clip.start_time}:{clip.end_time}", "setpts=PTS-STARTPTS"]
+        )
     if edit.frame_rate:
         options.append(f"framerate={edit.frame_rate}")
 
@@ -176,8 +262,10 @@ def _video_editor_audio_options(clip: VideoEditorClip) -> list[str]:
     """
     options = []
 
-    if clip.trim:
-        options.extend([f"atrim={clip.trim}", "asetpts=PTS-STARTPTS"])
+    if clip.start_time and clip.end_time:
+        options.extend(
+            [f"atrim={clip.start_time}:{clip.end_time}", "asetpts=PTS-STARTPTS"]
+        )
 
     return ",".join(options)
 
@@ -220,10 +308,6 @@ def _video_editor_generate_output_options(edit: VideoEditorEdit) -> list[str]:
         options.extend(["-c:v", edit.video_codec])
     if edit.audio_codec:
         options.extend(["-c:a", edit.audio_codec])
-    if edit.video_bitrate:
-        options.extend(["-b:v", edit.video_bitrate])
-    if edit.audio_bitrate:
-        options.extend(["-b:a", edit.audio_bitrate])
 
     options.extend(["-strict", "experimental", edit.filepath])
 
@@ -312,41 +396,65 @@ class HlsProfile:
 
 HLS_PROFILES = (
     HlsProfile(3840, 2160, 16000, 192),
-    HlsProfile(1920, 1080,  6000, 128),
-    HlsProfile(1280,  720,  3000, 128),
-    HlsProfile( 960,  540,  2000, 96),
+    HlsProfile(1920, 1080, 6000, 128),
+    HlsProfile(1280, 720, 3000, 128),
+    HlsProfile(960, 540, 2000, 96),
 )
 
 
 def create_hls(inp_path: Path, output_dir: Path) -> None:
-    args = ('ffmpeg',
-            '-hide_banner',
-            '-i', inp_path.as_posix(),
-            '-preset', 'veryfast',
-            '-g', '30',
-            '-sc_threshold', '0',
-            '-movflags', 'frag_keyframe+empty_moov')  # fragmented MP4
+    args = (
+        "ffmpeg",
+        "-hide_banner",
+        "-i",
+        inp_path.as_posix(),
+        "-preset",
+        "veryfast",
+        "-g",
+        "30",
+        "-sc_threshold",
+        "0",
+        "-movflags",
+        "frag_keyframe+empty_moov",
+    )  # fragmented MP4
 
     var_stream_map = []
     for i, prof in enumerate(HLS_PROFILES):
-        args += ('-map', '0:0', '-map', '0:1')
-        args += (f'-filter:v:{i}', f'scale={prof.width}:{prof.height}:force_original_aspect_ratio=decrease',
-                 f'-c:v:{i}', 'libx264',
-                 f'-b:v:{i}', f'{prof.video_bitrate}k',
-                 f'-c:a:{i}', 'aac',
-                 f'-b:a:{1}', f'{prof.audio_bitrate}k')
+        args += ("-map", "0:0", "-map", "0:1")
+        args += (
+            f"-filter:v:{i}",
+            f"scale={prof.width}:{prof.height}:force_original_aspect_ratio=decrease",
+            f"-c:v:{i}",
+            "libx264",
+            f"-b:v:{i}",
+            f"{prof.video_bitrate}k",
+            f"-c:a:{i}",
+            "aac",
+            f"-b:a:{1}",
+            f"{prof.audio_bitrate}k",
+        )
         var_stream_map.append(f"v:{i},a:{i}")
 
-    args += ('-var_stream_map', ' '.join(var_stream_map))
+    args += ("-var_stream_map", " ".join(var_stream_map))
 
     # Output
-    args += ('-f', 'hls',
-             '-hls_time', '6',
-             '-hls_list_size', '0',
-             '-hls_playlist_type', 'vod',
-             '-hls_segment_type', 'mpegts',
-             '-master_pl_name', f'main.m3u8',
-             '-hls_segment_filename', f'{output_dir}/v%v-s%d.ts', f'{output_dir}/v%v.m3u8')
+    args += (
+        "-f",
+        "hls",
+        "-hls_time",
+        "6",
+        "-hls_list_size",
+        "0",
+        "-hls_playlist_type",
+        "vod",
+        "-hls_segment_type",
+        "mpegts",
+        "-master_pl_name",
+        f"main.m3u8",
+        "-hls_segment_filename",
+        f"{output_dir}/v%v-s%d.ts",
+        f"{output_dir}/v%v.m3u8",
+    )
 
     # now call ffmpeg
     subprocess.check_call(args)

@@ -88,13 +88,13 @@ class NoProjectFound(Exception):
 
 
 def parse_settings(settings: dict) -> dict:
-    """Parse settings from display name to ffmpeg value."""
+    """Parse settings from frontend values to backend values. For example:
+    the frontend does not have acces to enum ViewType, so it uses its str
+    equivalent. In this function, the str equivalent is converted to the
+    corresponding ViewType using getattr()."""
     display_name = settings.get("name", "Untitled_Video" + EXTENSION)
     if not display_name.endswith(EXTENSION):
         display_name += EXTENSION
-
-    resolution = settings.get("resolution", "3840:1920").replace("x", ":")
-    frame_rate = settings.get("frame_rate", "30")
 
     # Convert str to ViewType enum.
     try:
@@ -107,22 +107,14 @@ def parse_settings(settings: dict) -> dict:
         msg = f"AttributeError with view type: {settings['stereo_format']}."
         raise SettingsParsingException(status, msg) from error
 
-    projection_format = settings.get("projection_format", "")
-    video_codec = video_codec_to_ffmpeg(settings.get("video_codec", ""))
-    audio_codec = audio_codec_to_ffmpeg(settings.get("audio_codec", ""))
-    video_bitrate = settings.get("video_bitrate", "")
-    audio_bitrate = settings.get("audio_bitrate", "")
-
     parsed_settings = {
         "name": display_name,
-        "resolution": resolution,
-        "frame_rate": frame_rate,
+        "resolution": settings.get("resolution", "3840x1920"),
+        "frame_rate": settings.get("frame_rate", "30"),
         "stereo_format": stereo_format,
-        "projection_format": projection_format,
-        "video_codec": video_codec,
-        "audio_codec": audio_codec,
-        "video_bitrate": "" if video_bitrate == "Default" else video_bitrate,
-        "audio_bitrate": "" if audio_bitrate == "Default" else audio_bitrate,
+        "projection_format": settings.get("projection_format", ""),
+        "video_codec": settings.get("video_codec", ""),
+        "audio_codec": settings.get("audio_codec", ""),
     }
     return parsed_settings
 
@@ -199,15 +191,15 @@ def parse_clip(clip: dict) -> VideoEditorClip:
     asset_id = clip["asset_id"]
     start_time = clip["start_time"]
     duration = clip["duration"]
-    end_time = add_float_strings(start_time, duration)
 
     asset: AssetModel = find_asset(asset_id=asset_id)
     path = Path(ASSET_DIR, asset.path)
 
     return VideoEditorClip(
         filepath=path,
-        trim=f"{start_time}:{end_time}",
-        stereo_format=stereo_format_to_ffmpeg(asset.view_type),
+        start_time=start_time,
+        duration=duration,
+        stereo_format=asset.view_type,
         # projection_format="equirect",
     )
 
@@ -226,18 +218,18 @@ def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
     """
     video_clips = [parse_clip(clip) for clip in clips]
 
-    width, height = settings["resolution"].split(":")
     edit = VideoEditorEdit(
         clips=video_clips,
         filepath=video_path,
-        width=width,
-        height=height,
+        resolution=settings["resolution"],
         frame_rate=settings["frame_rate"],
-        stereo_format=stereo_format_to_ffmpeg(settings["stereo_format"]),
+        stereo_format=settings["stereo_format"],
         projection_format=settings["projection_format"],
         video_codec=settings["video_codec"],
         audio_codec=settings["audio_codec"],
     )
+
+    print("EDIT", edit)
 
     if not ffmpeg_trim_concat_convert(edit):
         status = HTTPStatus.INTERNAL_SERVER_ERROR
