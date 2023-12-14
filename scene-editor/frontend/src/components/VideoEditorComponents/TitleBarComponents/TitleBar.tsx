@@ -18,7 +18,7 @@ import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
 import { Button, Stack, Typography, CircularProgress } from "@mui/material";
 
 /* Project Specific Imports */
-import { Clip, useClipsContext } from "../ClipsContext";
+import { useClipsContext } from "../ClipsContext";
 import { useAssetsContext } from "../MediaLibraryComponents/AssetsContext";
 import { exportVideoEdits } from "../../../util/api";
 import SettingsDialog from "./VideoSettingsDialog";
