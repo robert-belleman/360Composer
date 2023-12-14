@@ -58,7 +58,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     audio_bitrate: "Default",
   });
 
-  const isExportButtonDisabled = !settings.name;
+  const isExportButtonDisabled = settings.name.trim().length === 0;
 
   const handleChange = (field: keyof Settings, value: string) => {
     setSettings((prevSettings) => ({
@@ -68,6 +68,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
   };
 
   const handleSave = async () => {
+    settings.name = settings.name.trim()
     handleExport(settings);
     handleClose();
   };
