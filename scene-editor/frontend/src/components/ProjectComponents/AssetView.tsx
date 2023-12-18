@@ -181,7 +181,7 @@ const useStyles = makeStyles((theme) =>
   };
 
   const deleteCheckedAssets = () => {
-    Promise.all(checked.map((id:any) => axios.post(`/api/asset/${id}/delete`)))
+    Promise.all(checked.map((id:any) => axios.delete(`/api/asset/${id}/delete`)))
       .then(() => setChecked([]))
       .then(fetchAssets)
       .then(() => setAlertMessage({show: true, message: "Asset(s) successfully deleted", type: Alert.Success}))
