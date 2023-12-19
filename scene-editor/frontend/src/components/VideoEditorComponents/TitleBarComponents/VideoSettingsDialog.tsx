@@ -66,7 +66,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
   };
 
   const handleSave = async () => {
-    settings.name = settings.name.trim()
+    settings.name = settings.name.trim();
     handleExport(settings);
     handleClose();
   };
@@ -120,7 +120,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             <MenuItem value="240">240 FPS</MenuItem>
           </Select>
         </FormControl>
-        <FormControl fullWidth sx={{ marginTop: 2 }}>
+        {/* <FormControl fullWidth sx={{ marginTop: 2 }}>
           <InputLabel id="proj-format-label">Projection Format</InputLabel>
           <Select
             labelId="proj-format-label"
@@ -133,7 +133,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             <MenuItem value="equirect">Equirectangular</MenuItem>
             <MenuItem value="ball">Spherical</MenuItem>
           </Select>
-        </FormControl>
+        </FormControl> */}
         <FormControl fullWidth sx={{ marginTop: 2 }}>
           <InputLabel id="stereo-format-label">View Type</InputLabel>
           <Select
