@@ -8,7 +8,7 @@
  *
  */
 
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 /* Third Party Imports */
@@ -62,6 +62,14 @@ const BackButton = memo(() => {
 const ExportButton = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const isMountedRef = useRef<boolean>(true);
+
+  /* Keep track of whether the component is mounted. */
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -103,13 +111,16 @@ const ExportButton = () => {
         edits: edits,
         settings: settings,
       });
-      console.log("API Response: ", response.data);
-      await fetchAssets();
+      console.log("Edited video: ", response.data);
     } catch (error) {
       console.error("Error exporting clips:", error);
     } finally {
-      setIsExporting(false);
-      handleCloseDialog();
+      /* Only change state if the component is mounted. */
+      if (isMountedRef.current) {
+        await fetchAssets();
+        setIsExporting(false);
+        handleCloseDialog();
+      }
     }
   };
 
