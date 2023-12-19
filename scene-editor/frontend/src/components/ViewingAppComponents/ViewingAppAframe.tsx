@@ -210,14 +210,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         console.debug("Attaching HLS.js");
 
         const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
-
-        // TODO maybe initialize HLS here?
-        if (video.hls_path === null) {
-            console.warn("Video has not been encoded with HLS.")
-            return
-        }
-
-        const hlsSource = `/assets/${video.hls_path}`;
+        // TODO: check if asset is HLS encoded.
+        const hlsSource = `/assets/${video.path}`;
 
         if (Hls.isSupported()) {
             hls.loadSource(hlsSource);

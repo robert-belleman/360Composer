@@ -43,6 +43,7 @@ import Slider from "@mui/material/Slider";
 import Skeleton from '@mui/material/Skeleton';
 
 import AddIcon from '@mui/icons-material/Add';
+import HlsIcon from '@mui/icons-material/Hls';
 import ImageIcon from '@mui/icons-material/Image';
 import ListIcon from '@mui/icons-material/List';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -68,6 +69,7 @@ import { View } from '../../types/views';
 import "./Editor.scss";
 import ReactDOM from "react-dom";
 import { HlsContext } from "../../App";
+import { initHLS } from "../../util/api";
 
 const theme = createTheme();
 const useStyles = makeStyles((theme) =>
@@ -386,42 +388,19 @@ const Editor: React.FC = () => {
         });
     }
 
-    const initiateHLS = async (assetId: string) => {
-      try {
-        console.log(`Attempting to enable HLS for asset with id: ${assetId}`);
-
-        const res = await axios.put(`/api/asset/${assetId}/stream`, {});
-        const updatedAsset = res.data;
-
-        console.log(`HLS has been enabled for asset with id: ${assetId}`);
-
-        return updatedAsset;
-      } catch (error) {
-        console.error("Error enabling HLS:", error);
-        return null;
-      }
-    };
-
-    // TODO: might not want to initialize HLS here
-    const onVideoElemRef = useCallback(async videoElem => {
+    const onVideoElemRef = useCallback(videoElem => {
       if (hls == undefined) {
         console.warn("HLS not available");
         return;
       }
 
-      let source = video.hls_path
-
-      if (source === null) {
-        const updatedVideo = await initiateHLS(video.id)
-        if (updatedVideo !== null) source = updatedVideo.hls_path
-      }
-      // Check if HLS path is still null after initiation
-      if (source === null) {
-        console.error("Error loading video: HLS source URL is still null");
+      /* If video is not Hls encoded, delay the creation of the video dome. */
+      if (!video.hls_path) {
+        console.log("Video has not been HLS encoded yet.")
         return;
       }
 
-      const hlsSource = `/assets/${source}`;
+      const hlsSource = `/assets/${video.hls_path}`;
       if (Hls.isSupported()) {
         hls.loadSource(hlsSource);
         hls.attachMedia(videoElem);
@@ -637,6 +616,17 @@ const Editor: React.FC = () => {
       setPlaying(true);
     }
 
+    const enableHls = async () => {
+      try {
+        console.log(`Enabling HLS for ${video.name} (${video.id}).`)
+        const response = await initHLS(video.id)
+        setVideo(response.data)
+        console.log(`HLS Enabled for ${video.name} (${video.id}).`)
+      } catch (error) {
+        console.error(`Error Enabling HLS: ${error}`)
+      }
+    }
+
     const updateVideo = (event: any, newValue: number | number[]) => {
       setCurrentVideoTime(newValue);
       videoDome.videoTexture.video.currentTime = newValue;
@@ -706,6 +696,16 @@ const Editor: React.FC = () => {
     )
 
     const renderTransport = () => {
+      const hlsButton =  <Button
+                            variant="contained"
+                            size="small"
+                            className="hlsButton"
+                            color="primary"
+                            startIcon={<HlsIcon />}
+                            disabled={!video}
+                            onClick={enableHls}
+                          >Enable HLS</Button>
+
       const playButton =  <Button
                             variant="contained"
                             size="small"
@@ -758,7 +758,7 @@ const Editor: React.FC = () => {
             <p>End: {valueLabelFormat(currentVideoLength)}</p>
           </Grid>
           <Grid item xs={12}>
-            {playing ? stopButton : playButton}
+            {video && video.hls_path ? (playing ? stopButton : playButton) : hlsButton}
             {annotationButton}
           </Grid>
         </Grid>
