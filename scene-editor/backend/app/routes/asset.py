@@ -77,21 +77,12 @@ class DeleteAsset(Resource):
 
     @user_jwt_required
     @project_access_required
-    def delete(self, id):
+    def post(self, id):
         """
         Deletes the assets with the given ids
         """
         asset: AssetModel
         asset = AssetModel.query.filter_by(id=id.split(".")[0]).first_or_404()
-
-        # Delete the video file, thumbnail and hls playlist from the server.
-        try:
-            Path(ASSET_DIR, asset.path).unlink()
-            Path(ASSET_DIR, asset.thumbnail_path).unlink()
-            if asset.hls_path:
-                Path(ASSET_DIR, asset.hls_path).unlink()
-        except FileNotFoundError:
-            pass
 
         db.session.delete(asset)
         db.session.commit()
