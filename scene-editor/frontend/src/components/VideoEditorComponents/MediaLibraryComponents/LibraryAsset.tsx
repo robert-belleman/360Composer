@@ -14,7 +14,6 @@ import {
   Card,
   CardContent,
   CardMedia,
-  CircularProgress,
   Collapse,
   IconButton,
   MenuItem,
@@ -27,7 +26,6 @@ import { styled } from "@mui/material/styles";
 
 import defaultImage from "../../../static/images/default.jpg";
 import { ActionTypes, createClip, useClipsContext } from "../ClipsContext";
-import { MAX_CONCURRENT_INIT_HLS_CALLS } from "../Constants";
 import { Asset, useAssetsContext } from "./AssetsContext";
 import { changeViewType } from "../../../util/api";
 
@@ -71,10 +69,9 @@ type AssetViewProps = {
 
 const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
   const [expanded, setExpanded] = useState(false);
-  const [enablingHLS, setEnablingHLS] = useState(false);
 
   const { dispatch } = useClipsContext();
-  const { activeApiCalls, attemptInitHLS, fetchAssets } = useAssetsContext();
+  const { fetchAssets } = useAssetsContext();
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -88,15 +85,6 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
   };
 
   const handleAddToTimeline = async () => {
-    if (asset.hls_path === null) {
-      setEnablingHLS(true);
-
-      const updatedAsset = await attemptInitHLS(asset);
-      if (updatedAsset !== null) handleAppendClip(updatedAsset);
-
-      setEnablingHLS(false);
-      return;
-    }
     handleAppendClip(asset);
   };
 
@@ -149,20 +137,13 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
           </Typography>
         </Stack>
         <Stack alignItems="center">
-          {enablingHLS ? (
-            <IconButton>
-              <CircularProgress size={20} />
-            </IconButton>
-          ) : (
-            <IconButton
-              disabled={activeApiCalls >= MAX_CONCURRENT_INIT_HLS_CALLS}
-              onClick={handleAddToTimeline}
-              color="primary"
-              aria-label="add to timeline"
-            >
-              <AddIcon />
-            </IconButton>
-          )}
+          <IconButton
+            onClick={handleAddToTimeline}
+            color="primary"
+            aria-label="add to timeline"
+          >
+            <AddIcon />
+          </IconButton>
           <ExpandMore
             color="primary"
             expand={expanded}
@@ -201,9 +182,6 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
                 <MenuItem value={"sidetoside"}>Side by Side</MenuItem>
                 <MenuItem value={"toptobottom"}>Top-Bottom</MenuItem>
               </Select>
-              {/* <Typography>{`View type: ${viewType(
-                asset.view_type
-              )}`}</Typography> */}
             </CardContent>
           </>
         )}

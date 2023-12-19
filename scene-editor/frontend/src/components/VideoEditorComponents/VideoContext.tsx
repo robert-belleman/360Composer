@@ -72,34 +72,6 @@ const VideoProvider: React.FC = ({ children }) => {
     setVideoDuration(clipsState.totalDuration);
   }, [clipsState.totalDuration]);
 
-  const _loadWithHls = (
-    videoElem: HTMLVideoElement,
-    hls: Hls,
-    source: string
-  ) => {
-    try {
-      hls.loadSource(source);
-      hls.attachMedia(videoElem);
-      console.log("Loaded HLS source:", source);
-    } catch (error) {
-      console.error("Error loading video:", error);
-    }
-  };
-
-  const _loadSource = (
-    videoElem: HTMLVideoElement,
-    hls: Hls,
-    source: string
-  ) => {
-    if (Hls.isSupported()) {
-      _loadWithHls(videoElem, hls, source);
-    } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
-      videoElem.src = source;
-    } else {
-      console.error("No HLS support");
-    }
-  };
-
   /**
    * Load the video source of the clip `clip`. The video element will start
    * playback at the start time indicated by the Clip object. If an offset
@@ -117,13 +89,22 @@ const VideoProvider: React.FC = ({ children }) => {
       return;
     }
 
-    const hlsSource = `/assets/${clip.asset.hls_path}`;
-    if (!hlsSource) {
-      console.error("Error loading video: HLS source URL has no content");
-      return;
+    /* Use HLS source if exists, otherwise use normal source. */
+    const sourcePath = clip.asset.hls_path || clip.asset.path;
+    const source = `/assets/${sourcePath}`;
+    if (clip.asset.hls_path) {
+      if (Hls.isSupported()) {
+        hls.loadSource(source);
+        hls.attachMedia(videoElem);
+        console.log(`Loaded HLS source: ${source}`);
+      } else if (videoElem.canPlayType("application/vnd.apple.mpegurl")) {
+        videoElem.src = source;
+        console.log(`Loaded HLS source: ${source}`);
+      }
+    } else {
+      videoElem.src = source;
+      console.log(`Loaded video source: ${source}`);
     }
-
-    _loadSource(videoElem, hls, hlsSource);
 
     videoElem.currentTime = clip.startTime + offset;
 
