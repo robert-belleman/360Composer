@@ -126,6 +126,12 @@ const ExportButton = () => {
     }
   };
 
+  const invalidResolutionIndices = clipsState.clips
+    .map((clip, index) =>
+      !clip.asset.width || !clip.asset.height ? index : undefined
+    )
+    .filter((index) => typeof index === "number") as number[];
+
   return (
     <>
       <Button
@@ -147,6 +153,7 @@ const ExportButton = () => {
         open={openDialog}
         handleClose={handleCloseDialog}
         handleExport={handleExport}
+        invalidResolutionIndices={invalidResolutionIndices}
       />
     </>
   );

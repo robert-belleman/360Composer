@@ -16,6 +16,7 @@ import {
   DialogContentText,
   DialogTitle,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   MenuItem,
@@ -42,12 +43,14 @@ interface SettingsDialogProps {
   open: boolean;
   handleClose: () => void;
   handleExport: (settings: Settings) => void;
+  invalidResolutionIndices: number[];
 }
 
 const SettingsDialog: React.FC<SettingsDialogProps> = ({
   open,
   handleClose,
   handleExport,
+  invalidResolutionIndices,
 }) => {
   const [settings, setSettings] = useState<Settings>({
     name: "",
@@ -78,12 +81,18 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     handleClose();
   };
 
+  const resolutionError =
+    (settings.resolution === "first" && invalidResolutionIndices.includes(0)) ||
+    ((settings.resolution === "min" || settings.resolution === "max") &&
+      invalidResolutionIndices.length > 0);
+
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Video Export Settings</DialogTitle>
       <DialogContent>
         <DialogContentText>Modify the settings as needed.</DialogContentText>
         <TextField
+          error={settings.name === ""}
           label="Name"
           required
           fullWidth
@@ -94,8 +103,13 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           }
           sx={{ marginTop: 2 }}
           inputProps={{ maxLength: MAX_CHARACTERS_NAME }}
+          helperText={
+            settings.name === ""
+              ? "Please provide a name to remember the asset by."
+              : ""
+          }
         />
-        <FormControl fullWidth sx={{ marginTop: 2 }}>
+        <FormControl fullWidth sx={{ marginTop: 2 }} error={resolutionError}>
           <InputLabel id="resolution-label">Resolution</InputLabel>
           <Select
             labelId="resolution-label"
@@ -111,7 +125,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             <MenuItem value="custom">Custom</MenuItem>
           </Select>
           {settings.resolution === "custom" && (
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={2} alignItems="center" sx={{ mt: "1px" }}>
               <Grid item xs={6}>
                 <TextField
                   label="Width"
@@ -133,6 +147,12 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
                 />
               </Grid>
             </Grid>
+          )}
+          {resolutionError && (
+            <FormHelperText>
+              Some assets in the video edit have unknown resolution. Please
+              provide their resolution manually to use this option.
+            </FormHelperText>
           )}
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
