@@ -102,6 +102,8 @@ const ExportButton = () => {
             asset_id: clip.asset.id,
             start_time: clip.startTime.toFixed(3),
             duration: clip.duration.toFixed(3),
+            width: clip.asset.width,
+            height: clip.asset.height,
           }))
         : {};
 
@@ -111,7 +113,7 @@ const ExportButton = () => {
         edits: edits,
         settings: settings,
       });
-      console.log("Edited video: ", response.data);
+      console.log("Edited video:", response.data);
     } catch (error) {
       console.error("Error exporting clips:", error);
     } finally {
@@ -131,7 +133,7 @@ const ExportButton = () => {
         startIcon={
           isExporting ? <CircularProgress size={20} /> : <UpgradeIcon />
         }
-        disabled={clipsState.clips.length === 0}
+        disabled={isExporting || clipsState.clips.length === 0}
         onClick={handleOpenDialog}
         sx={{
           backgroundColor: "aliceblue",

@@ -87,13 +87,38 @@ class NoProjectFound(Exception):
         self.message = message
 
 
-def parse_settings(settings: dict) -> dict:
+def _get_total_pixels(video):
+    width = int(video["width"])
+    height = int(video["height"])
+    return width * height
+
+
+def parse_resolution(settings: str, clips: list) -> (str, str):
+    """Parse the resolution option set in the frontend to be a width and
+    height."""
+    option = settings["resolution"]
+    if option == "custom":
+        return settings["width"], settings["height"]
+    if option == "min":
+        min_video = min(clips, key=_get_total_pixels)
+        return min_video["width"], min_video["height"]
+    if option == "max":
+        max_video = max(clips, key=_get_total_pixels)
+        return max_video["width"], max_video["height"]
+    if option == "first":
+        return clips[0]["width"], clips[0]["height"]
+
+    # Use "first" as default option.
+    return clips[0]["width"], clips[0]["height"]
+
+
+def parse_settings(settings: dict, clips: list) -> dict:
     """Parse settings from display name to ffmpeg value."""
     display_name = settings.get("name", "Untitled_Video" + EXTENSION)
     if not display_name.endswith(EXTENSION):
         display_name += EXTENSION
 
-    resolution = settings.get("resolution", "3840:1920").replace("x", ":")
+    width, height = parse_resolution(settings, clips)
     frame_rate = settings.get("frame_rate", "30")
 
     # Convert str to ViewType enum.
@@ -115,7 +140,8 @@ def parse_settings(settings: dict) -> dict:
 
     parsed_settings = {
         "name": display_name,
-        "resolution": resolution,
+        "width": width,
+        "height": height,
         "frame_rate": frame_rate,
         "stereo_format": stereo_format,
         "projection_format": projection_format,
@@ -212,13 +238,13 @@ def parse_clip(clip: dict) -> VideoEditorClip:
     )
 
 
-def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
+def edit_assets(clips: list, video_path: Path, settings: dict) -> None:
     """Trim and concatenate the clips `clips` and store the result in
     Path `video_path`.
 
     Parameters:
-        clips : dict
-            dictionary containing information of each clip.
+        clips : list
+            list containing information of each clip.
         video_path : str
             Path to store the result in.
         settings : dict
@@ -226,12 +252,11 @@ def edit_assets(clips: dict, video_path: Path, settings: dict) -> None:
     """
     video_clips = [parse_clip(clip) for clip in clips]
 
-    width, height = settings["resolution"].split(":")
     edit = VideoEditorEdit(
         clips=video_clips,
         filepath=video_path,
-        width=width,
-        height=height,
+        width=settings["width"],
+        height=settings["height"],
         frame_rate=settings["frame_rate"],
         stereo_format=stereo_format_to_ffmpeg(settings["stereo_format"]),
         projection_format=settings["projection_format"],
@@ -317,6 +342,8 @@ def generate_asset_meta(
 
         return {
             "user_id": project.user_id,
+            "width": settings["width"],
+            "height": settings["height"],
             "duration": get_duration(video_path),
             "thumbnail_path": thumbnail_path.name,
             "view_type": settings["stereo_format"],
@@ -353,6 +380,8 @@ def create_asset(name: str, path: str, meta: dict) -> AssetModel:
         asset_type=AssetType.video,
         view_type=meta["view_type"],
         thumbnail_path=meta["thumbnail_path"],
+        width=meta["width"],
+        height=meta["height"],
         duration=meta["duration"],
         file_size=meta["file_size"],
         projects=meta["projects"],
@@ -394,7 +423,7 @@ class EditAssets(Resource):
             # Retrieve edit information.
             args = asset_export.parse_args()
             clips = args.get("edits", [])
-            settings = parse_settings(args.get("settings", {}))
+            settings = parse_settings(args.get("settings", {}), clips)
 
             # Define the location of the resulting video.
             filename = random_file_name()

@@ -16,6 +16,7 @@ import {
   DialogContentText,
   DialogTitle,
   FormControl,
+  Grid,
   InputLabel,
   MenuItem,
   Select,
@@ -28,6 +29,8 @@ const MAX_CHARACTERS_NAME = 128;
 interface Settings {
   name: string;
   resolution: string;
+  width: string;
+  height: string;
   frame_rate: string;
   stereo_format: string;
   projection_format: string;
@@ -48,7 +51,9 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
 }) => {
   const [settings, setSettings] = useState<Settings>({
     name: "",
-    resolution: "3840x1920",
+    resolution: "first",
+    width: "",
+    height: "",
     frame_rate: "30",
     stereo_format: "mono",
     projection_format: "equirect",
@@ -56,7 +61,9 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     audio_codec: "Default",
   });
 
-  const isExportButtonDisabled = settings.name.trim().length === 0;
+  const isExportButtonDisabled =
+    !settings.name.trim() ||
+    (settings.resolution === "custom" && (!settings.width || !settings.height));
 
   const handleChange = (field: keyof Settings, value: string) => {
     setSettings((prevSettings) => ({
@@ -98,10 +105,35 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("resolution", e.target.value)
             }
           >
-            <MenuItem value="3840x1920">3840x1920</MenuItem>
-            <MenuItem value="5760x2880">5760x2880</MenuItem>
-            <MenuItem value="7680x3840">7680x3840</MenuItem>
+            <MenuItem value="first">Resolution of first asset</MenuItem>
+            <MenuItem value="min">Smallest resolution in video edit</MenuItem>
+            <MenuItem value="max">Biggest resolution in video edit</MenuItem>
+            <MenuItem value="custom">Custom</MenuItem>
           </Select>
+          {settings.resolution === "custom" && (
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={6}>
+                <TextField
+                  label="Width"
+                  variant="outlined"
+                  required
+                  fullWidth
+                  value={settings.width}
+                  onChange={(e) => handleChange("width", e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Height"
+                  variant="outlined"
+                  required
+                  fullWidth
+                  value={settings.height}
+                  onChange={(e) => handleChange("height", e.target.value)}
+                />
+              </Grid>
+            </Grid>
+          )}
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
           <InputLabel id="framerate-label">Frame Rate</InputLabel>
