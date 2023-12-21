@@ -69,7 +69,7 @@ const viewTypeToText = (viewtype:string) => {
   return viewtypeText === undefined ? 'Unknown type' : viewtypeText;
 }
 
-const viewTypeToValue = (viewtype:string) => {
+export const viewTypeToValue = (viewtype:string) => {
   const viewtypeText = {
     'ViewType.mono': 'mono',
     'ViewType.sidetoside': 'sidetoside',

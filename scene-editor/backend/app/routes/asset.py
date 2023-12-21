@@ -23,7 +23,7 @@ from app.util.auth import (
 )
 from app.util.ffmpeg import create_hls
 from flask import send_file
-from flask_restx import Resource
+from flask_restx import Resource, reqparse
 
 ns = api.namespace("asset")
 
@@ -120,6 +120,70 @@ class ChangeViewType(Resource):
         db.session.commit()
 
         return "", HTTPStatus.OK
+
+
+asset_edit_meta = reqparse.RequestParser()
+asset_edit_meta.add_argument(
+    "name",
+    type=str,
+    help="Name of the asset",
+    required=False,
+)
+asset_edit_meta.add_argument(
+    "width",
+    type=int,
+    help="Width of the asset",
+    required=False,
+)
+asset_edit_meta.add_argument(
+    "height",
+    type=int,
+    help="Height of the asset",
+    required=False,
+)
+asset_edit_meta.add_argument(
+    "view_type",
+    type=str,
+    help="View type of the asset",
+    required=False,
+)
+
+
+@ns.route("/<string:asset_id>/editmeta")
+@ns.response(HTTPStatus.NOT_FOUND, "Asset not found")
+@ns.param("asset_id", "The asset identifier")
+class EditMetadata(Resource):
+    """
+    Handles requests related to updating asset information.
+    """
+
+    @user_jwt_required
+    @project_access_required
+    @ns.marshal_with(asset_schema)
+    def put(self, asset_id: int):
+        """
+        Updates the asset information
+        """
+        args = asset_edit_meta.parse_args()
+
+        asset: AssetModel
+        asset = AssetModel.query.filter_by(id=asset_id).first_or_404()
+        print("\n\n\n", args)
+
+        try:
+            view_type = getattr(ViewType, args["view_type"])
+        except AttributeError:
+            return "", HTTPStatus.INTERNAL_SERVER_ERROR
+
+        print("\n\n\n", view_type)
+        asset.name = args.get("name", asset.name)
+        asset.width = args.get("width", asset.width)
+        asset.height = args.get("height", asset.height)
+        asset.view_type = view_type if view_type else asset.view_type
+
+        db.session.commit()
+
+        return asset, HTTPStatus.OK
 
 
 @ns.route("/<string:asset_id>/stream")

@@ -110,10 +110,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           }
         />
         <FormControl fullWidth sx={{ marginTop: 2 }} error={resolutionError}>
-          <InputLabel id="resolution-label">Resolution</InputLabel>
+          <InputLabel>Resolution</InputLabel>
           <Select
-            labelId="resolution-label"
-            id="resolution"
             value={settings.resolution}
             onChange={(e: SelectChangeEvent<string>) =>
               handleChange("resolution", e.target.value)
@@ -156,10 +154,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           )}
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
-          <InputLabel id="framerate-label">Frame Rate</InputLabel>
+          <InputLabel>Frame Rate</InputLabel>
           <Select
-            labelId="framerate-label"
-            id="framerate"
             value={settings.frame_rate}
             onChange={(e: SelectChangeEvent<string>) =>
               handleChange("frame_rate", e.target.value)
@@ -173,10 +169,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           </Select>
         </FormControl>
         {/* <FormControl fullWidth sx={{ marginTop: 2 }}>
-          <InputLabel id="proj-format-label">Projection Format</InputLabel>
+          <InputLabel>Projection Format</InputLabel>
           <Select
-            labelId="proj-format-label"
-            id="proj-format"
             value={settings.projection_format}
             onChange={(e: SelectChangeEvent<string>) =>
               handleChange("projection_format", e.target.value)
@@ -187,10 +181,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           </Select>
         </FormControl> */}
         <FormControl fullWidth sx={{ marginTop: 2 }}>
-          <InputLabel id="stereo-format-label">View Type</InputLabel>
+          <InputLabel>View Type</InputLabel>
           <Select
-            labelId="stereo-format-label"
-            id="stereo-format"
             value={settings.stereo_format}
             onChange={(e: SelectChangeEvent<string>) =>
               handleChange("stereo_format", e.target.value)
@@ -202,10 +194,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
-          <InputLabel id="videocodec-label">Video Codec</InputLabel>
+          <InputLabel>Video Codec</InputLabel>
           <Select
-            labelId="videocodec-label"
-            id="videocodec"
             value={settings.video_codec}
             onChange={(e: SelectChangeEvent<string>) =>
               handleChange("video_codec", e.target.value)
@@ -219,10 +209,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
-          <InputLabel id="audiocodec-label">Audio Codec</InputLabel>
+          <InputLabel>Audio Codec</InputLabel>
           <Select
-            labelId="audiocodec-label"
-            id="audiocodec"
             value={settings.audio_codec}
             onChange={(e: SelectChangeEvent<string>) =>
               handleChange("audio_codec", e.target.value)

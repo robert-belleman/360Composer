@@ -16,19 +16,29 @@ import {
   CardContent,
   CardMedia,
   Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormHelperText,
+  Grid,
   IconButton,
+  InputLabel,
   MenuItem,
   Select,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import { IconButtonProps } from "@mui/material/IconButton";
 import { styled } from "@mui/material/styles";
 
+import { viewTypeToValue } from "../../ProjectComponents/AssetView";
 import defaultImage from "../../../static/images/default.jpg";
 import { ActionTypes, createClip, useClipsContext } from "../ClipsContext";
 import { Asset, useAssetsContext } from "./AssetsContext";
-import { changeViewType } from "../../../util/api";
+import { editAssetMeta } from "../../../util/api";
 
 const toDisplayTime = (seconds: number) => {
   let minutes = Math.floor(seconds / 60);
@@ -38,14 +48,22 @@ const toDisplayTime = (seconds: number) => {
   return `${strMinutes}:${strSeconds}`;
 };
 
-const viewTypeToValue = (viewtype: string) => {
+const viewTypeToDisplay = (asset: Asset) => {
   const viewtypeText = {
-    "ViewType.mono": "mono",
-    "ViewType.sidetoside": "sidetoside",
-    "ViewType.toptobottom": "toptobottom",
-  }[viewtype];
+    "ViewType.mono": "Monoscopic",
+    "ViewType.sidetoside": "Side-by-Side (SBS)",
+    "ViewType.toptobottom": "Top-Bottom (TB)",
+  }[asset.view_type];
 
   return viewtypeText === undefined ? "Unknown type" : viewtypeText;
+};
+
+const resolutionToDisplay = (asset: Asset) => {
+  if (!asset.width || !asset.height) {
+    return `unknown`;
+  }
+
+  return `${asset.width}x${asset.height}`;
 };
 
 interface ExpandMoreProps extends IconButtonProps {
@@ -70,12 +88,54 @@ type AssetViewProps = {
 
 const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
   const [expanded, setExpanded] = useState(false);
+  const [editedMeta, setEditedMeta] = useState({
+    name: asset.name,
+    width: asset.width,
+    height: asset.height,
+    view_type: viewTypeToValue(asset.view_type),
+  });
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { dispatch } = useClipsContext();
   const { fetchAssets } = useAssetsContext();
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
+  };
+
+  const handleEditClick = () => {
+    setEditedMeta({
+      name: asset.name,
+      width: asset.width,
+      height: asset.height,
+      view_type: viewTypeToValue(asset.view_type),
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditDialogClose = () => {
+    setEditDialogOpen(false);
+  };
+
+  const handleChange = (field: keyof Asset, value: string) => {
+    setEditedMeta((prevAsset) => ({
+      ...prevAsset,
+      [field]: value,
+    }));
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      console.log("Editing asset:", editedMeta);
+      const response = await editAssetMeta(editedMeta, asset.id);
+      await fetchAssets();
+      handleSetAlert("Asset succesfully edited.", "success");
+      console.log("Edited asset:", response.data);
+    } catch (error) {
+      handleSetAlert("An error occured while editing asset.", "error");
+      console.log("Error editing asset meta.", error);
+    }
+    handleEditDialogClose();
   };
 
   const handleAppendClip = (asset: Asset) => {
@@ -89,114 +149,157 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
     handleAppendClip(asset);
   };
 
-  const getResolution = (asset: Asset) => {
-    if (!asset.width || !asset.height) {
-      return `unknown`;
-    }
-
-    return `${asset.width}x${asset.height}`;
-  };
-
-  const handleChangeViewType = async (newViewType: string, assetId: string) => {
-    try {
-      await changeViewType(newViewType, assetId);
-      handleSetAlert(
-        `Asset's view type succesfully changed to ${newViewType}`,
-        "success"
-      );
-      await fetchAssets();
-    } catch (error) {
-      console.log('An error occured whilst editing asset "view type"', error);
-    }
-  };
-
   const imgPath = asset.thumbnail_path
     ? `/api/asset/${asset.id}/thumbnail`
     : defaultImage;
 
   return (
-    <Card
-      style={{
-        margin: 4,
-        borderLeft: "7px solid dodgerblue",
-        borderRight: "7px solid crimson",
-      }}
-    >
-      <CardContent
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+    <>
+      <Card
+        style={{
+          margin: 4,
+          borderLeft: "7px solid dodgerblue",
+          borderRight: "7px solid crimson",
         }}
       >
-        <Stack sx={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              overflow: "hidden",
-              textOverflow: expanded ? "unset" : "ellipsis",
-              whiteSpace: expanded ? "normal" : "nowrap",
-            }}
+        <CardContent
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Stack sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                overflow: "hidden",
+                textOverflow: expanded ? "unset" : "ellipsis",
+                whiteSpace: expanded ? "normal" : "nowrap",
+              }}
+            >
+              {asset.name}
+            </Typography>
+            <Typography color="text.secondary">
+              {toDisplayTime(asset.duration)}
+            </Typography>
+          </Stack>
+          <Stack alignItems="center">
+            <IconButton
+              onClick={handleAddToTimeline}
+              color="primary"
+              aria-label="add to timeline"
+            >
+              <AddIcon />
+            </IconButton>
+            <ExpandMore
+              color="primary"
+              expand={expanded}
+              onClick={handleExpandClick}
+              aria-expanded={expanded}
+              aria-label="show more"
+            >
+              <ExpandMoreIcon />
+            </ExpandMore>
+          </Stack>
+        </CardContent>
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          {expanded && (
+            <>
+              <CardMedia
+                component="img"
+                height="auto"
+                image={imgPath}
+                alt={asset.name}
+              />
+              <CardContent>
+                <Typography>{`Last updated: ${asset.updated_at}`}</Typography>
+                <Typography>{`Resolution: ${resolutionToDisplay(
+                  asset
+                )}`}</Typography>
+                <Typography>{`View Type: ${viewTypeToDisplay(
+                  asset
+                )}`}</Typography>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleEditClick}
+                >
+                  Edit
+                </Button>
+              </CardContent>
+            </>
+          )}
+        </Collapse>
+      </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onClose={handleEditDialogClose}>
+        <DialogTitle>Edit Asset Information</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Name"
+            name="name"
+            value={editedMeta.name}
+            onChange={(e) => handleChange("name", e.target.value.trim())}
+            fullWidth
+            sx={{ mt: 2 }}
+          />
+          <FormControl
+            fullWidth
+            sx={{ marginTop: 2 }}
+            error={!editedMeta.width || !editedMeta.height}
           >
-            {asset.name}
-          </Typography>
-          <Typography color="text.secondary">
-            {toDisplayTime(asset.duration)}
-          </Typography>
-        </Stack>
-        <Stack alignItems="center">
-          <IconButton
-            onClick={handleAddToTimeline}
-            color="primary"
-            aria-label="add to timeline"
-          >
-            <AddIcon />
-          </IconButton>
-          <ExpandMore
-            color="primary"
-            expand={expanded}
-            onClick={handleExpandClick}
-            aria-expanded={expanded}
-            aria-label="show more"
-          >
-            <ExpandMoreIcon />
-          </ExpandMore>
-        </Stack>
-      </CardContent>
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        {expanded && (
-          <>
-            <CardMedia
-              component="img"
-              height="auto"
-              image={imgPath}
-              alt={asset.name}
-            />
-            <CardContent>
-              <Typography>{`Last updated: ${asset.updated_at}`}</Typography>
-              <Typography>{`Resolution: ${getResolution(asset)}`}</Typography>
-              <Select
-                labelId="viewtype"
-                id="viewtype-select"
-                value={viewTypeToValue(asset.view_type)}
-                label="View Type"
-                onChange={(event) =>
-                  handleChangeViewType(event.target.value, asset.id)
-                }
-                autoWidth={true}
-                variant="outlined"
-                size="small"
-              >
-                <MenuItem value={"mono"}>Monoscopic</MenuItem>
-                <MenuItem value={"sidetoside"}>Side by Side</MenuItem>
-                <MenuItem value={"toptobottom"}>Top-Bottom</MenuItem>
-              </Select>
-            </CardContent>
-          </>
-        )}
-      </Collapse>
-    </Card>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={6}>
+                <TextField
+                  type="number"
+                  label="Width"
+                  variant="outlined"
+                  fullWidth
+                  value={editedMeta.width ? editedMeta.width : 0}
+                  onChange={(e) => handleChange("width", e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Height"
+                  variant="outlined"
+                  fullWidth
+                  value={editedMeta.height ? editedMeta.height : 0}
+                  onChange={(e) => handleChange("height", e.target.value)}
+                />
+              </Grid>
+            </Grid>
+            {(!editedMeta.width || !editedMeta.height) && (
+              <FormHelperText>
+                Resolution of the video is unknown.
+              </FormHelperText>
+            )}
+          </FormControl>
+          <FormControl fullWidth sx={{ marginTop: 2 }}>
+            <InputLabel>View Type</InputLabel>
+            <Select
+              value={editedMeta.view_type}
+              onChange={(e) => handleChange("view_type", e.target.value)}
+            >
+              <MenuItem value="mono">Monoscopic</MenuItem>
+              <MenuItem value="sidetoside">Side-by-Side (SBS)</MenuItem>
+              <MenuItem value="toptobottom">Top-Bottom (TB)</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEditDialogClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveChanges} color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
