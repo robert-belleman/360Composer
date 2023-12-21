@@ -11,6 +11,7 @@ import { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
+  Button,
   Card,
   CardContent,
   CardMedia,
@@ -86,6 +87,14 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
 
   const handleAddToTimeline = async () => {
     handleAppendClip(asset);
+  };
+
+  const getResolution = (asset: Asset) => {
+    if (!asset.width || !asset.height) {
+      return `unknown`;
+    }
+
+    return `${asset.width}x${asset.height}`;
   };
 
   const handleChangeViewType = async (newViewType: string, assetId: string) => {
@@ -166,6 +175,7 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
             />
             <CardContent>
               <Typography>{`Last updated: ${asset.updated_at}`}</Typography>
+              <Typography>{`Resolution: ${getResolution(asset)}`}</Typography>
               <Select
                 labelId="viewtype"
                 id="viewtype-select"

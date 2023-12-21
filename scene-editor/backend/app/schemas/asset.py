@@ -12,6 +12,8 @@ asset_schema = api.model("Asset", {
     "view_type": fields.String(description="The view type of the asset. States if the video is stereosopic"),
     "file_size": fields.Integer(description="The size of the file"),
     "duration": fields.Integer(description="The duration of the asset"),
+    "width": fields.Integer(description="The width of the asset"),
+    "height": fields.Integer(description="The height of the asset"),
     "created_at": fields.Date(description="Date at which the asset was created"),
     "updated_at": fields.Date(description="Date at which the asset was last updated"),
 })

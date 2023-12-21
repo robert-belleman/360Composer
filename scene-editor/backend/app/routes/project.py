@@ -25,7 +25,7 @@ from app.models.scene import Scene as SceneModel
 from app.models.scenario import Scenario as ScenarioModel
 from app.models.timeline import Timeline as TimelineModel, TimelineScenario as TimelineScenarioModel
 
-from app.util.ffmpeg import create_thumbnail, get_duration, create_hls
+from app.util.ffmpeg import create_thumbnail, get_duration, get_resolution, create_hls
 import app.util.util as util
 from app.config import ASSET_DIR
 
@@ -80,10 +80,17 @@ class ProjectAssets(Resource):
                 thumbnail_path = None
 
             duration = get_duration(input_path)
+            width, height = get_resolution(input_path)
 
-            return {"duration": duration, "thumbnail_path": thumbnail_path.name, "file_size": size}
+            return {
+                "duration": duration,
+                "width": width,
+                "height": height,
+                "thumbnail_path": thumbnail_path.name,
+                "file_size": size
+            }
 
-        return {"duration": None, "thumbnail_path": None, "file_size": size}
+        return {"duration": None, "width": None, "height": None, "thumbnail_path": None, "file_size": size}
 
     @user_jwt_required
     @ns.marshal_with(asset_schema)
@@ -124,7 +131,7 @@ class ProjectAssets(Resource):
         path = base_name + extension
 
         # Only commit to database if files were uploaded and transcoded successfully
-        row = AssetModel(name=asset_name, user_id=project.user_id, path=path, asset_type=asset_type, thumbnail_path=meta['thumbnail_path'], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
+        row = AssetModel(name=asset_name, user_id=project.user_id, path=path, asset_type=asset_type, thumbnail_path=meta['thumbnail_path'], width=meta["width"], height=meta["height"], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
         db.session.commit()
 
         return row, HTTPStatus.CREATED

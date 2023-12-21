@@ -32,6 +32,39 @@ def get_duration(path):
     return int(float(result.stdout))
 
 
+def get_resolution(path: Path) -> (int, int):
+    """Get the width and height of a video on path `path`. In cases where the
+    resolution of the file cannot be retrieved, (None, None) will be returned.
+    """
+    command = [
+        "ffprobe",
+        "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "stream=width,height",
+        "-of", "csv=s=x:p=0",
+        path,
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        print(f"ffprobe output: {result.stdout}")
+        resolution = result.stdout.strip().rstrip('x').split('x')
+        if len(resolution) != 2:
+            print(f"Unexpected resolution format: {result.stdout}")
+            return None, None
+
+        width, height = map(int, resolution)
+        return width, height
+    except subprocess.CalledProcessError as e:
+        print(f"Error retrieving resolution: {e}")
+        return None, None
+
+
 @dataclass
 class VideoEditorClip:
     """Represents a single clip of an edit in the Video Editor.

@@ -24,6 +24,8 @@ class Asset(db.Model):
     thumbnail_path = db.Column(db.String(128))
     hls_path = db.Column(db.String(128), nullable=True)
 
+    width = db.Column(db.Integer)
+    height = db.Column(db.Integer)
     duration = db.Column(db.Integer)
     file_size = db.Column(db.Integer)
 

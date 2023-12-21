@@ -34,6 +34,8 @@ export interface Asset {
   path: string;
   thumbnail_path: string;
   hls_path: string;
+  width: number;
+  height: number;
   duration: number;
   file_size: number;
   asset_type: string;
