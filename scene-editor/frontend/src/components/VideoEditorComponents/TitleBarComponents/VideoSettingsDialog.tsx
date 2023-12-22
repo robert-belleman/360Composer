@@ -90,7 +90,9 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Video Export Settings</DialogTitle>
       <DialogContent>
-        <DialogContentText>Modify the settings as needed.</DialogContentText>
+        <DialogContentText>
+          Modify these settings to your desired output.
+        </DialogContentText>
         <TextField
           error={settings.name === ""}
           label="Name"
@@ -168,18 +170,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             <MenuItem value="240">240 FPS</MenuItem>
           </Select>
         </FormControl>
-        {/* <FormControl fullWidth sx={{ marginTop: 2 }}>
-          <InputLabel>Projection Format</InputLabel>
-          <Select
-            value={settings.projection_format}
-            onChange={(e: SelectChangeEvent<string>) =>
-              handleChange("projection_format", e.target.value)
-            }
-          >
-            <MenuItem value="equirect">Equirectangular</MenuItem>
-            <MenuItem value="ball">Spherical</MenuItem>
-          </Select>
-        </FormControl> */}
         <FormControl fullWidth sx={{ marginTop: 2 }}>
           <InputLabel>View Type</InputLabel>
           <Select
@@ -194,13 +184,29 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
+          <InputLabel>Projection Format</InputLabel>
+          <Select
+            disabled={true}
+            value={settings.projection_format}
+            onChange={(e: SelectChangeEvent<string>) =>
+              handleChange("projection_format", e.target.value)
+            }
+          >
+            {/* Test the output of the formats before enabling the select. */}
+            <MenuItem value="equirect">Equirectangular</MenuItem>
+            <MenuItem value="ball">Spherical</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl fullWidth sx={{ marginTop: 2 }}>
           <InputLabel>Video Codec</InputLabel>
           <Select
+            disabled={true}
             value={settings.video_codec}
             onChange={(e: SelectChangeEvent<string>) =>
               handleChange("video_codec", e.target.value)
             }
           >
+            {/* Test the output of the codecs before enabling the select. */}
             <MenuItem value="Default">Default</MenuItem>
             <MenuItem value="H.264 (AVC)">H.264 (AVC)</MenuItem>
             <MenuItem value="H.265 (HEVC)">H.265 (HEVC)</MenuItem>
@@ -211,11 +217,13 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
         <FormControl fullWidth sx={{ marginTop: 2 }}>
           <InputLabel>Audio Codec</InputLabel>
           <Select
+            disabled={true}
             value={settings.audio_codec}
             onChange={(e: SelectChangeEvent<string>) =>
               handleChange("audio_codec", e.target.value)
             }
           >
+            {/* Test the output of the codecs before enabling the select. */}
             <MenuItem value="Default">Default</MenuItem>
             <MenuItem value="AAC">AAC</MenuItem>
             <MenuItem value="Opus">Opus</MenuItem>

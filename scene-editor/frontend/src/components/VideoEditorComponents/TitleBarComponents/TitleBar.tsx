@@ -92,6 +92,16 @@ const ExportButton = () => {
     );
   }
 
+  /**
+   * This function transforms the array of clips into a Object that is JSON
+   * serializable. It only sends the `id` of the `asset`, to reduce the
+   * amount of updates that have to be done in the frontend.
+   *
+   * For instance, when the resolution of an asset is changed, all
+   * clips in the array that use that asset have to be updated and
+   * rerendered. Instead, the asset is updated in the database and
+   * we find the asset in the backend using its id.
+   */
   const handleExport = async (settings: any) => {
     setIsExporting(true);
 

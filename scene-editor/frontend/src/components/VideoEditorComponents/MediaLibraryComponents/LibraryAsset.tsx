@@ -9,6 +9,7 @@
 import { useState } from "react";
 
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Button,
@@ -19,6 +20,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   FormControl,
   FormHelperText,
@@ -213,7 +215,7 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
                 image={imgPath}
                 alt={asset.name}
               />
-              <CardContent>
+              <CardContent sx={{ display: "flex", flexDirection: "column" }}>
                 <Typography>{`Last updated: ${asset.updated_at}`}</Typography>
                 <Typography>{`Resolution: ${resolutionToDisplay(
                   asset
@@ -221,13 +223,17 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
                 <Typography>{`View Type: ${viewTypeToDisplay(
                   asset
                 )}`}</Typography>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={handleEditClick}
-                >
-                  Edit
-                </Button>
+                <div style={{ marginTop: "auto", alignSelf: "flex-end" }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    startIcon={<EditIcon />}
+                    onClick={handleEditClick}
+                  >
+                    Edit
+                  </Button>
+                </div>
               </CardContent>
             </>
           )}
@@ -238,6 +244,10 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
       <Dialog open={editDialogOpen} onClose={handleEditDialogClose}>
         <DialogTitle>Edit Asset Information</DialogTitle>
         <DialogContent>
+          <DialogContentText>
+            Note that this only changes the information that is displayed and
+            does not change the content of the video asset.
+          </DialogContentText>
           <TextField
             label="Name"
             name="name"
