@@ -49,8 +49,8 @@ export const exportVideoEdits = async (activeProject: string, data: any) => {
 };
 
 export const editAssetMeta = async (
-  editedAsset: Record<string, any>,
+  newAssetMeta: Record<string, any>,
   assetId: string
 ) => {
-  return await axios.put(`/api/asset/${assetId}/editmeta`, editedAsset);
+  return await axios.put(`/api/asset/${assetId}/editmeta`, newAssetMeta);
 };

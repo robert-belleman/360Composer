@@ -234,7 +234,7 @@ def parse_clip(clip: dict) -> VideoEditorClip:
         filepath=path,
         trim=f"{start_time}:{end_time}",
         stereo_format=stereo_format_to_ffmpeg(asset.view_type),
-        # projection_format="equirect",
+        projection_format=asset.projection_format,
     )
 
 
@@ -347,6 +347,7 @@ def generate_asset_meta(
             "duration": get_duration(video_path),
             "thumbnail_path": thumbnail_path.name,
             "view_type": settings["stereo_format"],
+            "projection_format": settings["projection_format"],
             "file_size": video_path.stat().st_size,
             "projects": [project],
         }
@@ -379,6 +380,7 @@ def create_asset(name: str, path: str, meta: dict) -> AssetModel:
         path=path,
         asset_type=AssetType.video,
         view_type=meta["view_type"],
+        projection_format=meta["projection_format"],
         thumbnail_path=meta["thumbnail_path"],
         width=meta["width"],
         height=meta["height"],
@@ -435,6 +437,7 @@ class EditAssets(Resource):
             # Add video to database.
             meta = generate_asset_meta(project, filename, video_path, settings)
             asset = create_asset(settings["name"], video_filename, meta)
+            print("\n\n\n", asset)
             db.session.add(asset)
             db.session.commit()
             return asset, HTTPStatus.CREATED

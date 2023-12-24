@@ -40,6 +40,7 @@ export interface Asset {
   file_size: number;
   asset_type: string;
   view_type: string;
+  projection_format: string;
   created_at: string;
   updated_at: string;
   deleted_at: string;

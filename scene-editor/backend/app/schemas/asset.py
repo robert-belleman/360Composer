@@ -10,6 +10,7 @@ asset_schema = api.model("Asset", {
     "hls_path": fields.String(description="Path to the HLS playlist to stream the asset."),
     "asset_type": fields.String(description="The type of asset, this can either be a video or a model"),
     "view_type": fields.String(description="The view type of the asset. States if the video is stereosopic"),
+    "projection_format": fields.String(description="Projection format of the asset."),
     "file_size": fields.Integer(description="The size of the file"),
     "duration": fields.Integer(description="The duration of the asset"),
     "width": fields.Integer(description="The width of the asset"),

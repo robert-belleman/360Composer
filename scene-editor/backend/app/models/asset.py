@@ -31,6 +31,7 @@ class Asset(db.Model):
 
     asset_type = db.Column(db.Enum(AssetType), nullable=False)
     view_type = db.Column(db.Enum(ViewType), nullable=False, default=ViewType.mono)
+    projection_format = db.Column(db.String(128), server_default="", nullable=False)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now,

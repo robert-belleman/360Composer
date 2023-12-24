@@ -60,6 +60,15 @@ const viewTypeToDisplay = (asset: Asset) => {
   return viewtypeText === undefined ? "Unknown type" : viewtypeText;
 };
 
+const projectionFormatToDisplay = (asset: Asset) => {
+  const projectionFormatText = {
+    equirect: "Equirectangular",
+    c3x2: "Cubemap (3x2 layout)",
+  }[asset.projection_format];
+
+  return projectionFormatText ? projectionFormatText : "Unknown";
+};
+
 const resolutionToDisplay = (asset: Asset) => {
   if (!asset.width || !asset.height) {
     return `unknown`;
@@ -95,6 +104,7 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
     width: asset.width,
     height: asset.height,
     view_type: viewTypeToValue(asset.view_type),
+    projection_format: asset.projection_format,
   });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -111,6 +121,7 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
       width: asset.width,
       height: asset.height,
       view_type: viewTypeToValue(asset.view_type),
+      projection_format: asset.projection_format,
     });
     setEditDialogOpen(true);
   };
@@ -223,6 +234,9 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
                 <Typography>{`View Type: ${viewTypeToDisplay(
                   asset
                 )}`}</Typography>
+                <Typography>{`Projection Format: ${projectionFormatToDisplay(
+                  asset
+                )}`}</Typography>
                 <div style={{ marginTop: "auto", alignSelf: "flex-end" }}>
                   <Button
                     variant="outlined"
@@ -298,6 +312,30 @@ const LibraryAsset: React.FC<AssetViewProps> = ({ asset, handleSetAlert }) => {
               <MenuItem value="sidetoside">Side-by-Side (SBS)</MenuItem>
               <MenuItem value="toptobottom">Top-Bottom (TB)</MenuItem>
             </Select>
+          </FormControl>
+          <FormControl
+            fullWidth
+            sx={{ marginTop: 2 }}
+            error={!editedMeta.projection_format}
+          >
+            <InputLabel>Projection Format</InputLabel>
+            <Select
+              value={editedMeta.projection_format}
+              onChange={(e) =>
+                handleChange("projection_format", e.target.value)
+              }
+            >
+              <MenuItem value="">Unknown</MenuItem>
+              <MenuItem value="equirect">Equirectangular</MenuItem>
+              <MenuItem value="c3x2">Cubemap (3x2 layout)</MenuItem>
+            </Select>
+            {!editedMeta.projection_format && (
+              <FormHelperText>
+                Projection format is unknown. This could result in unintended
+                output when concatenating videos with different projection
+                formats.
+              </FormHelperText>
+            )}
           </FormControl>
         </DialogContent>
         <DialogActions>
