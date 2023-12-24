@@ -59,7 +59,7 @@ const VideoProvider: React.FC = ({ children }) => {
   const { state: clipsState, dispatch } = useClipsContext();
   const hls = useContext<Hls | undefined>(HlsContext);
 
-  // TODO: TEMP
+  /* If there is only one clip, make it the current video. */
   useEffect(() => {
     if (clipsState.clips.length === 1) {
       setVideoIndex(0);
@@ -225,6 +225,7 @@ const VideoProvider: React.FC = ({ children }) => {
     const { current: videoElem } = videoRef;
     if (!videoElem) return;
 
+    if (videoIndex === null) return;
     if (videoElem.currentSrc) setIsPlaying(!isPlaying);
 
     if (videoDuration <= videoTime) {
@@ -241,6 +242,13 @@ const VideoProvider: React.FC = ({ children }) => {
    */
   const handleVideoDeleted = () => {
     setVideoIndex(null);
+
+    const { current: videoElem } = videoRef;
+    if (videoElem && videoElem.currentSrc) {
+      videoElem.pause();
+      setIsPlaying(false);
+      if (videoIndex) setVideoIndex(videoIndex > 0 ? videoIndex - 1 : null);
+    }
   };
 
   /**

@@ -192,9 +192,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("projection_format", e.target.value)
             }
           >
-            {/* Test the output of the formats before enabling the select. */}
             <MenuItem value="equirect">Equirectangular</MenuItem>
-            <MenuItem value="ball">Spherical</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
@@ -206,12 +204,11 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("video_codec", e.target.value)
             }
           >
-            {/* Test the output of the codecs before enabling the select. */}
             <MenuItem value="Default">Default</MenuItem>
             <MenuItem value="H.264 (AVC)">H.264 (AVC)</MenuItem>
-            <MenuItem value="H.265 (HEVC)">H.265 (HEVC)</MenuItem>
+            {/* <MenuItem value="H.265 (HEVC)">H.265 (HEVC)</MenuItem> */}
             <MenuItem value="VP9">VP9</MenuItem>
-            <MenuItem value="AV1">AV1</MenuItem>
+            {/* <MenuItem value="AV1">AV1</MenuItem> */}
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ marginTop: 2 }}>
@@ -223,7 +220,6 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               handleChange("audio_codec", e.target.value)
             }
           >
-            {/* Test the output of the codecs before enabling the select. */}
             <MenuItem value="Default">Default</MenuItem>
             <MenuItem value="AAC">AAC</MenuItem>
             <MenuItem value="Opus">Opus</MenuItem>
