@@ -24,7 +24,6 @@ from app.util.auth import project_access_required, user_jwt_required
 from app.util.ffmpeg import (
     create_thumbnail,
     get_duration,
-    ffmpeg_trim_concat_convert,
     VideoEditorClip,
     VideoEditorEdit,
 )
@@ -93,7 +92,7 @@ def _get_total_pixels(video):
     return width * height
 
 
-def parse_resolution(settings: str, clips: list) -> (str, str):
+def compute_resolution(settings: str, clips: list) -> (str, str):
     """Parse the resolution option set in the frontend to be a width and
     height."""
     option = settings["resolution"]
@@ -118,7 +117,7 @@ def parse_settings(settings: dict, clips: list) -> dict:
     if not display_name.endswith(EXTENSION):
         display_name += EXTENSION
 
-    width, height = parse_resolution(settings, clips)
+    width, height = compute_resolution(settings, clips)
     frame_rate = settings.get("frame_rate", "30")
 
     # Convert str to ViewType enum.
@@ -133,10 +132,8 @@ def parse_settings(settings: dict, clips: list) -> dict:
         raise SettingsParsingException(status, msg) from error
 
     projection_format = settings.get("projection_format", "")
-    video_codec = video_codec_to_ffmpeg(settings.get("video_codec", ""))
-    audio_codec = audio_codec_to_ffmpeg(settings.get("audio_codec", ""))
-    video_bitrate = settings.get("video_bitrate", "")
-    audio_bitrate = settings.get("audio_bitrate", "")
+    video_codec = settings.get("video_codec", "")
+    audio_codec = settings.get("audio_codec", "")
 
     parsed_settings = {
         "name": display_name,
@@ -147,71 +144,9 @@ def parse_settings(settings: dict, clips: list) -> dict:
         "projection_format": projection_format,
         "video_codec": video_codec,
         "audio_codec": audio_codec,
-        "video_bitrate": "" if video_bitrate == "Default" else video_bitrate,
-        "audio_bitrate": "" if audio_bitrate == "Default" else audio_bitrate,
     }
+
     return parsed_settings
-
-
-def video_codec_to_ffmpeg(codec: str) -> str:
-    """Parse video codecs from display name to ffmpeg value."""
-    video_codec_mappings = {
-        "default": "",
-        "h.264 (avc)": "libx264",
-        "h.265 (hevc)": "libx265",
-        "vp9": "libvpx-vp9",
-        "av1": "libaom-av1",
-        # Add more mappings as needed
-    }
-
-    normalized_codec = codec.lower()
-    return video_codec_mappings.get(normalized_codec, None)
-
-
-def audio_codec_to_ffmpeg(codec: str) -> str:
-    """Parse audio codecs from display name to ffmpeg value."""
-    audio_codec_mappings = {
-        "default": "",
-        "aac": "aac",
-        "opus": "libopus",
-        "vorbis": "libvorbis",
-        "mp3": "libmp3lame",
-        # Add more mappings as needed
-    }
-
-    normalized_codec = codec.lower()
-    return audio_codec_mappings.get(normalized_codec, None)
-
-
-def stereo_format_to_ffmpeg(stereo_format: str) -> str:
-    """Parse view type from display name to ffmpeg value."""
-    view_type_mappings = {
-        ViewType.mono: "2d",
-        ViewType.sidetoside: "sbs",
-        ViewType.toptobottom: "tb",
-    }
-
-    return view_type_mappings.get(stereo_format, None)
-
-
-def add_float_strings(float_a: str, float_b: str) -> str | None:
-    """Compute the sum of two strings that can be parsed to floats.
-    Return the sum as a string.
-
-    Parameters:
-        float_a : str
-            string of a float.
-        float_b : str
-            string of a float.
-
-    Returns:
-        the sum of the float strings.
-    """
-    try:
-        result = float(float_a) + float(float_b)
-        return str(result)
-    except ValueError:
-        return None
 
 
 def parse_clip(clip: dict) -> VideoEditorClip:
@@ -225,15 +160,15 @@ def parse_clip(clip: dict) -> VideoEditorClip:
     asset_id = clip["asset_id"]
     start_time = clip["start_time"]
     duration = clip["duration"]
-    end_time = add_float_strings(start_time, duration)
 
     asset: AssetModel = find_asset(asset_id=asset_id)
     path = Path(ASSET_DIR, asset.path)
 
     return VideoEditorClip(
         filepath=path,
-        trim=f"{start_time}:{end_time}",
-        stereo_format=stereo_format_to_ffmpeg(asset.view_type),
+        start_time=start_time,
+        duration=duration,
+        stereo_format=asset.view_type,
         projection_format=asset.projection_format,
     )
 
@@ -258,13 +193,13 @@ def edit_assets(clips: list, video_path: Path, settings: dict) -> None:
         width=settings["width"],
         height=settings["height"],
         frame_rate=settings["frame_rate"],
-        stereo_format=stereo_format_to_ffmpeg(settings["stereo_format"]),
+        stereo_format=settings["stereo_format"],
         projection_format=settings["projection_format"],
         video_codec=settings["video_codec"],
         audio_codec=settings["audio_codec"],
     )
 
-    if not ffmpeg_trim_concat_convert(edit):
+    if not edit.ffmpeg_trim_concat_convert():
         status = HTTPStatus.INTERNAL_SERVER_ERROR
         msg = "Error trimming and joining assets"
         raise FFmpegException(status, msg)
@@ -437,7 +372,6 @@ class EditAssets(Resource):
             # Add video to database.
             meta = generate_asset_meta(project, filename, video_path, settings)
             asset = create_asset(settings["name"], video_filename, meta)
-            print("\n\n\n", asset)
             db.session.add(asset)
             db.session.commit()
             return asset, HTTPStatus.CREATED
