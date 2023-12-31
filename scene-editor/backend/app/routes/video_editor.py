@@ -131,19 +131,16 @@ def parse_settings(settings: dict, clips: list) -> dict:
         msg = f"AttributeError with view type: {settings['stereo_format']}."
         raise SettingsParsingException(status, msg) from error
 
-    projection_format = settings.get("projection_format", "")
-    video_codec = settings.get("video_codec", "")
-    audio_codec = settings.get("audio_codec", "")
-
     parsed_settings = {
         "name": display_name,
         "width": width,
         "height": height,
         "frame_rate": frame_rate,
         "stereo_format": stereo_format,
-        "projection_format": projection_format,
-        "video_codec": video_codec,
-        "audio_codec": audio_codec,
+        "projection_format": settings.get("projection_format", ""),
+        "video_codec": settings.get("video_codec", ""),
+        "audio_codec": settings.get("audio_codec", ""),
+        "copy": settings.get("copy", ""),
     }
 
     return parsed_settings
@@ -168,6 +165,8 @@ def parse_clip(clip: dict) -> VideoEditorClip:
         filepath=path,
         start_time=start_time,
         duration=duration,
+        width=asset.width,
+        height=asset.height,
         stereo_format=asset.view_type,
         projection_format=asset.projection_format,
     )
@@ -199,7 +198,7 @@ def edit_assets(clips: list, video_path: Path, settings: dict) -> None:
         audio_codec=settings["audio_codec"],
     )
 
-    if not edit.ffmpeg_trim_concat_convert():
+    if not edit.ffmpeg_trim_concat_convert(allow_copy=settings["copy"]):
         status = HTTPStatus.INTERNAL_SERVER_ERROR
         msg = "Error trimming and joining assets"
         raise FFmpegException(status, msg)

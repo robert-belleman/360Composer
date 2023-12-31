@@ -22,7 +22,10 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Stack,
+  Switch,
   TextField,
+  Typography,
 } from "@mui/material";
 
 const MAX_CHARACTERS_NAME = 128;
@@ -37,6 +40,7 @@ interface Settings {
   projection_format: string;
   video_codec: string;
   audio_codec: string;
+  copy: boolean;
 }
 
 interface SettingsDialogProps {
@@ -62,13 +66,14 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
     projection_format: "equirect",
     video_codec: "Default",
     audio_codec: "Default",
+    copy: true,
   });
 
   const isExportButtonDisabled =
     !settings.name.trim() ||
     (settings.resolution === "custom" && (!settings.width || !settings.height));
 
-  const handleChange = (field: keyof Settings, value: string) => {
+  const handleChange = (field: keyof Settings, value: any) => {
     setSettings((prevSettings) => ({
       ...prevSettings,
       [field]: value,
@@ -226,6 +231,26 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             <MenuItem value="Vorbis">Vorbis</MenuItem>
             <MenuItem value="MP3">MP3</MenuItem>
           </Select>
+        </FormControl>
+        <FormControl
+          fullWidth
+          sx={{ marginTop: 2, justifyContent: "center", alignItems: "center" }}
+        >
+          <Stack direction="row" alignItems="center">
+            <Typography>Allow Copy for Basic Editing</Typography>
+            <Switch
+              checked={settings.copy}
+              onChange={() => handleChange("copy", !settings.copy)}
+              inputProps={{ "aria-label": "controlled" }}
+            />
+          </Stack>
+          <FormHelperText>
+            {settings.copy
+              ? "Enabling this option will copy the input without re-encoding. "
+              : "Disabling this option will perform re-encoding. "}
+            This option only takes effect when the edit only consists of trims
+            and concatenations.
+          </FormHelperText>
         </FormControl>
       </DialogContent>
       <DialogActions>

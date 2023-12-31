@@ -77,11 +77,17 @@ def parse_stereo_format(stereo_format: str) -> str:
 
 
 class VideoEditorClip:
-    """Represents a single clip of an edit in the Video Editor.
+    """Acts as a dataclass that stores the information of a single video edit.
+    Information includes the start and end time of a trim and the current
+    stereo and projection formats. Note that this is implemented as a class
+    so that all parsing from data to FFmpeg is centralised.
 
     Attributes:
         filepath (str): Path to the asset.
-        trim (str): Information about the trim.
+        start_time (str): start time of the trim.
+        end_time (str): end time of the trim.
+        width (str): width of the asset.
+        height (str): height of the asset.
         stereo_format (str): Stereo format of the asset.
         projection_format (str): Projection format of the asset.
 
@@ -92,12 +98,15 @@ class VideoEditorClip:
         filepath: Path,
         start_time: str,
         duration: str,
+        width: str,
+        height: str,
         stereo_format: str,
         projection_format: str = None,
     ) -> None:
         self.filepath = filepath
         self.start_time = start_time
         self.end_time = self._add_float_strings(start_time, duration)
+        self.width, self.height = width, height
         self.stereo_format = parse_stereo_format(stereo_format)
         self.projection_format = projection_format
 
@@ -120,7 +129,10 @@ class VideoEditorClip:
 
 
 class VideoEditorEdit:
-    """Represents the entire video edit in the Video Editor.
+    """Acts as a dataclass that stores the information to perform a video edit.
+    Information can be divided into the input clips and the output options.
+    Note that this is implemented as a class so that all parsing from data to
+    FFmpeg is centralised.
 
     Attributes:
         clips (List[VideoEditorClip]): List of clips in the video edit.
@@ -343,10 +355,94 @@ class VideoEditorEdit:
             if script_path and script_path.exists():
                 script_path.unlink()
 
-    def ffmpeg_trim_concat_convert(self) -> bool:
+    def _requires_reencoding(self) -> bool:
+        return any(
+            clip.width != self.width
+            or clip.height != self.height
+            or clip.stereo_format != self.stereo_format
+            or (
+                clip.projection_format
+                and clip.projection_format != self.projection_format
+            )
+            for clip in self.clips
+        )
+
+    def _trim_using_streamcopy(
+        self,
+        clip: VideoEditorClip,
+        output_path: Path,
+    ) -> bool:
+        command = ["ffmpeg"]
+        command.extend(["-ss", clip.start_time])
+        command.extend(["-to", clip.end_time])
+        command.extend(["-i", clip.filepath])
+        command.extend(["-map", "0"])
+        command.extend(["-c", "copy"])
+        command.append(output_path)
+
+        try:
+            res = subprocess.run(
+                command,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            print(res.stdout)
+            print(res.stderr)
+            return True
+        except subprocess.CalledProcessError as error:
+            print(f"Failed to trim {clip.filepath}. Error: {error.stderr}")
+            return False
+
+    def _concat_using_streamcopy(self, input_paths: list[Path]) -> bool:
+        textfile_path = Path(ASSET_DIR, generate_random_filename(".txt"))
+
+        # Create a text file with the list of video paths
+        with open(textfile_path, "w", encoding="utf-8") as file:
+            for path in input_paths:
+                file.write(f"file '{path}'\n")
+
+        command = ["ffmpeg"]
+        command.extend(["-f", "concat"])
+        command.extend(["-safe", "0"])
+        command.extend(["-i", textfile_path])
+        command.extend(["-c", "copy"])
+        command.append(self.filepath)
+
+        try:
+            res = subprocess.run(
+                command,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            print(res.stdout)
+            print(res.stderr)
+            return True
+        except subprocess.CalledProcessError as error:
+            print(f"Failed to to join videos. Error: {error.stderr}")
+            return False
+        finally:
+            textfile_path.unlink()
+            for path in input_paths:
+                Path(ASSET_DIR, path).unlink()
+
+    def ffmpeg_trim_concat_convert(self, allow_copy: bool = True) -> bool:
         """Generate and execute a command that trims and concatenates each clip
         in the video edit `edit`. If a `projection_format` or `stereo_format`
         conversion is required, also include those in the command.
+
+        Parameters:
+            allow_copy : bool
+                set this flag to false if you want to force re-encoding.
+                Copying is only attempted when no conversions are needed.
+
+        Notes:
+        - Copying the stream could cause 'Non-monotonous DTS', meaning that
+          the output could not be displayed correctly. This can be checked
+          by inspecting the result. In the case of a faulty output, the user
+          can attempt to send the edit again, but this time requesting to
+          re-encode the video.
 
         TODO:
         - The function trims the video and audio stream of an asset. A problem
@@ -364,11 +460,27 @@ class VideoEditorEdit:
         if not 0 < len(self.clips):
             return False
 
+        # If there is no need to re-encode, use stream copy.
+        if allow_copy and not self._requires_reencoding():
+            # If there is only 1 clip, immediately write to output file.
+            if len(self.clips) == 1:
+                return self._trim_using_streamcopy(
+                    self.clips[0], output_path=self.filepath
+                )
+
+            # Otherwise, write to temporary files and concat them.
+            filepaths = []
+            for clip in self.clips:
+                filename = Path(generate_random_filename(".mp4"))
+                path = Path(ASSET_DIR, filename)
+                self._trim_using_streamcopy(clip, output_path=path)
+                filepaths.append(filename)
+            return self._concat_using_streamcopy(filepaths)
+
         command = ["ffmpeg"]
         command.extend(self._generate_input_options())
         command.extend(self._generate_filter_complex())
         command.extend(self._generate_output_options())
-
         return self._run_command(
             command,
             error_message="Failed to trim, concatenate or convert.",
