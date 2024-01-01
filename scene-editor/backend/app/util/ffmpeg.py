@@ -249,15 +249,17 @@ class VideoEditorEdit:
         a clip is trimmed and the frame rate is changed."""
         options = []
 
-        v360_options = self._generate_v360_options(clip)
-        if v360_options:
-            options.append(v360_options)
-
+        # Trim the input before applying filters (does not decode).
         if clip.start_time and clip.end_time:
             trim = f"{clip.start_time}:{clip.end_time}"
             options.extend([f"trim={trim}", "setpts=PTS-STARTPTS"])
+
+        # Apply video filters (does decode).
         if self.frame_rate:
             options.append(f"framerate={self.frame_rate}")
+        v360_options = self._generate_v360_options(clip)
+        if v360_options:
+            options.append(v360_options)
 
         return ",".join(options)
 

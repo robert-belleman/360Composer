@@ -249,7 +249,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
               ? "Enabling this option will copy the input without re-encoding. "
               : "Disabling this option will perform re-encoding. "}
             This option only takes effect when the edit only consists of trims
-            and concatenations.
+            and concatenations. It attempts to speed up trimming by copying
+            information from the nearest keyframe.
           </FormHelperText>
         </FormControl>
       </DialogContent>
