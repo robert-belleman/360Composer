@@ -741,6 +741,7 @@ const Editor: React.FC = () => {
           <Grid item xs={8}>
             <Slider
               value={currentVideoTime}
+              disabled={!video || !video.hls_path}
               defaultValue={0}
               min={0}
               max={currentVideoLength}
