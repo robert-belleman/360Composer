@@ -230,7 +230,7 @@ class VideoEditorEdit:
         This filter enables conversion in projection or stereo format."""
         options = [f"v360=output={self.projection_format}"]
 
-        if clip.projection_format:
+        if clip.projection_format is not None:
             options.append(f"input={clip.projection_format}")
 
         if clip.stereo_format != self.stereo_format:
@@ -250,12 +250,12 @@ class VideoEditorEdit:
         options = []
 
         # Trim the input before applying filters (does not decode).
-        if clip.start_time and clip.end_time:
+        if clip.start_time is not None and clip.end_time is not None:
             trim = f"{clip.start_time}:{clip.end_time}"
             options.extend([f"trim={trim}", "setpts=PTS-STARTPTS"])
 
         # Apply video filters (does decode).
-        if self.frame_rate:
+        if self.frame_rate is not None:
             options.append(f"framerate={self.frame_rate}")
         v360_options = self._generate_v360_options(clip)
         if v360_options:
@@ -268,7 +268,7 @@ class VideoEditorEdit:
         a clip is trimmed."""
         options = []
 
-        if clip.start_time and clip.end_time:
+        if clip.start_time is not None and clip.end_time is not None:
             trim = f"{clip.start_time}:{clip.end_time}"
             options.extend([f"atrim={trim}", "asetpts=PTS-STARTPTS"])
 
