@@ -103,6 +103,7 @@ class VideoEditorClip:
         stereo_format: str,
         projection_format: str = None,
     ) -> None:
+        # TODO: check if start_time and end_time are not empty string.
         self.filepath = filepath
         self.start_time = start_time
         self.end_time = self._add_float_strings(start_time, duration)
@@ -230,7 +231,7 @@ class VideoEditorEdit:
         This filter enables conversion in projection or stereo format."""
         options = [f"v360=output={self.projection_format}"]
 
-        if clip.projection_format is not None:
+        if clip.projection_format:
             options.append(f"input={clip.projection_format}")
 
         if clip.stereo_format != self.stereo_format:
