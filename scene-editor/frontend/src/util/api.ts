@@ -45,7 +45,10 @@ export const initHLS = async (assetId: string) => {
 };
 
 export const exportVideoEdits = async (activeProject: string, data: any) => {
-  return await axios.post(`/api/video-editor/${activeProject}/edit`, data);
+  /* TODO: Maintain persistent connection over polling (WebSockets). */
+  return await axios.post(`/api/video-editor/${activeProject}/edit`, data, {
+    timeout: 60 * 60 * 1000,
+  });
 };
 
 export const editAssetMeta = async (

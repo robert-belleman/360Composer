@@ -237,7 +237,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
           sx={{ marginTop: 2, justifyContent: "center", alignItems: "center" }}
         >
           <Stack direction="row" alignItems="center">
-            <Typography>Allow Copy for Basic Editing</Typography>
+            <Typography>Prioritize Speed over Precision</Typography>
             <Switch
               checked={settings.copy}
               onChange={() => handleChange("copy", !settings.copy)}
@@ -245,12 +245,8 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
             />
           </Stack>
           <FormHelperText>
-            {settings.copy
-              ? "Enabling this option will copy the input without re-encoding. "
-              : "Disabling this option will perform re-encoding. "}
             This option only takes effect when the edit only consists of trims
-            and concatenations. It attempts to speed up trimming by copying
-            information from the nearest keyframe.
+            and concatenations.
           </FormHelperText>
         </FormControl>
       </DialogContent>
