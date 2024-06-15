@@ -1,8 +1,9 @@
 from os import environ
 
-from flask import Blueprint, Flask
+from flask import Blueprint, Flask, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+import logging
 
 from app.models import database, migrate
 from app.routes.api import api
@@ -23,6 +24,9 @@ from app.routes.video_editor import EditAssets
 app = Flask(__name__)
 app.config.from_pyfile("config.py")
 
+# Enable logging
+# logging.basicConfig(level=logging.DEBUG)
+
 CORS(app, supports_credentials=True)
 
 database.init_app(app)
@@ -37,3 +41,9 @@ def add_claims_to_access_token(identity):
 blueprint = Blueprint("api", __name__, url_prefix="/api")
 api.init_app(blueprint)
 app.register_blueprint(blueprint)
+
+# @app.after_request
+# def after_request(response):
+#     logging.debug(f"Request headers: {request.headers}")
+#     logging.debug(f"Response headers: {response.headers}")
+#     return response

@@ -5,9 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 import { View } from '../types/views';
 
-import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
-
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import Hidden from '@mui/material/Hidden';
@@ -21,60 +18,48 @@ import PieChartIcon from '@mui/icons-material/PieChart';
 
 const drawerWidth = 240;
 
-const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    root: {
-      display: 'flex',
-    },
-    appBar: {
-      zIndex: theme.zIndex.drawer + 1,
-    },
-    drawer: {
-      width: drawerWidth,
-      flexShrink: 0,
-      zIndex: 0,
-    },
-    drawerPaper: {
-      width: drawerWidth,
-      height: 'calc(100% - 64px)',
-      top: '64px'
-    },
-    drawerContainer: {
-      overflow: 'auto',
-    },
-    list: {
-      padding: 16,
-      boxSizing: 'border-box'
-    }
-  }),
-);
-
 type SideMenuProps = {
     activeView: View
 };
 
 const SideMenu: React.FC<SideMenuProps> = ({activeView}:SideMenuProps) => {
   const navigate = useNavigate();
-  const classes = useStyles();
 
   const sidebarOpen = useSelector((state:any) => state.sidebarOpen);
 
   const SideMenuList = () => (
-    <List className={classes.list}>
-      <ListItem button component="a" selected={activeView === View.Project} onClick={() => navigate('/app/projects')}>
+    <List sx={{ padding: 2, boxSizing: 'border-box' }}>
+      <ListItem component="button"
+                onClick={() => navigate('/app/projects')}
+                sx={{
+                  bgcolor: activeView === View.Project ? 'action.selected' : 'inherit',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+      >
         <ListItemIcon>
           <AccountTreeIcon />
         </ListItemIcon>
         <ListItemText primary="Projects"/>
       </ListItem>
-      <ListItem button component="a" selected={activeView === View.Users} onClick={() => navigate('/app/users')}>
+      <ListItem component="button"
+                onClick={() => navigate('/app/users')}
+                sx={{
+                  bgcolor: activeView === View.Users ? 'action.selected' : 'inherit',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+      >
         <ListItemIcon>
           <PeopleIcon />
         </ListItemIcon>
         <ListItemText primary="Users"/>
       </ListItem>
-      <ListItem button component="a" selected={activeView === View.Analytics} onClick={() => navigate('/app/analytics')}>
+      <ListItem component="button"
+                onClick={() => navigate('/app/analytics')}
+                sx={{
+                  bgcolor: activeView === View.Analytics ? 'action.selected' : 'inherit',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+      >
         <ListItemIcon>
           <PieChartIcon />
         </ListItemIcon>
@@ -87,9 +72,17 @@ const SideMenu: React.FC<SideMenuProps> = ({activeView}:SideMenuProps) => {
     <div>
       <Hidden smDown>
         <Drawer
-          className={classes.drawer}
           variant="permanent"
-          classes={{paper: classes.drawerPaper}}
+          sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              height: 'calc(100% - 64px)',
+              top: '64px',
+            },
+            zIndex: 0,
+          }}
           anchor="left"
           open
         >
@@ -98,9 +91,17 @@ const SideMenu: React.FC<SideMenuProps> = ({activeView}:SideMenuProps) => {
       </Hidden>
       <Hidden smUp>
         <Drawer
-          className={classes.drawer}
           variant="temporary"
-          classes={{paper: classes.drawerPaper}}
+          sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              height: 'calc(100% - 64px)',
+              top: '64px',
+            },
+            zIndex: 0,
+          }}
           anchor="left"
           open={sidebarOpen}
         >

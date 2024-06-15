@@ -1,14 +1,11 @@
 // @ts-nocheck
-import React,  { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 import { range } from 'lodash';
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -38,6 +35,7 @@ import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import NewAssetDialog from "./AssetViewComponents/NewAssetDialog";
 
 import defaultImage from "../../static/images/default.jpg";
+import { api } from '../../util/api';
 
 enum AlertType {
   Error,
@@ -118,39 +116,11 @@ const AssetView: React.FC<AssetViewProps> = ({activeProject, fullWidth}) => {
   };
 
   const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-    createStyles({
-      root: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-      },
-      paper: {
-        padding: theme.spacing(2),
-        boxSizing: 'border-box'
-      },
-      box: {
-        flexGrow: 1
-      },
-      list: {
-        height: fullWidth ? 400 : 300,
-        overflow: 'auto'
-      },
-      header: {
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        fontSize: '1.1rem',
-        fontWeight: 700,
-        color: '#2196f3',
-        marginBottom: 10
-      }
-    }),
-  );
 
   const fetchAssets = async () => {
     setLoadingAssets(true);
     try {
-      const res = await axios.get(`/api/project/${activeProject}/assets`, {});
+      const res = await api.get(`/api/project/${activeProject}/assets`, {});
       setAssets(res.data);
       return setLoadingAssets(false);
     } catch (e) {
@@ -172,7 +142,7 @@ const useStyles = makeStyles((theme) =>
   };
 
   const handleSelect = async (value: string, id: string) => {
-    await axios.post(`/api/asset/${id}/setview/${value}`)
+    await api.post(`/api/asset/${id}/setview/${value}`)
       .then(() => setAlertMessage({show: true,
                                    message: `Asset's view type succesfully changed to ${value}`,
                                    type: Alert.Success}))
@@ -181,7 +151,7 @@ const useStyles = makeStyles((theme) =>
   };
 
   const deleteCheckedAssets = () => {
-    Promise.all(checked.map((id:any) => axios.post(`/api/asset/${id}/delete`)))
+    Promise.all(checked.map((id:any) => api.post(`/api/asset/${id}/delete`)))
       .then(() => setChecked([]))
       .then(fetchAssets)
       .then(() => setAlertMessage({show: true, message: "Asset(s) successfully deleted", type: Alert.Success}))
@@ -192,8 +162,6 @@ const useStyles = makeStyles((theme) =>
   useEffect(() => {
     fetchAssets();
   }, [activeProject]);
-
-  const classes = useStyles();
 
   const renderAssets = () => {
     if (assets.length === 0) {
@@ -238,18 +206,20 @@ const useStyles = makeStyles((theme) =>
   const renderAssetsList = () => {
     if (loadingAssets) {
       return (
-        <div className={classes.list}>
+        <div sx={{ height: fullWidth ? 400 : 300, overflow: 'auto' }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
         </div>
       )
     }
 
-    return (<List className={classes.list}>{renderAssets()}</List>)
+    return (<List sx={{ height: fullWidth ? 400 : 300, overflow: 'auto' }}>{renderAssets()}</List>)
   }
 
   return (
-    <Paper elevation={0} variant="outlined" className={classes.paper}>
-      <Typography variant="h4" component="p" className={classes.header}><PhotoLibraryIcon style={{marginRight:5}}/> 1. Assets</Typography>
+    <Paper elevation={0} variant="outlined" sx={{ padding: (theme) => theme.spacing(2), flexGrow: 1 }}>
+      <Typography variant="h4" component="p" sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: '1.1rem', fontWeight: 700, color: '#2196f3', marginBottom: 10 }}>
+        <PhotoLibraryIcon style={{marginRight:5}}/> 1. Assets
+      </Typography>
       {renderAssetsList()}
       <Grid container>
         <Grid item xs={4}>

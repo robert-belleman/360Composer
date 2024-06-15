@@ -6,7 +6,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import axios from "axios";
+import { api } from '../../util/api';
 
 type UpdateSceneDialogProps = {
     sceneID: string;
@@ -25,7 +25,7 @@ const UpdateSceneDialog: React.FC<UpdateSceneDialogProps> = ({sceneID, scene, op
         "description": state.description,
     }
 
-    axios
+    api
       .post(`/api/scenes/${sceneID}/meta`, payload )
       .then(() => {
           setState({name: "", description: ""})

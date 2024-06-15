@@ -15,7 +15,7 @@ import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
-import axios from "axios";
+import { api } from "../../util/api";
 
 
 type MediaSelectorProps = {
@@ -32,14 +32,14 @@ const MediaSelector: React.FC<MediaSelectorProps> = ({sceneID, onMediaSelected, 
     const [selectedMediaID, setSelectedMediaID] = useState(activeMedia);
 
     const handleMediaDelete = () => {
-      axios.put(`/api/scenes/${sceneID}/media`, {id: sceneID, video_id:null})
+      api.put(`/api/scenes/${sceneID}/media`, {id: sceneID, video_id:null})
         .then(() => setSelectedMediaID(undefined))
         .then(onMediaDeleted)
         .catch((e) => console.log(e))
     }
 
     const handleSelectMedia = (m:any) => {
-      axios.put(`/api/scenes/${sceneID}/media`, {id: sceneID, video_id:m.id})
+      api.put(`/api/scenes/${sceneID}/media`, {id: sceneID, video_id:m.id})
         .then((res) => setSelectedMediaID(res.data.video_id))
         .then(() => setDialogOpen(false))
         .then(onMediaSelected)

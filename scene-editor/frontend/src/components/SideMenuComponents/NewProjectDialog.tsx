@@ -8,7 +8,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import axios from "axios";
+import { api } from '../../util/api';
 
 type NewProjectDialogProps = {
     open: boolean;
@@ -23,12 +23,12 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({open, closeHandler, 
   const [text, setText] = useState("");
 
   const createProject = async () => {
-      axios
-          .post(`/api/project/create`, {'id': token.id, 'name': text} )
-          .then((res) => {console.log(res); onProjectCreated() })
-          .catch(() => {
-              // setError(true);
-          });
+      api
+        .post(`/api/project/create`, {'id': token.id, 'name': text} )
+        .then((res) => {console.log(res); onProjectCreated() })
+        .catch(() => {
+            // setError(true);
+        });
   }; 
 
   const handleChange = (event: any) => {

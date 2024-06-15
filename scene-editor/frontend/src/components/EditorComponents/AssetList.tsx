@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from "react";
-import axios from "axios";
 
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -13,6 +12,7 @@ import CategoryIcon from '@mui/icons-material/Category';
 import Tooltip from '@mui/material/Tooltip';
 
 import "./AssetList.scss";
+import { api } from "../../util/api";
 
 type AssetListProps = {
   activeProject: string;
@@ -41,7 +41,7 @@ const AssetListItem: React.FC<AssetListItemProps> = ({assetName, assetID, onAddA
         <IconButton
           edge="end"
           aria-label="add to scene"
-          onClick={() => {onAddAsset(assetID)}}
+          onClick={() => {onAddAsset(assetID); console.log("clicked");}}
           size="large">
           <AddIcon />
         </IconButton>
@@ -55,13 +55,8 @@ const AssetList: React.FC<AssetListProps> = ({activeProject, onAddAsset}) => {
 
   const [assets, setAssets] = useState([]);
 
-  useEffect(() => {
-    if (activeProject !== undefined)
-      fetchProjectAssets();
-  }, [activeProject]);
-
   const fetchProjectAssets = async () => {
-    axios
+    api
       .get(`/api/project/` + activeProject + `/objects`, )
       .then((res) => {
         setAssets(res.data);
@@ -70,6 +65,11 @@ const AssetList: React.FC<AssetListProps> = ({activeProject, onAddAsset}) => {
           console.error("Error in fetching project assets");
       });
   };
+
+  useEffect(() => {
+    if (activeProject !== undefined)
+      fetchProjectAssets();
+  }, [activeProject]);
 
   const renderAssetList = () => {
     if (assets.length === 0) {

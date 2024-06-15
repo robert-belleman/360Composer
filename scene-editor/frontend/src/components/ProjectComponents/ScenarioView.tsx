@@ -1,11 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
 
-import {range} from 'lodash';
+import { range } from 'lodash';
 
-import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -36,8 +33,7 @@ import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 
 import NewScenarioDialog from './ScenarioViewComponents/NewScenarioDialog';
-
-const theme = createTheme();
+import { api } from '../../util/api';
 
 type ScenarioTileProps = {
   name: string;
@@ -140,7 +136,7 @@ type ScenarioViewProps = {
   fullWidth: boolean;
 }
 
-export default ({activeProject, fullWidth}:ScenarioViewProps) => {
+const ScenarioView = ({activeProject, fullWidth}:ScenarioViewProps) => {
   const [openScenarioDialog, setOpenScenarioDialog] = useState(false);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
 
@@ -149,34 +145,12 @@ export default ({activeProject, fullWidth}:ScenarioViewProps) => {
   const [warningState, setWarningState] = useState({open: false, id: ""});
   const [alertState, setAlertState] = useState({open: false, message: "", severity: ""})
 
-  const classes = (makeStyles((theme) =>
-    createStyles({
-        root: {
-            flexGrow: 1,
-            padding: theme.spacing(2),
-        },
-        paper: {
-          padding: theme.spacing(2),
-          boxSizing: 'border-box'
-        },
-        overview: {
-          height: fullWidth ? 400 : 300,
-          overflow: 'auto'
-        },
-        header: {
-          display: 'flex',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          fontSize: '1.1rem',
-          fontWeight: 700,
-          color: '#2196f3',
-          marginBottom: 10
-        },
-        cardHeader: {
-          fontSize: '1.2rem'
-        }
-    }),
-))();
+  const fetchScenarios = () => {
+    api.get(`/api/project/${activeProject}/scenarios`)
+      .then((res:any) => setScenarios(res.data))
+      .then(() => setLoadingScenarios(false))
+      .catch((e) => {console.log(e); setLoadingScenarios(false)});
+  }
 
   useEffect(() => {
     setLoadingScenarios(true);
@@ -193,19 +167,12 @@ export default ({activeProject, fullWidth}:ScenarioViewProps) => {
     setAlertState({open: true, message: "Something failed while creating scenario.", severity: "error"})
   };
 
-  const fetchScenarios = () => {
-    axios.get(`/api/project/${activeProject}/scenarios`)
-      .then((res:any) => setScenarios(res.data))
-      .then(() => setLoadingScenarios(false))
-      .catch((e) => {console.log(e); setLoadingScenarios(false)});
-  }
-
   const handleAlertClose = () => {
     setAlertState({...alertState, open: false})
   }
 
   const handleDelete = (id:string) => {
-    axios.post(`/api/scenario/${id}/delete`)
+    api.post(`/api/scenario/${id}/delete`)
       .then(fetchScenarios)
       .then(() => setWarningState({open: false, id: ""}))
       .then(() => setAlertState({open: true, message: "Scenario successfully deleted.", severity: "success"}))
@@ -245,15 +212,27 @@ export default ({activeProject, fullWidth}:ScenarioViewProps) => {
     ));
 
     return (
-      <Grid container spacing={2} className={classes.overview} style={{margin: 0}}>
+      <Grid container spacing={2} sx={{ height: fullWidth ? 400 : 300, overflow: 'auto', margin: 0 }}>
         { loadingScenarios ? loading_() : scenarios_() }
       </Grid>
     )
   }
 
   return (
-    <Paper elevation={0} variant="outlined" className={classes.paper}>
-      <Typography variant="h4" component="p" className={classes.header}><AccountTreeIcon style={{marginRight:5}}/> 3. Scenarios</Typography>
+    <Paper elevation={0} variant="outlined" sx={{ padding: 2, boxSizing: 'border-box' }}>
+      <Typography variant="h4" component="p"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          fontSize: '1.1rem',
+          fontWeight: 700,
+          color: '#2196f3',
+          marginBottom: 10
+        }}
+      >
+        <AccountTreeIcon sx={ {marginRight: 5 }}/> 3. Scenarios
+      </Typography>
       <Grid container spacing={2} style={{margin: 0}}>
         { renderOverview() }
         <Grid item xs={12}>
@@ -273,3 +252,5 @@ export default ({activeProject, fullWidth}:ScenarioViewProps) => {
     </Paper>
   );
 }
+
+export default ScenarioView;

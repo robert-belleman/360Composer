@@ -1,9 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import { useSelector } from 'react-redux';
-import axios from 'axios';
-
-import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
 
 import Grid from '@mui/material/Grid';
 import Dialog from '@mui/material/Dialog';
@@ -20,6 +16,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import Snackbar from '@mui/material/Snackbar';
+import Box from '@mui/material/Box';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -28,6 +25,7 @@ import { Button } from '@mui/material';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 import NewUserDialog from './UserViewComponents/NewUserDialog';
+import { api } from '../util/api';
 
 const Alert = (props: AlertProps) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -70,24 +68,6 @@ const DeleteWarningDialog = ({open, id, handleClose, handleDelete}:any) => {
   )
 }
 
-const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    root: {
-      flexGrow: 1,
-      padding: theme.spacing(3)
-    },
-    top: {
-      padding: theme.spacing(2),
-      boxSizing: 'border-box',
-      marginBottom: 20
-    },
-    box: {
-      flexGrow: 1
-    }
-  })
-)
-
 const Users = () => {
   const userID = useSelector((state:any) => state.token.id)
   const [users, setUsers] = useState([])
@@ -97,8 +77,6 @@ const Users = () => {
   const [alertState, setAlertState] = useState({open: false, message: "", severity: ""})
 
   const [dialog, setDialog] = useState(false);
-
-  const classes = useStyles();
 
   const handleAlertClose = () => {
     setAlertState({...alertState, open: false})
@@ -110,7 +88,7 @@ const Users = () => {
   }, [])
 
   const fetchUsers = () =>
-    axios.get(`/api/customer/?therapist_id=${userID}`)
+    api.get(`/api/customer/?therapist_id=${userID}`)
       .then((res:any) => setUsers(res.data))
       .then(() => setLoadingUsers(false))
       .catch((e:any) => {
@@ -118,7 +96,7 @@ const Users = () => {
       })
 
   const deleteUser = (id:string) =>
-    axios.post('/api/customer/delete', {id, therapist_id: userID})
+    api.post('/api/customer/delete', {id, therapist_id: userID})
       .then(fetchUsers)
       .then(() => setWarningState({open: false, id: ""}))
       .then(() => setAlertState({open: true, message: "Successfully deleted user", severity: "success"}))
@@ -128,10 +106,10 @@ const Users = () => {
       })
 
   return (
-    <div className={classes.root} >
+    <Box sx={{ flexGrow: 1, padding: 3 }}>
       <Grid container>
         <Grid item xs={12}>
-          <Paper elevation={0} variant="outlined" className={classes.top}>
+          <Paper elevation={0} variant="outlined" sx={{ padding: 2, boxSizing: 'border-box', marginBottom: 20 }}>
             <Button startIcon={<AddIcon />} color="primary" onClick={() => setDialog(true)}>Add User</Button>
           </Paper>
         </Grid>
@@ -166,7 +144,7 @@ const Users = () => {
       <NewUserDialog userID={userID} open={dialog} closeHandler={() => setDialog(false)} onUserCreated={() => {setDialog(false); fetchUsers()}} />
       <DeleteWarningDialog id={warningState.id} open={warningState.open} handleDelete={() => deleteUser(warningState.id)} handleClose={() => setWarningState({open: false, id: ""})} />
       <UserSnackbar open={alertState.open} message={alertState.message} severity={alertState.severity} handleClose={handleAlertClose} />
-    </div>
+    </Box>
   );
 }
 

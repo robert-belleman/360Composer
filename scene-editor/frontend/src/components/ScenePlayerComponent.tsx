@@ -4,30 +4,22 @@ import {isMobile} from 'react-device-detect';
 import {
   ActionManager,
   Vector3,
-  SetValueAction,
   AbstractMesh,
   SceneLoader,
   VideoDome,
-  InterpolateValueAction,
   StandardMaterial,
   HemisphericLight,
   ExecuteCodeAction,
   Quaternion,
-  TransformNode,
   MeshBuilder,
   Color3,
-  DeviceOrientationCamera,
-  VRDeviceOrientationFreeCamera,
-  FreeCameraDeviceOrientationInput,
   Mesh,
   RayHelper,
-  VRExperienceHelper,
   Ray
 } from "@babylonjs/core"
 import {
   GUI3DManager,
   Rectangle,
-  HolographicButton,
   StackPanel3D,
   AdvancedDynamicTexture,
   TextBlock,
@@ -35,10 +27,9 @@ import {
 } from "@babylonjs/gui"
 import "@babylonjs/loaders"
 
-import axios from "axios";
-
 import SceneComponent from "./SceneComponent";
 import "./ScenePlayerComponent.scss";
+import { api } from "../util/api";
 
 
 type ScenePlayerProps = {
@@ -48,7 +39,6 @@ type ScenePlayerProps = {
 };
 
 const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart, onNextScene}: ScenePlayerProps) => {
-
     // vrHelper to enable vr experience
     var vrHelper: any = useRef(null);
 
@@ -97,7 +87,7 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
     const [sceneLight, setSceneLight]: any = useState(0);
 
     const fetchSceneData = async () => {
-        axios
+        api
           .get(`/api/scenes/${sceneID}/`)
           .then((res) => {setScene(res.data)})
           .catch((e) => {
@@ -106,15 +96,54 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
     };
 
     const fetchVideo = async () => {
-      axios.get(`/api/asset/${scene.video_id}`)
+      api.get(`/api/asset/${scene.video_id}`)
         .then((res: any) => {setVideo(res.data); onSceneStart();})
         .catch((e) => console.log(e))
     }
+
+    // loads the video into the scene
+    const loadVideo = () => {
+      if (video === undefined) {
+        return;
+      }
+
+      if (videoDome.current !== undefined) {
+        videoDome.current?.dispose();
+      }
+
+      const posterURL = `/api/asset/${video.id}/thumbnail`;
+      videoDome.current = new VideoDome(
+        "videoDome",
+        [`/assets/${video.path}`],
+        {
+          resolution: 32,
+          clickToPlay: false,
+          autoPlay: false,
+          poster: posterURL,
+          loop: false
+        },
+        vrScene.current
+      );
+
+      // reset video transport
+      setCurrentVideoLength(videoDome.current?.videoTexture.video.duration)
+      setCurrentVideoTime(0);
+
+      // make sure playback is updated
+      videoDome.current.videoTexture.video.ontimeupdate = (event: any) => {
+        setCurrentVideoTime(event.target.currentTime);
+      };
+
+      videoDome.current.videoTexture.video.onloadedmetadata = (event: any) => {
+        setCurrentVideoLength(event.target.duration)
+      };
+    };
+    
     /*
      * Fetches the objects that are stored in the database for this scene
      */
     const fetchSceneObjects = async () => {
-      axios
+      api
           .get(`/api/scenes/${sceneID}/objects`, {})
           .then((res) => {setObjects(res.data); console.log(res); loadMeshes(res.data);} )
           .catch(() => {
@@ -123,19 +152,18 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
     };
 
     const fetchAnnotations = async () => {
-      axios.get(`/api/scenes/${sceneID}/annotations`)
+      api.get(`/api/scenes/${sceneID}/annotations`)
         .then((res:any) => res.data).then(setAnnotations)
         .catch((e) => console.log(e))
     }
 
     useEffect(() => {
       console.log(`Loading scene ${sceneID}`);
-      if( sceneID !== undefined) {
+      if (sceneID !== undefined) {
         fetchSceneData();
         fetchAnnotations();
         fetchSceneObjects();
       }
-
     }, [sceneID]);
 
     useEffect(() => {
@@ -218,55 +246,14 @@ const ScenePlayerComponent: React.FC<ScenePlayerProps> = ({sceneID, onSceneStart
                       // add pointer actions
                       rootMesh.actionManager?.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, function () {alert("pointer out")}));
                   }),
-
               );
 
               setSceneRootMeshes(sceneRootMeshes);
           });
-
-
      } else {
          console.log("Current scene is undefined")
      }
     }
-
-    // loads the video into the scene
-    const loadVideo = () => {
-      if (video === undefined) {
-        return;
-      }
-
-      if (videoDome.current !== undefined) {
-        videoDome.current?.dispose();
-      }
-
-      const posterURL = `/api/asset/${video.id}/thumbnail`;
-      videoDome.current = new VideoDome(
-        "videoDome",
-        [`/assets/${video.path}`],
-        {
-          resolution: 32,
-          clickToPlay: false,
-          autoPlay: false,
-          poster: posterURL,
-          loop: false
-        },
-        vrScene.current
-      );
-
-      // reset video transport
-      setCurrentVideoLength(videoDome.current?.videoTexture.video.duration)
-      setCurrentVideoTime(0);
-
-      // make sure playback is updated
-      videoDome.current.videoTexture.video.ontimeupdate = (event: any) => {
-        setCurrentVideoTime(event.target.currentTime);
-      };
-
-      videoDome.current.videoTexture.video.onloadedmetadata = (event: any) => {
-        setCurrentVideoLength(event.target.duration)
-      };
-    };
 
     function renderStartButton(scene: any) {
       const manager = new GUI3DManager(scene);

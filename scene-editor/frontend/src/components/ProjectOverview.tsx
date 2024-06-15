@@ -4,8 +4,6 @@ import { useSelector } from 'react-redux';
 
 import { range } from 'lodash';
 
-import axios from 'axios';
-
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardActions from '@mui/material/CardActions';
@@ -14,6 +12,7 @@ import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid'
+import Box from '@mui/material/Box';
 
 import Skeleton from '@mui/material/Skeleton';
 
@@ -21,23 +20,11 @@ import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
-
 import placeholder from '../static/images/placeholder.jpg'
 
 import NewProjectDialog from "./SideMenuComponents/NewProjectDialog";
 import AlertDialog from "./UIComponents/AlertDialog"
-
-const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    root: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-    }
-  })
-)
+import { api } from '../util/api';
 
 const ProjectOverview : React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -47,23 +34,21 @@ const ProjectOverview : React.FC = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState('');
 
-  const classes = useStyles();
-
   const navigate = useNavigate();
 
-  const token = useSelector((state:any) => state.token);
-
-  useEffect(() => {
-    fetchProjects();
-  }, [])
+  const token = useSelector((state: any) => state.token);
 
   const fetchProjects = async () => {
     setLoading(true);
-    axios.get(`/api/user/${token.id}/projects`)
+    api.get(`/api/user/${token.id}/projects`)
       .then((res) => setProjects(res.data))
       .then(() => setLoading(false))
       .catch((e) => console.log('error while fetching projects', e));
   };
+
+  useEffect(() => {
+    fetchProjects();
+  }, [])
 
   const onProjectCreated = () => {
     setOpenProjectDialog(false);
@@ -77,8 +62,8 @@ const ProjectOverview : React.FC = () => {
 
   const onDelectProjectConfirm = (agree:boolean) => {
     setOpenDeleteDialog(false)
-    if(agree && selectedProject){
-      axios
+    if (agree && selectedProject) {
+      api
         .delete(`/api/project/${selectedProject}/`)
         .then((res)=>{
           fetchProjects();
@@ -125,7 +110,7 @@ const ProjectOverview : React.FC = () => {
   )
 
   const renderProjects = () => {
-    if (projects.length == 0) {
+    if (projects.length === 0) {
       return <Typography style={{marginLeft: 10}} gutterBottom variant="h5" component="h2">No projects have been added yet</Typography>
     }
 
@@ -139,7 +124,7 @@ const ProjectOverview : React.FC = () => {
   ))
 
   return (
-    <div className={classes.root}>
+    <Box sx={{ flexGrow: 1, p: 2 }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Button
@@ -164,7 +149,7 @@ const ProjectOverview : React.FC = () => {
         message={'It will be removed permanently.'}
         agreeButtonText={'Delete'}
         disagreeButtonText={'Cancel'}/>
-    </div>
+    </Box>
   )
 }
 

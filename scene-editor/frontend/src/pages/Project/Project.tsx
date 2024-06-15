@@ -9,7 +9,6 @@ import { Grid,Typography, Box } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
@@ -21,34 +20,9 @@ import SceneView from '../../components/ProjectComponents/SceneView';
 import ScenarioView from '../../components/ProjectComponents/ScenarioView';
 import TimelineView from '../../components/ProjectComponents/TimelineView';
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    root: {
-      flexGrow: 1,
-      padding: theme.spacing(3),
-      [theme.breakpoints.up('sm')]: {
-        marginLeft: 240
-      }
-    },
-    top: {
-      padding: theme.spacing(2),
-      boxSizing: 'border-box'
-    },
-    box: {
-      flexGrow: 1
-    },
-    panel: {
-      backgroundColor: 'white',
-      boxShadow: 'none',
-      borderRadius: '5px',
-      border: '1px solid rgba(0, 0, 0, 0.12)'
-    }
-  })
-)
 
 const GRID_VIEW = 'grid';
 const PANEL_VIEW = 'panel';
@@ -103,7 +77,6 @@ const Project = () => {
     localStorage.setItem('projectView', view);
   }, [view])
 
-  const classes = useStyles();
   const navigate = useNavigate();
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
@@ -137,7 +110,14 @@ const Project = () => {
 
   const panelView = () => (
     <Grid item xs={12}>
-      <AppBar position="static" color="default" className={classes.panel}>
+      <AppBar position="static" color="default"
+      sx={{
+        backgroundColor: 'white',
+        boxShadow: 'none',
+        borderRadius: '5px',
+        border: '1px solid rgba(0, 0, 0, 0.12)'
+      }}
+      >
         <Tabs
           value={value}
           onChange={handleChange}
@@ -188,7 +168,14 @@ const Project = () => {
     <div>
       <TopBar/>
       <SideMenu activeView={View.Project}/>
-      <div className={classes.root} >
+      <Box sx={{
+        flexGrow: 1,
+        padding: theme.spacing(3),
+        [theme.breakpoints.up('sm')]: {
+          marginLeft: '240px'
+        }
+      }}
+      >
         <Grid container spacing={3}>
           <Grid item xs={12}>
             {toggleButtonGroup()}
@@ -197,7 +184,7 @@ const Project = () => {
             { view === PANEL_VIEW ? panelView() : gridView() }
           </Grid>
         </Grid>
-      </div>
+      </Box>
     </div>
   )
 }

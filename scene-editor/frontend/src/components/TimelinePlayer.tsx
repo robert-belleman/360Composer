@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 import {differenceWith, isEmpty, isEqual} from 'lodash'
 
 import ScenarioPlayer from './ScenarioPlayer';
+import { api } from '../util/api';
 
 type TimelinePlayerProps = {
   timelineID: string
@@ -33,7 +33,7 @@ const TimelinePlayer:React.FC<TimelinePlayerProps> = ({timelineID}:TimelinePlaye
   }
   
   const fetchScenarios = () => {
-    axios.get(`/api/timeline/${timelineID}/scenarios`)
+    api.get(`/api/timeline/${timelineID}/scenarios`)
       .then((res:any) => setScenarios(res.data))
       .catch((e:any) => console.group())
   }
@@ -58,7 +58,7 @@ const TimelinePlayer:React.FC<TimelinePlayerProps> = ({timelineID}:TimelinePlaye
     //   sceneID: sceneID === null || sceneID === undefined ? '' : sceneID
     // };
 
-    // axios.post(`/api/analytics/legacy`, payload );
+    // api.post(`/api/analytics/legacy`, payload );
   }
 
   const onAnnotationPresent = () => {

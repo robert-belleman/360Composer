@@ -8,7 +8,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
-import axios from "axios";
+import { api } from '../../util/api';
 
 
 type NewUserDialog = {
@@ -24,7 +24,7 @@ const NewUserDialog: React.FC<NewUserDialog> = ({open, userID, closeHandler, onU
   const [tag, setTag] = useState("")
   
   const createUser = async () => {
-    axios
+    api
       .post(`/api/customer/create`, {name, tag, access_code: accessCode, therapist_id: userID})
       .then((res) => { 
         setName(""); 

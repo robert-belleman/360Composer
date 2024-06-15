@@ -4,7 +4,6 @@ Filename: asset.py
 Description:
 This file describes how the API should handle requests concerning the
 creation, modification or deletion of assets or asset data.
-
 """
 
 from http import HTTPStatus
@@ -35,7 +34,6 @@ class Asset(Resource):
     """
     Handles requests related to fetching asset locations from the database.
     """
-
     @user_or_customer_jwt_required
     @ns.marshal_with(asset_schema)
     def get(self, id):
@@ -43,7 +41,8 @@ class Asset(Resource):
         Fetches the asset location from database and returns it as a file
         """
         asset = AssetModel.query.filter_by(id=id.split(".")[0]).first_or_404()
-
+        print("asset is")
+        print(asset)
         return asset
 
 
@@ -54,7 +53,6 @@ class Thumbnail(Resource):
     """
     Handles requests related to fetching asset thumbnails.
     """
-
     @user_jwt_required
     @project_access_required
     def get(self, id):
@@ -74,7 +72,6 @@ class DeleteAsset(Resource):
     """
     Handles requests related to deleting assets.
     """
-
     @user_jwt_required
     @project_access_required
     def post(self, id):
@@ -98,7 +95,6 @@ class ChangeViewType(Resource):
     """
     Handles requests related to updating asset view types.
     """
-
     @user_jwt_required
     @project_access_required
     def post(self, id, viewtype):
@@ -162,7 +158,6 @@ class EditMetadata(Resource):
     """
     Handles requests related to updating asset information.
     """
-
     @user_jwt_required
     @project_access_required
     @ns.marshal_with(asset_schema)
@@ -198,7 +193,6 @@ class InitializeHLS(Resource):
     """
     Create a HLS playlist of the video in the asset and update its fields
     """
-
     @user_jwt_required
     @project_access_required
     @ns.marshal_with(asset_schema)
@@ -207,21 +201,26 @@ class InitializeHLS(Resource):
         Retrieve the asset with `asset_id`, create a HLS playlist and
         update the fields in the asset.
         """
-        asset: AssetModel
-        asset = AssetModel.query.filter_by(id=asset_id).first_or_404()
+        try:
+            asset: AssetModel
+            asset = AssetModel.query.filter_by(id=asset_id).first_or_404()
 
-        # Determine path for hls playlist.
-        base_name = asset.path.split(".")[0]
-        raw_video_path = Path(ASSET_DIR, base_name + ".mp4")
+            # Determine path for hls playlist.
+            base_name = asset.path.split(".")[0]
+            raw_video_path = Path(ASSET_DIR, base_name + ".mp4")
 
-        # Create a directory and store the HLS playlist there.
-        hls_output_dir = Path(ASSET_DIR, base_name)
-        hls_output_dir.mkdir()
-        create_hls(raw_video_path, hls_output_dir)
-        hls_playlist = base_name + "/main.m3u8"
+            # Create a directory and store the HLS playlist there.
+            hls_output_dir = Path(ASSET_DIR, base_name)
+            hls_output_dir.mkdir()
+            create_hls(raw_video_path, hls_output_dir)
+            hls_playlist = base_name + "/main.m3u8"
 
-        # Update the `hls_path` field of the asset and commit.
-        asset.hls_path = hls_playlist
-        db.session.commit()
+            # Update the `hls_path` field of the asset and commit.
+            asset.hls_path = hls_playlist
+            db.session.commit()
 
-        return asset, HTTPStatus.OK
+            return asset, HTTPStatus.OK
+
+        except Exception as e:
+            print(f"Error during HLS initialization: {e}")
+            return {"message": "Internal server error"}, HTTPStatus.INTERNAL_SERVER_ERROR

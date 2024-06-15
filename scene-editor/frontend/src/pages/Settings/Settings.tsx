@@ -2,8 +2,6 @@ import React, { useRef, useEffect, useState } from 'react';
 
 import { reduce, extend } from 'lodash';
 
-import axios from 'axios';
-
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,9 +10,9 @@ import { View } from '../../types/views';
 import TopBar from "../../components/TopBar";
 import SideMenu from "../../components/SideMenu";
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
+import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
@@ -27,6 +25,7 @@ import { Typography } from '@mui/material';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 import Snackbar from '@mui/material/Snackbar';
+import { api } from '../../util/api';
 
 const Alert = (props: AlertProps) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -43,35 +42,10 @@ const SettingsSnackbar = ({open, message, severity, handleClose}:any) => {
 }
 
 const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    root: {
-      flexGrow: 1,
-      padding: theme.spacing(3),
-      [theme.breakpoints.up('sm')]: {
-        marginLeft: 240
-      }
-    },
-    top: {
-      padding: theme.spacing(2),
-      boxSizing: 'border-box'
-    },
-    box: {
-      flexGrow: 1
-    },
-    panel: {
-      backgroundColor: 'white',
-      boxShadow: 'none',
-      borderRadius: '5px',
-      border: '1px solid rgba(0, 0, 0, 0.12)'
-    }
-  })
-)
 
 const Settings = () => {
   const initialValidState: any = reduce(["new", "current", "verify"].map(x => ({[x]: {valid: true, message: ""}})), extend)
 
-  const classes = useStyles();
   const navigate = useNavigate();
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -132,13 +106,13 @@ const Settings = () => {
   }, [newVerifyPassword])
 
   const fetchUserInformation = () => {
-    axios.get(`/api/user/${userID}/`)
+    api.get(`/api/user/${userID}/`)
       .then((res) => setUsername(res.data.username))
       .catch((e) => console.log('error while fetching user information'))
   }
 
   const changePassword = () => {
-    axios.post('/api/user/update-password', {id: userID, current_password: currentPassword, new_password: newPassword})
+    api.post('/api/user/update-password', {id: userID, current_password: currentPassword, new_password: newPassword})
       .then(() => {
         setCurrentPassword("");
         setNewPassword("");
@@ -152,7 +126,7 @@ const Settings = () => {
   }
 
   const registerUser = () => {
-    axios.post('/api/user/register', newUser)
+    api.post('/api/user/register', newUser)
       .then(() => setNewUser({username: "", password: ""}))
   }
 
@@ -180,7 +154,11 @@ const Settings = () => {
 
   const addUser = () => (
     <Grid item xs={12} style={{marginTop: 20}}>
-        <Paper elevation={0} variant="outlined" className={classes.top}>
+        <Paper elevation={0} variant="outlined" sx={{
+          padding: theme.spacing(2),
+          boxSizing: 'border-box'
+        }}
+        >
           <Grid container spacing={1}>
             <Grid item xs={12} style={{marginTop: 20}}>
               <Grid container>
@@ -226,15 +204,30 @@ const Settings = () => {
     <div>
       <TopBar/>
       <SideMenu activeView={View.Project}/>
-      <div className={classes.root}>
+      <Box sx={{
+        flexGrow: 1,
+        padding: theme.spacing(3),
+        [theme.breakpoints.up('sm')]: {
+          marginLeft: '240px'
+        }
+      }}
+      >
         <Grid container spacing={0}>
           <Grid item xs={12}>
-            <Paper elevation={0} variant="outlined" className={classes.top}>
+            <Paper elevation={0} variant="outlined" sx={{
+              padding: theme.spacing(2),
+              boxSizing: 'border-box'
+            }}
+            >
               {renderTop()}
             </Paper>
           </Grid>
           <Grid item xs={12} style={{marginTop: 20}}>
-            <Paper elevation={0} variant="outlined" className={classes.top}>
+            <Paper elevation={0} variant="outlined" sx={{
+                padding: theme.spacing(2),
+                boxSizing: 'border-box'
+              }}
+              >
               <Grid container spacing={1}>
                 <Grid item xs={12}>
                   <Typography variant="h5">Welcome, {username}</Typography>
@@ -293,7 +286,7 @@ const Settings = () => {
           </Grid>
           {addUser()}
         </Grid>
-      </div>
+      </Box>
       <SettingsSnackbar open={alertState.open} message={alertState.message} severity={alertState.severity} handleClose={handleAlertClose} />
     </div>
   )

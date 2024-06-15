@@ -1,52 +1,64 @@
 import axios from "axios";
 
+// Create an Axios instance with the base URL
+export const api = axios.create({
+  // baseURL: 'http://localhost:8080',
+  // withCredentials: true,
+});
+
 export const logIn = async (username: string, password: string) => {
-  return await axios.post(`/api/user/login`, {
+  return await api.post(`/api/user/login`, {
     username: username,
     password: password,
   });
 };
 
 export const logOut = async () => {
-  return await axios
+  return await api
     .post(`/api/user/logout`)
     .then(() => console.log("successfully logged out"))
     .catch((e: any) => console.log("error while logging out: ", e));
 };
 
 export const logInCustomer = async (id: string, access_code: string) => {
-  return await axios.post(`/api/user/customer-login`, {
+  return await api.post(`/api/user/customer-login`, {
     id: id,
     access_code: access_code,
   });
 };
 
 export const register = async (username: string, password: string) => {
-  return await axios.post(`/api/user/register`, {
+  return await api.post(`/api/user/register`, {
     username: username,
     password: password,
   });
 };
 
 export const getScenes = async (activeProject: string) => {
-  return await axios.get(`/api/project/${activeProject}/scenes`);
+  return await api.get(`/api/project/${activeProject}/scenes`);
 };
 
-export const fetchToken = () => axios.get("/api/token/");
+export const fetchToken = () => api.get("/api/token/");
 
-export const refreshToken = () => axios.post("/api/token/refresh");
+export const refreshToken = () => api.post("/api/token/refresh");
 
 export const getAssets = async (activeProject: string) => {
-  return await axios.get(`/api/project/${activeProject}/assets`);
+  return await api.get(`/api/project/${activeProject}/assets`);
 };
 
 export const initHLS = async (assetId: string) => {
-  return await axios.put(`/api/asset/${assetId}/stream`);
+  const response = await api.put(`/api/asset/${assetId}/stream`, null, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  });
+  return response;
 };
 
 export const exportVideoEdits = async (activeProject: string, data: any) => {
   /* TODO: Maintain persistent connection over polling (WebSockets). */
-  return await axios.post(`/api/video-editor/${activeProject}/edit`, data, {
+  return await api.post(`/api/video-editor/${activeProject}/edit`, data, {
     timeout: 60 * 60 * 1000,
   });
 };
@@ -55,5 +67,5 @@ export const editAssetMeta = async (
   newAssetMeta: Record<string, any>,
   assetId: string
 ) => {
-  return await axios.put(`/api/asset/${assetId}/editmeta`, newAssetMeta);
+  return await api.put(`/api/asset/${assetId}/editmeta`, newAssetMeta);
 };

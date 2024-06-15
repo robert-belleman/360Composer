@@ -17,7 +17,7 @@ import { stereoscopic } from './AframeComponents/Stereoscopic';
 import { Button } from "@mui/material";
 import { isIOS, isMobile, isSafari } from "react-device-detect";
 import { delay } from "lodash";
-import { WindowsMotionController } from "@babylonjs/core";
+// import { WindowsMotionController } from "@babylonjs/core";
 import { HlsContext } from "../../App";
 import Hls from "hls.js";
 

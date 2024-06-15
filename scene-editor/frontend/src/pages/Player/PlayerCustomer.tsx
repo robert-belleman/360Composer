@@ -1,19 +1,18 @@
 /*  PlayerCustomer contains the landing page of a customer in which the customer must login
 *   to view the viewing application.
 */
-
-import axios from 'axios';
-import React,  { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
 import { Button, Container, Grid, TextField } from '@mui/material';
 import ViewingAppController from '../../components/ViewingAppComponents/ViewingAppController';
+import { api } from '../../util/api';
 
 const PlayerCustomer: React.FC = () => {
     const {timelineID, uuID} = useParams<'timelineID'|'uuID'>();
     const [loggedIn, setLoggedIn] = useState(false);
     const [code, setCode] = useState("");
     
-    const login = (id: any, code: string) => axios.post(`/api/user/customer-login`, {id, access_code: code})
+    const login = (id: any, code: string) => api.post(`/api/user/customer-login`, {id, access_code: code})
         .catch(e => console.log('error login in', e))
         .then(res => {console.log(res); setLoggedIn(true)})
 

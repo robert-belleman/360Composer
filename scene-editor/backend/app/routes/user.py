@@ -57,7 +57,7 @@ class Login(Resource):
 
             return resp
         else:
-            return "", HTTPStatus.NOT_FOUND
+            return "Password could not be verified", HTTPStatus.NOT_FOUND
 
 
 @ns.route("/customer-login")
@@ -150,7 +150,6 @@ class UserUpdatePassword(Resource):
 @ns.response(HTTPStatus.NOT_FOUND, "User not found")
 @ns.param("id", "The user identifier")
 class UserProjects(Resource):
-
     @user_jwt_required
     @ns.marshal_with(project_schema)
     def get(self, id):

@@ -3,8 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import arrayMove from 'array-move';
 
-import axios from 'axios';
-
 import { View } from '../../types/views';
 import TopBar from "../../components/TopBar";
 import SideMenu from "../../components/SideMenu";
@@ -14,14 +12,16 @@ import TimelinePreview from "../../components/TimelineEditorComponents/TimelineP
 import TimelineOverviewCard from "../../components/TimelineEditorComponents/TimelineOverviewCard";
 import UpdateTimelineDialog from "../../components/TimelineEditorComponents/UpdateTimelineDialog";
 
+import { createTheme } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import { api } from '../../util/api';
 
-import { makeStyles, createStyles } from '@mui/styles';
+const theme = createTheme();
 
 const INITIAL_TIMELINE = {
   id: "",
@@ -34,25 +34,6 @@ const INITIAL_TIMELINE = {
   updated_at: ""
 }
 
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    root: {
-      flexGrow: 1,
-      padding: theme.spacing(3),
-      [theme.breakpoints.up('sm')]: {
-        marginLeft: 240
-      }
-    },
-    top: {
-      padding: theme.spacing(2),
-      boxSizing: 'border-box'
-    },
-    box: {
-      flexGrow: 1
-    }
-  })
-)
-
 const TimelineEditor = () => {
   const {projectID, timelineID} = useParams<'projectID' | 'timelineID'>();
 
@@ -63,8 +44,7 @@ const TimelineEditor = () => {
   const [loadingTimeline, setLoadingTimeline] = useState(true);
   const [loadingTimelineScenarios, setLoadingTimelineScenarios] = useState(true);
 
-  const navigate = useNavigate();  
-  const classes = useStyles();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTimeline();
@@ -72,7 +52,7 @@ const TimelineEditor = () => {
     fetchTimelineScenarios()
   }, [])
 
-  const fetchTimeline = () => axios.get(`/api/timeline/${timelineID}/`)
+  const fetchTimeline = () => api.get(`/api/timeline/${timelineID}/`)
       .then((res:any) => setTimeline(res.data))
       .then(() => setLoadingTimeline(false))
       .catch((e:any) => console.log('error while fetching data', e))
@@ -80,23 +60,23 @@ const TimelineEditor = () => {
   const handleRandomizedToggle = (event:any) => {
     const randomized = event.target.checked;
     
-    axios.post(`/api/timeline/${timelineID}/randomize`, {randomized})
+    api.post(`/api/timeline/${timelineID}/randomize`, {randomized})
       .then((res:any) => setTimeline({...timeline, randomized}))
       .catch((e:any) => console.log('error while updating timeline', e))
   }
 
-  const deleteCheckedScenarios = (checked:any) => axios.post(`/api/timeline/${timelineID}/scenarios/delete`, {ids: checked})
+  const deleteCheckedScenarios = (checked:any) => api.post(`/api/timeline/${timelineID}/scenarios/delete`, {ids: checked})
       .then(fetchTimelineScenarios)
       .catch((e:any) => console.log('error while removing scenarios', e))
 
-  const fetchTimelineScenarios = () => axios.get(`/api/timeline/${timelineID}/scenarios`)
+  const fetchTimelineScenarios = () => api.get(`/api/timeline/${timelineID}/scenarios`)
     .then((res:any) => setTimelineScenarios(res.data))
     .then(() => setLoadingTimelineScenarios(false))
     .catch((e:any) => {console.log('error while fetching timeline scenarios', e); setLoadingTimelineScenarios(false)})
 
   const updateOrder = (orderedScenarios:any[]) => {
     const order = orderedScenarios.map((scenario:any) => ({id: scenario.id, next: scenario.next_scenario}))
-    return axios.post(`/api/timeline/${timelineID}/scenarios/order`, order)
+    return api.post(`/api/timeline/${timelineID}/scenarios/order`, order)
       .then(() => console.log('successfully updated order'))
       .catch((e:any) => console.log('Error while updating order', e))
   }
@@ -139,21 +119,31 @@ const TimelineEditor = () => {
           <Button color="primary" startIcon={<ArrowBackIosIcon />} onClick={() => navigate(`/app/project/${projectID}?activeTab=timelines`)}>Back</Button>
         </Grid>
         <Grid item xs={11}>
-          <Box className={classes.box}/>
+          <Box sx={{ flexGrow: 1 }}/>
         </Grid>
       </Grid>
     </div>
   )
 
-
   return (
     <div>
       <TopBar/>
       <SideMenu activeView={View.Project}/>
-      <div className={classes.root} >
+      <Box sx={{
+        flexGrow: 1,
+        padding: theme.spacing(3),
+        [theme.breakpoints.up('sm')]: {
+          marginLeft: '240px'
+        }
+      }}
+      >
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Paper elevation={0} variant="outlined" className={classes.top}>
+            <Paper elevation={0} variant="outlined" sx={{
+              padding: theme.spacing(2),
+              boxSizing: 'border-box'
+            }}
+            >
               {renderTop()}
             </Paper>
           </Grid>
@@ -182,7 +172,7 @@ const TimelineEditor = () => {
               preview={startPreview}/>
           </Grid>
         </Grid>
-      </div>
+      </Box>
       <UpdateTimelineDialog
         timeline={timeline}
         open={updateDialogOpen}

@@ -27,10 +27,9 @@ import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import axios from "axios";
-
 import "./NewAnnotationDialog.scss";
 import Annotation from './Annotation';
+import { api } from '../../util/api';
 
 type Annotation = {
   id: string,
@@ -109,20 +108,83 @@ let tempId = 0
 let initialOptions: Array<string> = []
 let types: Array<AnnotationType> = []
 
-export default ({sceneID, annotationID, open, closeHandler, onError, videoLength}:UpdateAnnotationDialogProps) => {
+const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onError, videoLength}: UpdateAnnotationDialogProps) => {
   const [annotation, setAnnotation] = useState(INITIAL_ANNOTATION)
   const [defaultOptions, setDefaultOptions] = useState(false);
+
+  const fetchAnnotation = () => {
+    api.get(`/api/scenes/${sceneID}/annotation?id=${annotationID}`)
+      .then((res) => res.data)
+      .then((data) => {
+        setAnnotation(data)
+        if (data.type === 1 || data.type === 2) {
+          setDefaultOptions(true)
+        }
+
+        const options: string[] = []
+        data.options.forEach((option: Option) => {
+          options.push(option.id)
+        })
+        initialOptions = options
+      })
+  }
 
   useEffect(() => {
     fetchAnnotation()
     const getAnnotationTypes = () => {
-      axios.get(`/api/annotation/types`)
+      api.get(`/api/annotation/types`)
         .then((res) => types = res.data)
         .catch((e) => console.log(e))
     }
 
     getAnnotationTypes()
   }, [])
+
+  const handleDeleteOptions = async (event: any, ids: string[]) => {
+    if (event) {
+      event.preventDefault();
+    }
+
+    const newDeleteQueue = deleteQueue
+    const newAddQueue = addQueue
+    const newList = annotation.options.filter((item: Option) => !ids.includes(item.id))
+
+    ids.forEach((id) => {
+      if (initialOptions.includes(id)) {
+        newDeleteQueue.push(id)
+      } else {
+        const index = newAddQueue.indexOf(id)
+        if (index > -1) {
+          newAddQueue.splice(index, 1)
+        }
+      }
+    })
+
+    return new Promise ((resolve, reject) => {
+      setAnnotation({...annotation, options: newList})
+      addQueue = newAddQueue
+      deleteQueue = newDeleteQueue
+      setAnnotation({...annotation, options: newList})
+      resolve(1)
+    })
+  }
+
+  const handleAddOptions = (event: any, textVals: string[]) => {
+    const newOptions = annotation.options.concat()
+    const newAddQueue = addQueue.concat()
+    let i = 0
+    let newId: number
+    textVals.forEach((text) => {
+      newId = tempId + i
+      newAddQueue.push(newId.toString())
+      newOptions.push({id: newId.toString(), text: text, feedback: "", action: { id: "", type: "next_scene", payload: null}})
+      i++
+    })
+
+    tempId += i
+    addQueue = newAddQueue
+    setAnnotation({...annotation, options: newOptions})
+  }
 
   useEffect (() => {
     if (!annotation.options.length) {
@@ -172,23 +234,6 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
     }
   }, [annotation.type, annotation.options])
 
-  const fetchAnnotation = () => {
-    axios.get(`/api/scenes/${sceneID}/annotation?id=${annotationID}`)
-      .then((res) => res.data)
-      .then((data) => {
-        setAnnotation(data)
-        if (data.type === 1 || data.type === 2) {
-          setDefaultOptions(true)
-        }
-
-        const options: string[] = []
-        data.options.forEach((option: Option) => {
-          options.push(option.id)
-        })
-        initialOptions = options
-      })
-  }
-
   const handleDescriptionChange = (event: any) => {
     setAnnotation({...annotation, text: event.target.value});
   }
@@ -237,7 +282,7 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
 
   const commitDeleteOptions = () => {
     const deleteOption = (id: string) => {
-      axios.post(`/api/annotation/${annotationID}/option/delete`, {id})
+      api.post(`/api/annotation/${annotationID}/option/delete`, {id})
         .then(() => {})
         .catch((e) => {console.log(e)})
     }
@@ -254,35 +299,6 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
     return promise
   }
 
-  const handleDeleteOptions = async (event: any, ids: string[]) => {
-    if (event) {
-      event.preventDefault();
-    }
-
-    const newDeleteQueue = deleteQueue
-    const newAddQueue = addQueue
-    const newList = annotation.options.filter((item: Option) => !ids.includes(item.id))
-
-    ids.forEach((id) => {
-      if (initialOptions.includes(id)) {
-        newDeleteQueue.push(id)
-      } else {
-        const index = newAddQueue.indexOf(id)
-        if (index > -1) {
-          newAddQueue.splice(index, 1)
-        }
-      }
-    })
-
-    return new Promise ((resolve, reject) => {
-      setAnnotation({...annotation, options: newList})
-      addQueue = newAddQueue
-      deleteQueue = newDeleteQueue
-      setAnnotation({...annotation, options: newList})
-      resolve(1)
-    })
-  }
-
   const commitAddOptions = () => {
     const promise = new Promise((resolve, reject) => {
       const newOptions: Option[] = []
@@ -297,7 +313,7 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
           delete newOption.id
           delete newOption.action.id
 
-          axios.post(`/api/annotation/${annotationID}/options`, {text: option.text, feedback: option.feedback, scene_id: sceneID, action: { type: "next_scene", payload: null}})
+          api.post(`/api/annotation/${annotationID}/options`, {text: option.text, feedback: option.feedback, scene_id: sceneID, action: { type: "next_scene", payload: null}})
             .then((res:any) => res.data)
             .then((option:any) => {
               handleDeleteOptions(null, [id])
@@ -314,27 +330,10 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
     return promise
   }
 
-  const handleAddOptions = (event: any, textVals: string[]) => {
-    const newOptions = annotation.options.concat()
-    const newAddQueue = addQueue.concat()
-    let i = 0
-    let newId: number
-    textVals.forEach((text) => {
-      newId = tempId + i
-      newAddQueue.push(newId.toString())
-      newOptions.push({id: newId.toString(), text: text, feedback: "", action: { id: "", type: "next_scene", payload: null}})
-      i++
-    })
-
-    tempId += i
-    addQueue = newAddQueue
-    setAnnotation({...annotation, options: newOptions})
-  }
-
   const updateOptions = () => {
     // TODO: fix
     //@ts-ignore
-    const put = (option:any) => axios.put(`/api/annotation/${annotation.id}/options`, {...option})
+    const put = (option:any) => api.put(`/api/annotation/${annotation.id}/options`, {...option})
 
     const updatedOptions = annotation.options.filter((option) => {
       return initialOptions.includes(option.id)
@@ -344,7 +343,7 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
   }
 
   const updateAnnotation = () => {
-    return axios.put(`/api/scenes/${sceneID}/annotation`, annotation)
+    return api.put(`/api/scenes/${sceneID}/annotation`, annotation)
       .catch((e) => console.log(e))
   }
 
@@ -528,3 +527,5 @@ export default ({sceneID, annotationID, open, closeHandler, onError, videoLength
       </Dialog>
   );
 }
+
+export default UpdateAnnotationDialog;

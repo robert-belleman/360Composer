@@ -3,6 +3,7 @@ import React from 'react';
 import { range } from 'lodash';
 
 import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -14,63 +15,39 @@ import Skeleton from '@mui/material/Skeleton';
 
 import InfoIcon from '@mui/icons-material/Info';
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-    createStyles({
-      root: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-      },
-      paper: {
-        padding: theme.spacing(2),
-        boxSizing: 'border-box'
-      },
-      box: {
-        flexGrow: 1
-      },
-      wrapper: {
-        height: '333px',
-        padding: 16,
-        boxSizing: 'border-box',
-        width: '100%'
-      },
-      header: {
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        fontSize: '1.1rem',
-        fontWeight: 700,
-        color: '#2196f3',
-        marginBottom: 10
-      }
-    }),
-  );
-
 
 type TimelineOverviewCardProps = {
-  onEditClick:any,
-  loading:boolean,
-  timeline:any,
-  handleRandomizedToggle:any
+  onEditClick: any,
+  loading: boolean,
+  timeline: any,
+  handleRandomizedToggle: any
 }
 
 const TimelineOverviewCard = ({timeline, loading, onEditClick, handleRandomizedToggle}:TimelineOverviewCardProps) => {
-  const classes = useStyles();
-
   const renderInfo = () => {
     if (loading) {
       return (
-        <div className={classes.wrapper}>
+        <Box sx={{
+          height: '333px',
+          padding: 16,
+          boxSizing: 'border-box',
+          width: '100%'
+        }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
-        </div>
+        </Box>
       )
     }
 
     return (
-      <div className={classes.wrapper}>
+      <Box sx={{
+        height: '333px',
+        padding: 16,
+        boxSizing: 'border-box',
+        width: '100%'
+      }}>
         <Grid item xs={12}>
           <Typography gutterBottom variant="h5" component="h2">
             {timeline.name}
@@ -89,13 +66,30 @@ const TimelineOverviewCard = ({timeline, loading, onEditClick, handleRandomizedT
             style={{marginTop: 10}}
           />
         </Grid>
-      </div>
+      </Box>
     )
   }
 
   return (
-    <Paper elevation={0} variant="outlined" className={classes.paper}>
-      <Typography variant="h4" component="p" className={classes.header}><InfoIcon style={{marginRight:5}}/> Timeline Information</Typography>
+    <Paper elevation={0} variant="outlined"
+    sx={{
+      padding: theme.spacing(2),
+      boxSizing: 'border-box'
+    }}
+    >
+      <Typography variant="h4" component="p"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          fontSize: '1.1rem',
+          fontWeight: 700,
+          color: '#2196f3',
+          marginBottom: 10
+        }}
+      >
+        <InfoIcon style={{marginRight:5}}/> Timeline Information
+      </Typography>
       <Grid container>
         {renderInfo()}
       </Grid>

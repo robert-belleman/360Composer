@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 
-import {useDropzone} from 'react-dropzone';
+import {FileWithPath, useDropzone} from 'react-dropzone';
 import styled from 'styled-components';
 
 const getColor = (props:any) => {
@@ -32,10 +32,12 @@ const Container = styled.div`
   transition: border .24s ease-in-out;
 `;
 
-export default (props:any) => {
-  const onDrop = useCallback(acceptedFiles => {
-    props.onFileSelect(acceptedFiles)
-  }, [])
+const NewAssetDialog = (props: any) => {
+  const { onFileSelect } = props; // Destructure the specific prop you need
+
+  const onDrop = useCallback((acceptedFiles: FileWithPath[]) => {
+    onFileSelect(acceptedFiles)
+  }, [onFileSelect])
 
   const {
     getRootProps,
@@ -54,3 +56,5 @@ export default (props:any) => {
     </div>
   );
 }
+
+export default NewAssetDialog;

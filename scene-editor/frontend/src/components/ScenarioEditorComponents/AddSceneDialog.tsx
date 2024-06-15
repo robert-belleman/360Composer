@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from 'react';
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import {range} from 'lodash';
 
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -22,20 +22,11 @@ import Skeleton from '@mui/material/Skeleton';
 
 import PersonIcon from '@mui/icons-material/Person';
 
-import axios from "axios";
+import { api } from '../../util/api';
 
 const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    list: {
-      height: 300,
-      width: 400,
-      overflow: 'auto'
-    }
-  })
-);
 
-type NewSceneDialog = {
+type NewSceneDialogType = {
   projectID: string;
   scenarioID: string;
   open: boolean;
@@ -43,12 +34,17 @@ type NewSceneDialog = {
   onScenesAdded: any;
 };
 
-const NewSceneDialog: React.FC<NewSceneDialog> = ({projectID, scenarioID, open, closeHandler, onScenesAdded}) => {
+const NewSceneDialog: React.FC<NewSceneDialogType> = ({projectID, scenarioID, open, closeHandler, onScenesAdded}) => {
   const [scenes, setScenes] = useState([] as any);
   const [checked, setChecked] = useState([] as any[]);
   const [loadingScenes, setLoadingScenes] = useState(true);
 
-  const classes = useStyles();
+  const fetchScenes = () => {
+    api.get(`/api/project/${projectID}/scenes`)
+      .then((res:any) => setScenesCallback(res.data))
+      .then(() => setLoadingScenes(false))
+      .catch((e:any) => {console.log('error while fetching scenes', e); setLoadingScenes(false)})
+  }
 
   useEffect(() => {
     fetchScenes();
@@ -57,13 +53,6 @@ const NewSceneDialog: React.FC<NewSceneDialog> = ({projectID, scenarioID, open, 
   const setScenesCallback = (fetchedScenes:any) => {
     console.log('fetchedScenes@@', fetchedScenes)
     setScenes(fetchedScenes);
-  }
-
-  const fetchScenes = () => {
-    axios.get(`/api/project/${projectID}/scenes`)
-      .then((res:any) => setScenesCallback(res.data))
-      .then(() => setLoadingScenes(false))
-      .catch((e:any) => {console.log('error while fetching scenes', e); setLoadingScenes(false)})
   }
 
   const handleToggle = (value: number) => () => {
@@ -81,7 +70,7 @@ const NewSceneDialog: React.FC<NewSceneDialog> = ({projectID, scenarioID, open, 
 
   const addScenes = () => {
     const requests = checked.map((id:string, i:number) => 
-      axios.post(`/api/scenario/${scenarioID}/scenes`, {scene_id: id, position_x: i * 50, position_y: 0})
+      api.post(`/api/scenario/${scenarioID}/scenes`, {scene_id: id, position_x: i * 50, position_y: 0})
     )
     
     return Promise.all(requests)
@@ -112,13 +101,17 @@ const NewSceneDialog: React.FC<NewSceneDialog> = ({projectID, scenarioID, open, 
   const renderSceneList = () => {
     if (loadingScenes) {
       return (
-        <div className={classes.list}>
+        <Box sx={{
+          height: 300,
+          width: 400,
+          overflow: 'auto'
+        }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
-        </div>
+        </Box>
       )
     }
 
-    return (<List className={classes.list}>{scenes.map(createScene)}</List>)
+    return (<List sx={{ height: 300, width: 400, overflow: 'auto' }}>{scenes.map(createScene)}</List>)
   }
 
   return (

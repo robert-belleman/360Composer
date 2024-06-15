@@ -1,6 +1,6 @@
 import jwt
 
-from flask import make_response, jsonify
+from flask import make_response, jsonify, request
 
 from uuid import UUID
 
@@ -41,7 +41,13 @@ def user_jwt_required(fn):
           verify_jwt_in_request()
         except jwt.exceptions.ExpiredSignatureError:
             return "Expired Signature", HTTPStatus.UNAUTHORIZED
-        except exceptions.NoAuthorizationError:
+        except exceptions.NoAuthorizationError as e:
+            # Print more detailed information about the request
+            print("NoAuthorizationError:", str(e))
+            print("Request Headers:", request.headers)
+            print("Request Cookies:", request.cookies)
+            print("Request Args:", request.args)
+            print("Request Data:", request.data)
             return "No cookie set", HTTPStatus.BAD_REQUEST
 
         claims = get_jwt()

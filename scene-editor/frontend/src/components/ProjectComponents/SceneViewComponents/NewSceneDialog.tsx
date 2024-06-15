@@ -7,7 +7,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import axios from "axios";
+import { api } from '../../../util/api';
 
 type NewSceneDialogProps = {
     activeProject: string;
@@ -29,7 +29,7 @@ const NewAssetDialog: React.FC<NewSceneDialogProps> = ({activeProject, open, clo
         "user_id": token.id,
     }
 
-    axios
+    api
       .post(`/api/project/` + activeProject + `/scenes`, payload )
       .then((res) => {  
           setDescription(""); 
@@ -51,7 +51,7 @@ const NewAssetDialog: React.FC<NewSceneDialogProps> = ({activeProject, open, clo
   }
   return (
       <Dialog open={open} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">New Project</DialogTitle>
+        <DialogTitle id="form-dialog-title">New Scene</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Please enter a name and description for the scene below.

@@ -1,30 +1,17 @@
 import React, {useState} from 'react'
 
-import { makeStyles, createStyles } from '@mui/styles';
-
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Grid from '@mui/material/Grid'
+import Box from '@mui/material/Box';
 
 import GetAppIcon from '@mui/icons-material/GetApp';
 
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    root: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-    }
-  })
-)
-
 const Analytics = () => {
-
   const [days, setDays] = useState(30)
 
-  const classes = useStyles()
-
   return (
-    <div className={classes.root}>
+    <Box sx={{ flexGrow: 1, p: 2 }}>
       <Grid container>
         <Grid item xs={12}>
           <TextField
@@ -39,13 +26,13 @@ const Analytics = () => {
             helperText="Specifies the last x days to be included in the export"
           />
         </Grid>
-        <Grid item xs={12} style={{marginTop: 20}}>
+        <Grid item xs={12} sx={{ mt: 2 }}>
           <Button startIcon={<GetAppIcon />} variant="contained" color="primary" href={`/api/analytics/legacy/export?days=${days}`}>
             Export to CSV
           </Button>
         </Grid>
       </Grid>
-    </div>
+    </Box>
   )
 }
 

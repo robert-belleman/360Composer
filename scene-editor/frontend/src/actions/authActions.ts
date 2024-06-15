@@ -46,7 +46,7 @@ export const logOut = () => (dispatch:any) => {
   })
 }
 
-export const retrieveToken = () => (dispatch:any) => {
+export const retrieveToken = () => async (dispatch:any) => {
   dispatch(setLoading(true));
   fetchToken()
     .then((res:any) => dispatch(setToken(res.data)))

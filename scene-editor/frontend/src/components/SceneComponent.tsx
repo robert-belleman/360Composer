@@ -4,7 +4,7 @@ import { Engine, Scene } from '@babylonjs/core'
 import React, { useEffect, useRef } from 'react'
 
 
-export default (props: any) => {
+const SceneComponent = (props: any) => {
     const reactCanvas = useRef(null);
     const { antialias, engineOptions, adaptToDeviceRatio, sceneOptions, onRender, onSceneReady, ...rest } = props;
     useEffect(() => {
@@ -12,9 +12,9 @@ export default (props: any) => {
             const engine = new Engine(reactCanvas.current, antialias, engineOptions, adaptToDeviceRatio);
             const scene = new Scene(engine, sceneOptions);
             if (scene.isReady()) {
-                props.onSceneReady(scene)
+                onSceneReady(scene);
             } else {
-                scene.onReadyObservable.addOnce(scene => props.onSceneReady(scene));
+                scene.onReadyObservable.addOnce(scene => onSceneReady(scene));
             }
             engine.runRenderLoop(() => {
                 if (typeof onRender === 'function') {
@@ -40,3 +40,5 @@ export default (props: any) => {
         <canvas ref={reactCanvas} {...rest} />
     );
 }
+
+export default SceneComponent;

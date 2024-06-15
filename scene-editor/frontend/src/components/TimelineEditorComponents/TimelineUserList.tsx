@@ -2,9 +2,6 @@ import React, {useEffect, useState} from 'react';
 
 import {range} from 'lodash';
 
-import axios from 'axios';
-
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
@@ -29,39 +26,9 @@ import ShareIcon from '@mui/icons-material/Share';
 import Skeleton from '@mui/material/Skeleton';
 
 import TimelineAddUserDialog from './TimelineAddUserDialog';
+import { api } from '../../util/api';
 
 const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-    createStyles({
-      root: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-      },
-      paper: {
-        padding: theme.spacing(2),
-        boxSizing: 'border-box'
-      },
-      box: {
-        flexGrow: 1
-      },
-      list: {
-        height: 300,
-        overflow: 'auto'
-      },
-      header: {
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        fontSize: '1.1rem',
-        fontWeight: 700,
-        color: '#2196f3',
-        marginBottom: 10
-      },
-      popoverPaper: {
-        padding: 5
-      }
-    }),
-  );
 
 type UserListProps = {
   timelineID: string
@@ -77,8 +44,6 @@ const TimelineUserList:React.FC<UserListProps> = ({timelineID}:UserListProps) =>
 
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [loadingTimelineUsers, setLoadingTimelineUsers] = useState(true);
-
-  const classes = useStyles();
 
   const handleToggle = (value: number) => () => {
     const currentIndex = checked.indexOf(value);
@@ -103,13 +68,13 @@ const TimelineUserList:React.FC<UserListProps> = ({timelineID}:UserListProps) =>
   }, [])
 
   const deleteCheckedUsers = () => {
-    axios.post(`/api/timeline/${timelineID}/customers/delete`, {ids: checked})
+    api.post(`/api/timeline/${timelineID}/customers/delete`, {ids: checked})
       .then(fetchTimelineUsers)
       .then(() => setChecked([]))
       .catch((e:any) => console.log('error while removing users', e))
   }
 
-  const fetchTimelineUsers = () => axios.get(`/api/timeline/${timelineID}/customers`)
+  const fetchTimelineUsers = () => api.get(`/api/timeline/${timelineID}/customers`)
     .then((res:any) => setTimelineUsers(res.data.map((o:any) => o.customer)))
     .then(() => setLoadingTimelineUsers(false))
     .catch((e:any) => {console.log('error while fetching timeline users', e); setLoadingTimelineUsers(false)})
@@ -143,8 +108,10 @@ const TimelineUserList:React.FC<UserListProps> = ({timelineID}:UserListProps) =>
         vertical: 'top',
         horizontal: 'center',
       }}
-      PaperProps={{
-        className: classes.popoverPaper
+      sx={{
+        '.MuiPopover-paper': {
+          padding: 5,
+        },
       }}
     >
       <Typography variant="body1" component="p">{`${window.location.hostname}:${window.location.port}/player/${timelineID}/${popoverState.id}`}</Typography>
@@ -179,25 +146,42 @@ const TimelineUserList:React.FC<UserListProps> = ({timelineID}:UserListProps) =>
   const renderUsersList = () => {
     if (loadingTimelineUsers) {
       return (
-        <div className={classes.list}>
+        <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
-        </div>
+        </Box>
       )
     }
 
-    return (<List className={classes.list}>{renderUsers()}</List>)
+    return (<List sx={{ height: 300, width: 400, overflow: 'auto' }}>{renderUsers()}</List>)
   }
 
   return (
-    <Paper elevation={0} variant="outlined" className={classes.paper}>
-      <Typography variant="h4" component="p" className={classes.header}><PeopleIcon style={{marginRight:5}}/> Users</Typography>
+    <Paper elevation={0} variant="outlined"
+    sx={{
+      padding: theme.spacing(2),
+      boxSizing: 'border-box'
+    }}
+    >
+      <Typography variant="h4" component="p"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          fontSize: '1.1rem',
+          fontWeight: 700,
+          color: '#2196f3',
+          marginBottom: 10
+        }}
+      >
+        <PeopleIcon style={{marginRight:5}}/> Users
+      </Typography>
       {renderUsersList()}
       <Grid container>
         <Grid item xs={4}>
           <Button style={{marginTop: 10}} color="primary" startIcon={<AddIcon />} onClick={() => setUserDialogOpen(true)}>Add User</Button>
         </Grid>
         <Grid item xs={2}>
-          <Box className={classes.box}></Box>
+          <Box sx={{ flexGrow: 1 }}></Box>
         </Grid>
         <Grid item xs={6}>
           <Button

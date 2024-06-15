@@ -22,9 +22,8 @@ import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import axios from "axios";
-
 import "./NewAnnotationDialog.scss";
+import { api } from '../../util/api';
 
 const valueLabelFormat = (value:number) => {
   const minutes = Math.floor(value / 60);
@@ -66,7 +65,7 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
    */
   React.useEffect(() => {
     const getAnnotationTypes = () => {
-      axios.get(`/api/annotation/types`)
+      api.get(`/api/annotation/types`)
         .then((res) => setTypes(res.data))
         .catch((e) => console.log(e))
     }
@@ -90,7 +89,7 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
         type: type,
     }
 
-    axios.post(`/api/scenes/${sceneID}/annotation`, payload)
+    api.post(`/api/scenes/${sceneID}/annotation`, payload)
       .then(async (res) => {
         // After creating an annotation, post the options
         for (const opt of options) {
@@ -101,7 +100,7 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
             scene_id: sceneID
           };
 
-          await axios.post(`/api/annotation/${res.data.id}/options`, optionPayload)
+          await api.post(`/api/annotation/${res.data.id}/options`, optionPayload)
             .catch((e) => console.log(e))
         }
 

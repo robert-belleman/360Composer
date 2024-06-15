@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import axios from 'axios';
 
-import ReactFlow, { Handle, Controls, Background, isEdge } from 'react-flow-renderer';
+import ReactFlow, { Handle, Controls, Background, isEdge, Edge, Node, NodeChange } from 'reactflow';
 
 import { concat, flatten } from 'lodash';
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActionArea from '@mui/material/CardActionArea';
@@ -51,6 +50,7 @@ import UpdateScenarioDialog from "../../components/ScenarioEditorComponents/Upda
 
 import './ScenarioEditor.scss';
 import { Divider } from '@mui/material';
+import { api } from '../../util/api';
 
 const theme = createTheme();
 
@@ -90,36 +90,27 @@ const INITIAL_VALIDATION = {
 const SceneNode = ({selected, data}:SceneNodeProps) => {
   const navigate = useNavigate();
 
-  const isStartNode = () => data.id === data.timeline.start_scene
+  const isStartNode = () => data.id === data.timeline.start_scene;
 
-  const isPossibleEndNode = () => data.actions.length !== data.links.length
+  const isPossibleEndNode = () => data.actions.length !== data.links.length;
 
-  const unreachable = data.timelineValidation.validating  && data.timelineValidation.state.invalid_nodes.indexOf(data.id) !== -1
-
-  const classes = (makeStyles((theme) => createStyles({
-    tooltip: {
-      display: 'flex',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      fontSize: '0.8rem'
-    }
-  })))();
+  const unreachable = data.timelineValidation.validating  && data.timelineValidation.state.invalid_nodes.indexOf(data.id) !== -1;
 
   const possibleEndNodeText = () => {
     if (data.links.length === 0) {
-      return <Typography component="p" className={classes.tooltip}><ExitToAppIcon style={{marginRight: 5}} fontSize="small" /> End</Typography>
+      return <Typography component="p" sx={{display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.8rem'}}><ExitToAppIcon style={{marginRight: 5}} fontSize="small" /> End</Typography>
     }
 
-    return <Typography component="p" className={classes.tooltip}><CallSplitIcon style={{marginRight: 5}} fontSize="small" /> Possible End</Typography>
+    return <Typography component="p" sx={{display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.8rem'}}><CallSplitIcon style={{marginRight: 5}} fontSize="small" /> Possible End</Typography>
   }
 
   const tooltipTitle = () => {
     if (isStartNode()) {
-      return <Typography component="p" className={classes.tooltip}><HomeIcon fontSize="small" style={{marginRight: 5}} /> Start</Typography>
+      return <Typography component="p" sx={{display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.8rem'}}><HomeIcon fontSize="small" style={{marginRight: 5}} /> Start</Typography>
     }
 
     if (unreachable) {
-      return <Typography component="p" className={classes.tooltip}><HelpOutlineIcon fontSize="small" style={{marginRight: 5}} /> Unreachable</Typography>
+      return <Typography component="p" sx={{display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.8rem'}}><HelpOutlineIcon fontSize="small" style={{marginRight: 5}} /> Unreachable</Typography>
     }
 
     return isPossibleEndNode() ? possibleEndNodeText() : "";
@@ -370,20 +361,40 @@ const ScenarioEditor:React.FC = () => {
   const timelineToElements = () => {
     const setHome = (sceneID:string) => setTimeline({...timeline, start_scene: sceneID, revalidate: true})
 
-    const elements = flatten(timeline.scenes.map((scenarioScene:any) => {
-      const node = {
-        id: scenarioScene.id,
-        data: { ...scenarioScene, timeline, timelineValidation, projectID, sceneNodeRenderState, functions: { setHome } },
-        type: 'special',
-        position: {x: scenarioScene.position_x, y: scenarioScene.position_y}
-      };
+    // const elements = flatten(timeline.scenes.map((scenarioScene:any) => {
+    //   const node = {
+    //     id: scenarioScene.id,
+    //     data: { ...scenarioScene, timeline, timelineValidation, projectID, sceneNodeRenderState, functions: { setHome } },
+    //     type: 'special',
+    //     position: {x: scenarioScene.position_x, y: scenarioScene.position_y}
+    //   };
 
-      const edges = createEdges(scenarioScene.id, scenarioScene)
+    //   const edges = createEdges(scenarioScene.id, scenarioScene)
 
-      return [node, ...edges]
+    //   return [node, ...edges]
+    // }));
+
+    // return elements;
+
+    const nodes: any[] = timeline.scenes.map((scenarioScene: any) => ({
+      id: scenarioScene.id,
+      position: { x: scenarioScene.position_x, y: scenarioScene.position_y },
+      type: 'special',
+      data: {
+        ...scenarioScene,
+        timeline,
+        timelineValidation,
+        projectID,
+        sceneNodeRenderState,
+        functions: { setHome }
+      }
     }));
-
-    return elements;
+  
+    const edges: Edge[] = flatten(
+      timeline.scenes.map((scenarioScene: any) => createEdges(scenarioScene.id, scenarioScene))
+    );
+  
+    return { nodes, edges };
   }
 
   const rerender = () => {
@@ -397,19 +408,19 @@ const ScenarioEditor:React.FC = () => {
     navigate(`/app/preview-player/scenario/${scenarioID}`)
   }
 
-  const fetchScenarioTimeline = () => axios.get(`/api/scenario/${scenarioID}/`)
+  const fetchScenarioTimeline = () => api.get(`/api/scenario/${scenarioID}/`)
       .then((res:any) => setTimeline({...res.data, revalidate: false}))
       .then(() => setFetchingTimelines(false))
       .catch(e => console.log('error fetching timeline', e))
 
   const saveScenarioTimeline = () => {
-    return axios.post(`/api/scenario/${scenarioID}/`, {start_scene: timeline.start_scene, scenes: timeline.scenes})
+    return api.post(`/api/scenario/${scenarioID}/`, {start_scene: timeline.start_scene, scenes: timeline.scenes})
       .then(() => setLastUpdated(new Date(Date.now())))
       .catch(e => console.log(e));
   }
 
   const validateTimeline = (validating:boolean) => {
-    return axios.post(`/api/scenario/${scenarioID}/validate`)
+    return api.post(`/api/scenario/${scenarioID}/validate`)
       .then((res:any) => setTimelineValidation({validating, state: res.data}))
       .then(rerender)
       .catch((e:any) => console.log('error while validating', e))
@@ -434,7 +445,7 @@ const ScenarioEditor:React.FC = () => {
     const action_id = params.sourceHandle;
     const target_id = params.target;
 
-    return axios.post(`/api/scenario/${scenarioID}/scenes/connect`, {source_id, action_id, target_id})
+    return api.post(`/api/scenario/${scenarioID}/scenes/connect`, {source_id, action_id, target_id})
       .then((res:any) => addLink(res.data))
       .then(() => { if (timelineValidation.validating) { validateTimeline(timelineValidation.validating); } })
       .catch((e) => console.log('error while creating link', e))
@@ -455,31 +466,35 @@ const ScenarioEditor:React.FC = () => {
   }
 
   const onSelect = (elements:any) => {
-    setSelectedEdges(elements === null ? [] : elements.filter(isEdge))
+    setSelectedEdges(elements === null ? [] : elements.edges);
   }
 
-  const deleteNodes = (ids:string[]) => axios.post(`/api/scenario/${scenarioID}/scenes/delete`, {ids})
+  const deleteNodes = (ids:string[]) => api.post(`/api/scenario/${scenarioID}/scenes/delete`, {ids})
 
   const removeLink = (edge:any) => {
-    axios.post(`/api/scenario/${scenarioID}/scenes/link/delete`, {id: edge.id.split('->')[0]})
+    api.post(`/api/scenario/${scenarioID}/scenes/link/delete`, {id: edge.id.split('->')[0]})
       .then(fetchScenarioTimeline)
       .then(() => validateTimeline(timelineValidation.validating))
       .catch((e:any) => console.log('error while deleting link', e))
   }
 
-  const handleElementsRemove = (elements:any) => {
-    const scenes = elements.filter((element:any) => !isEdge(element));
-    const isSingleEdge = (scenes.length === 0 && elements.length === 1);
+  const handleNodesChange = (nodeChanges: NodeChange[]) => {
+    for (let nodeChange of nodeChanges) {
+      if (nodeChange.type === 'remove') {
+        const {nodes, edges} = timelineToElements();
+        const isSingleEdge = (nodes.length === 0 && nodes.length + edges.length === 1);
 
-    if (isSingleEdge) {
-      return removeLink(elements[0]);
+        if (isSingleEdge) {
+          return removeLink(edges[0]);
+        }
+
+        saveScenarioTimeline()
+          .then(() => deleteNodes(nodes.map((scene:any) => scene.id)))
+          .then(fetchScenarioTimeline)
+          .then(() => validateTimeline(timelineValidation.validating))
+          .catch((e) => console.log('something went wrong while removing nodes: ', e))
+      }
     }
-
-    return saveScenarioTimeline()
-      .then(() => deleteNodes(scenes.map((scene:any) => scene.id)))
-      .then(fetchScenarioTimeline)
-      .then(() => validateTimeline(timelineValidation.validating))
-      .catch((e) => console.log('something went wrong while removing nodes: ', e))
   }
 
   const onScenesAdded = (x:any) => {
@@ -487,39 +502,6 @@ const ScenarioEditor:React.FC = () => {
       .then(() => setDialogOpen(false))
       .then(() => validateTimeline(timelineValidation.validating))
   }
-
-  const classes = (makeStyles((theme) => createStyles({
-    paper: {
-      marginTop: 20,
-      padding: theme.spacing(2)
-    },
-    top: {
-      padding: theme.spacing(2),
-      boxSizing: 'border-box'
-    },
-    box: {
-      flexGrow: 1
-    },
-    header: {
-      display: 'flex',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-    },
-    root: {
-      flexGrow: 1,
-      padding: theme.spacing(3),
-      [theme.breakpoints.up('sm')]: {
-        marginLeft: 240
-      }
-    },
-    validateButton: {
-      backgroundColor: green[500],
-      color: 'white',
-      '&:hover': {
-        backgroundColor: green[700],
-      }
-    }
-  })))();
 
   const nodePropsAreEqual = (prevProps:any, nextProps:any) => {
     return prevProps.data.sceneNodeRenderState === nextProps.data.sceneNodeRenderState
@@ -553,9 +535,10 @@ const ScenarioEditor:React.FC = () => {
     : (
         <div className="editor-view">
           <ReactFlow 
-            onElementsRemove={handleElementsRemove}
+            onNodesChange={handleNodesChange}
             onNodeDragStop={handleNodeDrag}
-            elements={timelineToElements()}
+            nodes={timelineToElements().nodes}
+            edges={timelineToElements().edges}
             onConnect={handleOnConnect}
             onSelectionChange={onSelect}
             onMove={rerender}
@@ -622,10 +605,21 @@ const ScenarioEditor:React.FC = () => {
     <div>
       <TopBar />
       <SideMenu activeView={View.Project}/>
-      <div className={classes.root}>
+      <Box sx={{
+        flexGrow: 1,
+        padding: theme.spacing(3),
+        [theme.breakpoints.up('sm')]: {
+          marginLeft: '240px'
+        }
+      }}
+      >
         <Grid container spacing={0}>
           <Grid item xs={12}>
-            <Paper elevation={0} variant="outlined" className={classes.top}>
+            <Paper elevation={0} variant="outlined" sx={{
+              padding: theme.spacing(2),
+              boxSizing: 'border-box'
+            }}
+            >
               {renderTop()}
             </Paper>
           </Grid>
@@ -678,7 +672,7 @@ const ScenarioEditor:React.FC = () => {
           closeHandler={() => setUpdateDialogOpen(false)}
           onScenarioUpdated={() => {setUpdateDialogOpen(false); fetchScenarioTimeline();}}
         />
-      </div>
+      </Box>
     </div>
   )
 }

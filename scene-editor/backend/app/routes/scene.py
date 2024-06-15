@@ -233,7 +233,9 @@ class SceneObjects(Resource):
     @project_access_required
     @ns.marshal_with(scene_object_schema)
     def get(self, id):
-        return SceneObjectModel.query.filter_by(scene_id=id).all()
+        scene_objects = SceneObjectModel.query.filter_by(scene_id=id).all()
+        print(scene_objects)
+        return scene_objects
 
     @user_jwt_required
     @project_access_required

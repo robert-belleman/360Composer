@@ -1,7 +1,4 @@
 import React, {useState, useEffect} from 'react';
-import axios from 'axios';
-
-import { makeStyles, createStyles } from '@mui/styles';
 
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -23,6 +20,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Button } from '@mui/material';
 
 import UpdateAnnotationDialog from "../../components/EditorComponents/UpdateAnnotationDialog";
+import { api } from '../../util/api';
 
 const valueLabelFormat = (value:number) => {
   const minutes = Math.floor(value / 60);
@@ -34,32 +32,15 @@ const valueLabelFormat = (value:number) => {
   return `${minutesLabel}:${secondsLabel}`
 }
 
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    root: {
-      minWidth: 275,
-    },
-    heading: {
-      fontSize: theme.typography.pxToRem(15),
-      flexBasis: '33.33%',
-      flexShrink: 0,
-    },
-    secondaryHeading: {
-      fontSize: theme.typography.pxToRem(15),
-      color: theme.palette.text.secondary,
-    }
-  })
-);
-
 const Alert = (props: AlertProps) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 type AnnotationSnackbarProps = {
   open: boolean,
-  handleClose: string,
+  handleClose: any,
   message: string,
-  severity: string,
+  severity: any,
 }
 
 const AnnotationSnackbar: React.FC<AnnotationSnackbarProps> = ({open, handleClose, message, severity}: AnnotationSnackbarProps):React.ReactElement => {
@@ -86,8 +67,6 @@ type AnnotationComponentProps = {
 }
 
 const Annotation: React.FC<AnnotationComponentProps> = ({sceneID, annotationID, videoLength, num, onDelete, update, annotation, options}: AnnotationComponentProps):React.ReactElement => {
-  const classes = useStyles();
-
   const [alertState, setAlertState] = useState({show: false, message:"", severity: ""})
   const [annotation_, setAnnotation_] = useState(annotation);
   const [options_, setOptions_] = useState(options);
@@ -105,20 +84,20 @@ const Annotation: React.FC<AnnotationComponentProps> = ({sceneID, annotationID, 
   }, [annotation_])
 
   const fetchAnnotation = () => {
-    axios.get(`/api/scenes/${sceneID}/annotation?id=${annotationID}`)
+    api.get(`/api/scenes/${sceneID}/annotation?id=${annotationID}`)
       .then((res:any) => setAnnotation_(res.data))
       .catch((e) => console.log(e))
   }
 
   const fetchOptions = () => {
     //@ts-ignore
-    axios.get(`/api/annotation/${annotationID}/options`)
+    api.get(`/api/annotation/${annotationID}/options`)
       .then((res:any) =>res.data).then(setOptions_)
       .catch((e:any) => console.log(e))
   }
 
-  const handleDeleteAnnotation = () => {
-    axios.post(`/api/scenes/${sceneID}/annotation/delete`, {id: annotationID})
+  const handleDeleteAnnotation: () => void = () => {
+    api.post(`/api/scenes/${sceneID}/annotation/delete`, {id: annotationID})
       .then(onDelete)
       .catch((e) => console.log('error while deleting annotation', e))
   }
@@ -150,8 +129,8 @@ const Annotation: React.FC<AnnotationComponentProps> = ({sceneID, annotationID, 
           aria-controls="panel1bh-content"
           id="panel1bh-header"
         >
-          <Typography className={classes.heading}>{`${num} | ${valueLabelFormat(timestamp)}`}</Typography>
-          <Typography className={classes.secondaryHeading}>{text}</Typography>
+          <Typography sx={{ flexBasis: '33.33%', flexShrink: 0, fontSize: '0.9375rem' }}>{`${num} | ${valueLabelFormat(timestamp)}`}</Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.9375rem' }}>{text}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Grid container>
@@ -161,7 +140,7 @@ const Annotation: React.FC<AnnotationComponentProps> = ({sceneID, annotationID, 
               </Typography>
             </Grid>
             <Grid item xs={12}>
-              <List className={classes.root}>
+              <List sx={{ minWidth: 275 }}>
                 {options_.map((option:any, index:number) => (
                   <ListItem key={`${option.id}-${index}`}>
                     <ListItemAvatar>

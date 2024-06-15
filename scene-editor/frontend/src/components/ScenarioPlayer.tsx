@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {find} from 'lodash';
-
-import axios from 'axios';
+import { find } from 'lodash';
 
 import SceneplayerComponent from "./ScenePlayerComponent";
+import { api } from '../util/api';
 
 type ScenarioPlayerProps = {
   scenarioID: string,
@@ -11,10 +10,21 @@ type ScenarioPlayerProps = {
   onStart: () => void
 }
 
-const ScenarioPlayer:React.FC<ScenarioPlayerProps> = ({scenarioID, onFinish, onStart}:ScenarioPlayerProps) => {
+const ScenarioPlayer:React.FC<ScenarioPlayerProps> = ({scenarioID, onFinish, onStart}: ScenarioPlayerProps) => {
   const [scenario, setScenario]: any = useState(undefined);
   const [currentScene, setCurrentScene]: any = useState(undefined);
   const [currentSceneID, setCurrentSceneID]: any = useState(undefined);
+
+  const fetchScenario = () => {
+    api.get(`/api/scenario/${scenarioID}/`)
+      .then((res:any) => setScenario(res.data))
+      .catch((e:any) => console.log('Something went wrong while fetching scenario:', e))
+  }
+
+  const getStartScene = (scenario:any) => {
+    const startSceneID = scenario.start_scene;
+    return startSceneID !== null ? findScene(startSceneID, scenario.scenes) : null;
+  }
 
   useEffect(() => {
     if (scenarioID !== undefined){
@@ -43,17 +53,6 @@ const ScenarioPlayer:React.FC<ScenarioPlayerProps> = ({scenarioID, onFinish, onS
 
   const findScene = (sceneID: string, scenes:any[]) => find(scenes, (scene:any) => scene.id === sceneID)
   const findLinkForAction = (links:any[], actionID:string) => find(links, (link:any) => link.action_id === actionID);
-
-  const getStartScene = (scenario:any) => {
-    const startSceneID = scenario.start_scene;
-    return startSceneID !== null ? findScene(startSceneID, scenario.scenes) : null;
-  }
-  
-  const fetchScenario = () => {
-    axios.get(`/api/scenario/${scenarioID}/`)
-      .then((res:any) => setScenario(res.data))
-      .catch((e:any) => console.log('Something went wrong while fetching scenario:', e))
-  }
 
   const setNextScene = (sceneID:string) => {
     // @ts-ignore

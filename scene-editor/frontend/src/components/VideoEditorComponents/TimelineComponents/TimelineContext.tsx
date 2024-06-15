@@ -29,7 +29,7 @@ const TimelineSettingsContext = React.createContext<
   TimelineSettings | undefined
 >(undefined);
 
-const TimelineSettingsProvider: React.FC = ({ children }) => {
+const TimelineSettingsProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const timelineWindowRef = useRef<HTMLDivElement>(null);
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [scale, setScale] = useState(1);

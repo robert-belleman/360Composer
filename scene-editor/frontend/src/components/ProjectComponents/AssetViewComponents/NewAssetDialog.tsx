@@ -1,6 +1,6 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState } from 'react';
 
-import {concat} from 'lodash'
+import { concat } from 'lodash'
 
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
@@ -10,18 +10,18 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
-import axios from "axios";
 import NewAssetDropzone from './NewAssetDropzone';
+import { api } from '../../../util/api';
 
 
-type NewAssetDialog = {
+type NewAssetDialogType = {
     activeProject: string;
     open: boolean;
     closeHandler: any;
     onAssetCreated: any;
 };
 
-const NewAssetDialog: React.FC<NewAssetDialog> = ({activeProject, open, closeHandler, onAssetCreated}) => {
+const NewAssetDialog: React.FC<NewAssetDialogType> = ({activeProject, open, closeHandler, onAssetCreated}) => {
   const [showProgress, setShowProgess] = useState(false);
   const [files, setFiles] = useState([] as any[])
 
@@ -33,7 +33,7 @@ const NewAssetDialog: React.FC<NewAssetDialog> = ({activeProject, open, closeHan
       // @ts-ignore: 
       data.append("file", file)
       
-      return axios.post(`/api/project/${activeProject}/assets?name=${file.name}`, data)
+      return api.post(`/api/project/${activeProject}/assets?name=${file.name}`, data)
     })
 
     Promise.all(requests)

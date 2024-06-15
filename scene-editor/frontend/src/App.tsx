@@ -3,18 +3,14 @@ import { Provider } from 'react-redux';
 
 import { initInterceptor } from './util/interceptor'
 
-import { ThemeProvider, Theme, StyledEngineProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider, StyledEngineProvider, createTheme } from '@mui/material/styles';
 
 import "./App.scss";
 import AppRouter from "./AppRouter";
-import { store } from "./Store"
-import {Helmet} from "react-helmet";
+import { persistor, store } from "./Store"
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import Hls from "hls.js";
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
-}
+import { PersistGate } from "redux-persist/integration/react";
 
 const theme = createTheme();
 
@@ -35,16 +31,20 @@ export const App: React.FC = () => {
 
     return (
         <StyledEngineProvider injectFirst>
-            <Helmet>
-                <meta name="apple-mobile-web-app-capable" content="yes" />
-            </Helmet>
-            <ThemeProvider theme={theme}>
-                <Provider store={store}>
-                    <HlsContext.Provider value={hls}>
-                        <AppRouter />
-                    </HlsContext.Provider>
-                </Provider>
-            </ThemeProvider>
+            <HelmetProvider>
+                <Helmet>
+                    <meta name="apple-mobile-web-app-capable" content="yes" />
+                </Helmet>
+                <ThemeProvider theme={theme}>
+                    <Provider store={store}>
+                        <PersistGate loading={null} persistor={persistor}>
+                            <HlsContext.Provider value={hls}>
+                                <AppRouter />
+                            </HlsContext.Provider>
+                        </PersistGate>
+                    </Provider>
+                </ThemeProvider>
+            </HelmetProvider>
         </StyledEngineProvider>
     );
 };

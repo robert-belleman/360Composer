@@ -1,12 +1,8 @@
-import React,  { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from 'react-redux';
 
-import {range} from 'lodash';
+import { range } from 'lodash';
 
-import axios from 'axios';
-
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
 import Dialog from '@mui/material/Dialog';
@@ -37,6 +33,7 @@ import Skeleton from '@mui/material/Skeleton';
 
 import NewSceneDialog from "./SceneViewComponents/NewSceneDialog";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { api } from '../../util/api';
 
 const theme = createTheme();
 
@@ -59,7 +56,7 @@ const Alert = (props: AlertProps) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-const ScenarioSnackbar = ({open, message, severity, handleClose}:any) => {
+const ScenarioSnackbar = ({open, message, severity, handleClose}: any) => {
   return (
     <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
       <Alert onClose={handleClose} severity={severity}>
@@ -165,45 +162,18 @@ const SceneView: React.FC<SceneViewProps> = ({activeProject, fullWidth}) => {
     fetchScenes();
   };
 
+  const fetchScenes = () => api.get(`/api/project/${activeProject}/scenes`)
+    .then((res:any) => setScenes(res.data))
+    .then(() => setLoadingScenes(false))
+    .catch((e:any) => { console.log('error while fetching scenes', e); setLoadingScenes(false)} )
+
   useEffect(() => {
     setLoadingScenes(true);
     fetchScenes();
   }, [])
 
-  const fetchScenes = () => axios.get(`/api/project/${activeProject}/scenes`)
-    .then((res:any) => setScenes(res.data))
-    .then(() => setLoadingScenes(false))
-    .catch((e:any) => { console.log('error while fetching scenes', e); setLoadingScenes(false)} )
-
-  const classes = (makeStyles((theme) =>
-    createStyles({
-      root: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-      },
-      paper: {
-        padding: theme.spacing(2),
-        boxSizing: 'border-box'
-      },
-      overview: {
-        height: fullWidth ? 400 : 300,
-        minHeight: 100,
-        overflow: 'auto'
-      },
-      header: {
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        fontSize: '1.1rem',
-        fontWeight: 700,
-        color: '#2196f3',
-        marginBottom: 10
-      }
-    }),
-  ))();
-
   const handleDelete = (id:string) => {
-    axios.post(`/api/scenes/${id}/delete`)
+    api.post(`/api/scenes/${id}/delete`)
       .then(fetchScenes)
       .then(() => setWarningState({open: false, id: ""}))
       .then(() => setAlertState({open: true, message: "Scene successfully deleted.", severity: "success"}))
@@ -227,7 +197,7 @@ const SceneView: React.FC<SceneViewProps> = ({activeProject, fullWidth}) => {
       )
     })
 
-    const scenes_ = () => scenes.length == 0
+    const scenes_ = () => scenes.length === 0
     ? <Typography variant="subtitle1" component="p">No scenes have been added yet.</Typography>
     : scenes.map((scene: any) => (
         <SceneTile
@@ -243,7 +213,14 @@ const SceneView: React.FC<SceneViewProps> = ({activeProject, fullWidth}) => {
     ));
 
     return (
-      <Grid container spacing={2} className={classes.overview} style={{margin: 0}}>
+      <Grid container spacing={2}
+        sx={{
+          margin: 0,
+          height: fullWidth ? 400 : 300,
+          minHeight: 100,
+          overflow: 'auto'
+        }}
+      >
         { loadingScenes ? loading_() : scenes_() }
       </Grid>
     )
@@ -251,8 +228,25 @@ const SceneView: React.FC<SceneViewProps> = ({activeProject, fullWidth}) => {
 
 
   return (
-    <Paper elevation={0} variant="outlined" className={classes.paper}>
-      <Typography variant="h4" component="p" className={classes.header}><VideocamIcon style={{marginRight:5}}/> 2. Scenes</Typography>
+    <Paper elevation={0} variant="outlined" 
+      sx={{
+        padding: theme.spacing(2),
+        boxSizing: 'border-box'
+      }}
+    >
+      <Typography variant="h4" component="p"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          fontSize: '1.1rem',
+          fontWeight: 700,
+          color: '#2196f3',
+          marginBottom: 10
+        }}  
+      >
+        <VideocamIcon style={{marginRight:5}}/> 2. Scenes
+      </Typography>
       <Grid container spacing={2} style={{margin: 0}}>
         { renderOverview() }
         <Grid item xs={12}>

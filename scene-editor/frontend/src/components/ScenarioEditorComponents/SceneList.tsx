@@ -3,6 +3,7 @@ import React from 'react';
 import {range} from 'lodash';
 
 import Avatar from "@mui/material/Avatar";
+import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -15,29 +16,13 @@ import AddIcon from '@mui/icons-material/Add';
 import ImageIcon from '@mui/icons-material/Image';
 import Skeleton from '@mui/material/Skeleton';
 
-import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
-
-const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-    createStyles({
-      list: {
-        height: 200,
-        overflow: 'auto'
-      }
-    })
-  );
-
-
 type SceneListProps = {
   scenes: any;
-  addHandler:any;
+  addHandler: any;
   isLoading: any;
 }
 
 const SceneList:React.FC<SceneListProps> = ({isLoading, scenes, addHandler}:SceneListProps) => {
-  const classes = useStyles();
-
   const createListItems = () => scenes.map((scene:any) => {
     const avatar = scene.video_id
       ? <Avatar src={`/api/asset/${scene.video_id}/thumbnail`} />
@@ -65,7 +50,7 @@ const SceneList:React.FC<SceneListProps> = ({isLoading, scenes, addHandler}:Scen
 
   const renderLoadingElement = () => range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))
 
-  return isLoading ? (<div className={classes.list}>{renderLoadingElement()}</div>) : (<List className={classes.list}>{createListItems()}</List>)
+  return isLoading ? (<Box sx={{ height: 300, width: 400, overflow: 'auto' }}>{renderLoadingElement()}</Box>) : (<List sx={{ height: 300, width: 400, overflow: 'auto' }}>{createListItems()}</List>)
 }
 
 export default SceneList

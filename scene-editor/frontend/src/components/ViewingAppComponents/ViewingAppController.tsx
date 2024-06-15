@@ -2,9 +2,9 @@
  *  the video and annotation data of the current scene to the viewing app implementation.
  *  The implementation components then communicates the actions of the user back to the controller.
  */
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import ViewingAppAframe from "./ViewingAppAframe";
+import { api } from "../../util/api";
 
 interface ViewingAppControllerProps {
     sceneId?: string,
@@ -22,7 +22,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     // Request the scene data of the given id
     const fetchSceneData = async (id: string) => {
-        axios
+        api
           .get(`/api/scenes/${id}/`)
           .then((res) => {setScene(res.data)})
           .catch((e) => {
@@ -32,28 +32,28 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     // Request the video data of the given id
     const fetchVideo = async (id: string) => {
-        await axios.get(`/api/asset/${id}`)
+        await api.get(`/api/asset/${id}`)
              .then((res: any) => {setCurrentVideo(res.data)})
              .catch((e:any) => console.log('Something went wrong while fetching video:', e));
     };
 
     // Request the annotation data of the given id
     const fetchAnnotations = async (id: string) => {
-        await axios.get(`/api/scenes/${id}/annotations`)
+        await api.get(`/api/scenes/${id}/annotations`)
         .then((res:any) => handleAnnotationData(res.data))
         .catch((e:any) => console.log('Something went wrong while fetching annotations:', e));
     };
 
     // Request the scenario data of the given id
     const fetchScenarioData = async (id: string) => {
-        await axios.get(`/api/scenario/${id}/`)
+        await api.get(`/api/scenario/${id}/`)
         .then((res:any) => setScenario(res.data))
         .catch((e:any) => console.log('Something went wrong while fetching scenario:', e));
     };
 
     // Request the timeline data of the given id
     const fetchTimelineData = async (id: string) => {
-        await axios.get(`/api/timeline/${id}/export`)
+        await api.get(`/api/timeline/${id}/export`)
         .then((res:any) => setTimeline(res.data[0]))
         .catch((e:any) => console.log('Something went wrong while fetching timeline:', e));
     };

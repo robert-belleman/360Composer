@@ -1,11 +1,9 @@
 import React, {useState, useEffect} from 'react';
 
-import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
-
 import {range} from 'lodash';
 
 import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import Dialog from '@mui/material/Dialog';
@@ -22,18 +20,7 @@ import Skeleton from '@mui/material/Skeleton';
 
 import PersonIcon from '@mui/icons-material/Person';
 
-import axios from "axios";
-
-const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    list: {
-      height: 300,
-      width: 400,
-      overflow: 'auto'
-    }
-  })
-);
+import { api } from '../../util/api';
 
 type NewScenarioDialog = {
   projectID: string;
@@ -49,8 +36,6 @@ const NewScenarioDialog: React.FC<NewScenarioDialog> = ({projectID, timelineID, 
   const [checked, setChecked] = useState([] as any[]);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
 
-  const classes = useStyles();
-
   useEffect(() => {
     fetchScenarios();
   }, [open])
@@ -61,7 +46,7 @@ const NewScenarioDialog: React.FC<NewScenarioDialog> = ({projectID, timelineID, 
   }
 
   const fetchScenarios = () => {
-    axios.get(`/api/project/${projectID}/scenarios`)
+    api.get(`/api/project/${projectID}/scenarios`)
       .then((res:any) => setScenariosCallback(res.data))
       .then(() => setLoadingScenarios(false))
       .catch((e:any) => {console.log('error while fetching scenarios', e); setLoadingScenarios(false)})
@@ -80,7 +65,7 @@ const NewScenarioDialog: React.FC<NewScenarioDialog> = ({projectID, timelineID, 
     setChecked(newChecked);
   };
 
-  const addScenarios = () => axios.post(`/api/timeline/${timelineID}/scenarios`, {scenarios: checked})
+  const addScenarios = () => api.post(`/api/timeline/${timelineID}/scenarios`, {scenarios: checked})
     .then(onScenariosAdded)
     .then(() => setChecked([]))
     .then(() => setScenarios([]))
@@ -107,13 +92,13 @@ const NewScenarioDialog: React.FC<NewScenarioDialog> = ({projectID, timelineID, 
   const renderScenarioList = () => {
     if (loadingScenarios) {
       return (
-        <div className={classes.list}>
+        <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
-        </div>
+        </Box>
       )
     }
 
-    return (<List className={classes.list}>{scenarios.map(createScenario)}</List>)
+    return (<List sx={{ height: 300, width: 400, overflow: 'auto' }}>{scenarios.map(createScenario)}</List>)
   }
 
   return (

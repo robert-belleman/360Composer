@@ -6,7 +6,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import axios from "axios";
+import { api } from '../../util/api';
 
 type UpdateTimelineDialogProps = {
     timeline: any;
@@ -21,7 +21,7 @@ const UpdateTimelineDialog: React.FC<UpdateTimelineDialogProps> = ({timeline, op
   const updateTimeline = async () => {
     const payload = {...timeline, "name": state.name, "description": state.description}
 
-    axios.put(`/api/timeline/${timeline.id}/`, payload )
+    api.put(`/api/timeline/${timeline.id}/`, payload )
       .then(() => {
           setState({name: "", description: ""})
           onTimelineUpdated(); 

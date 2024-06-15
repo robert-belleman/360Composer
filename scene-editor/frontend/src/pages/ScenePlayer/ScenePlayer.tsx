@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React,  { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
-import axios from "axios";
 
 import {
     AbstractMesh,
@@ -17,6 +16,7 @@ import { FreeCamera, Vector3, HemisphericLight} from '@babylonjs/core';
 import ScenePlayerComponent from "../../components/ScenePlayerComponent";
 
 import "./ScenePlayer.scss"
+import { api } from '../../util/api';
 
 
 const ScenePlayer: React.FC = () => {
@@ -25,7 +25,7 @@ const ScenePlayer: React.FC = () => {
     const { scene_id }: EditorPageParams = useParams();
 
     const fetchObjects = async () => {
-        axios
+        api
             .get(`/api/scenes/` + scene_id + `/objects`, {})
             .then((res) => {setObjects(res.data); console.log(res); loadMeshes(res.data);} )
             .catch(() => {

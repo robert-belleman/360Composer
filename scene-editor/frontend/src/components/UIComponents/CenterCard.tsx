@@ -1,7 +1,7 @@
 import React from "react";
 import {Grid, Card} from "@mui/material"
 
-const CenterCard: React.FC = (props) => {
+const CenterCard: React.FC<React.PropsWithChildren<{}>> = (props) => {
     return (
         <Grid
           container

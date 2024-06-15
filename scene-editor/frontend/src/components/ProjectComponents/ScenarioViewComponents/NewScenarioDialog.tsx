@@ -7,7 +7,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import axios from "axios";
+import { api } from '../../../util/api';
 
 type NewScenarioDialogProps = {
     activeProject: string;
@@ -18,18 +18,16 @@ type NewScenarioDialogProps = {
 };
 
 const NewScenarioDialog: React.FC<NewScenarioDialogProps> = ({activeProject, open, closeHandler, onScenarioCreated, onScenarioCreationFailed}) => {
-  const token = useSelector((state:any) => state.token)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
 
   const createScenario = async () => {
-
     const payload = {
         "name": name,
         "description": description,
     }
 
-    axios
+    api
       .post(`/api/project/${activeProject}/scenarios`, payload )
       .then((res) => {
           setName(""); 

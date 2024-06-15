@@ -17,64 +17,31 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
 
-
-import { makeStyles, createStyles } from '@mui/styles';
-import { createTheme } from '@mui/material/styles';
-
 import logo from "../static/images/levvel-logo.png";
 
 import "./TopBar.scss";
 
-const theme = createTheme();
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    zIndex: 1300,
-    background: '#2196f3',
-    boxShadow: 'none'
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
-    [theme.breakpoints.up('sm')]: {
-      display: 'none',
-    },
-  },
-  logo: {
-    height: 35,
-    marginTop: '8px'
-  },
-  box: {
-    flexGrow: 1
-  },
-  toolbar: {
-    height: 64,
-    alignItems: 'flex-start',
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(2),
-    boxSizing: 'border-box'
-  }
-}));
-
 const TopBar: React.FC = () => {
-  const classes = useStyles();
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   return (
-    <AppBar className={classes.root} position="sticky">
-      <Toolbar className={classes.toolbar}>
+    <AppBar sx={{ flexGrow: 1, zIndex: 1300, background: '#2196f3', boxShadow: 'none' }} position="sticky">
+      <Toolbar sx={{ height: 64, alignItems: 'flex-start', paddingTop: 1, paddingBottom: 2, boxSizing: 'border-box' }}>
         <IconButton
           color="inherit"
           aria-label="open drawer"
           edge="start"
           onClick={() => dispatch(toggleSidebar())}
-          className={classes.menuButton}
+          sx={{
+            marginRight: 2,
+            display: { sm: 'none' },
+          }}
           size="large">
           <MenuIcon />
         </IconButton>
-        <img onClick={() => navigate('/app/')} style={{cursor: 'pointer'}} src={logo} alt="PCIT-VR" className={classes.logo} />
-        <Box className={classes.box}/>
+        <img onClick={() => navigate('/app/')} style={{ cursor: 'pointer', height: 35, marginTop: '8px' }} src={logo} alt="PCIT-VR" />
+        <Box sx={{ flexGrow: 1 }}/>
         <IconButton
           edge="end"
           color="inherit"

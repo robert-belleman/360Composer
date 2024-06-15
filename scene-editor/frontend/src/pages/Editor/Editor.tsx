@@ -1,4 +1,4 @@
-import React, {RefObject, useCallback, useContext, useEffect, useState} from "react";
+import React, {RefObject, useCallback, useContext, useEffect, useRef, useState} from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import { concat, sortBy } from 'lodash';
@@ -25,9 +25,9 @@ import {
 } from "@babylonjs/gui"
 import "@babylonjs/loaders"
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
@@ -50,8 +50,6 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
-import axios from "axios";
-
 import Hls from "hls.js";
 
 import SceneComponent from "../../components/SceneComponent";
@@ -67,26 +65,11 @@ import UpdateSceneDialog from "../../components/EditorComponents/UpdateSceneDial
 import { View } from '../../types/views';
 
 import "./Editor.scss";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
 import { HlsContext } from "../../App";
-import { initHLS } from "../../util/api";
+import { api, initHLS } from "../../util/api";
 
 const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-      createStyles({
-        root: {
-          flexGrow: 1,
-          padding: theme.spacing(1),
-          [theme.breakpoints.up('sm')]: {
-            marginLeft: 240
-          }
-        },
-        top: {
-          padding: theme.spacing(2),
-          boxSizing: 'border-box'
-        }
-      })
-    )
 
 const Editor: React.FC = () => {
     const hls = useContext<Hls | undefined>(HlsContext);
@@ -96,8 +79,6 @@ const Editor: React.FC = () => {
     const useQuery = () => new URLSearchParams(useLocation().search);
     const param:string|null = useQuery().get('goBack');
     const goBack = !(param === null || param === undefined)
-
-    const classes = useStyles();
 
     const [scene, setScene]: any = useState(undefined);
     const [video, setVideo]: any = useState(undefined);
@@ -136,7 +117,7 @@ const Editor: React.FC = () => {
     const [lightIntensity, setLightIntensity]: any = useState(0);
 
     const fetchSceneData = async () => {
-        axios
+        api
           .get(`/api/scenes/${scene_id}/`)
           .then((res) => {setScene(res.data); return res.data;})
           .then(fetchAssets)
@@ -146,24 +127,24 @@ const Editor: React.FC = () => {
     };
 
     const fetchAssets = async (sceneData:any) => {
-      axios.get(`/api/project/${sceneData.project_id}/assets`)
+      api.get(`/api/project/${sceneData.project_id}/assets`)
         .then((res) => {setMedia(res.data.filter((x:any) => x.asset_type === "AssetType.video"))})
     }
 
     const fetchAnnotations = async () => {
-      axios.get(`/api/scenes/${scene_id}/annotations`)
+      api.get(`/api/scenes/${scene_id}/annotations`)
         .then((res:any) => res.data).then(setAnnotations)
         .catch((e) => console.log(e))
     }
 
     const fetchVideo = async () => {
-      axios.get(`/api/asset/${scene.video_id}`)
+      api.get(`/api/asset/${scene.video_id}`)
         .then((res: any) => setVideo(res.data))
         .catch((e) => console.log(e))
     }
 
     const addAnnotation = async () => {
-      axios.post(`/api/scenes/${scene_id}/annotation`, {text:"", timestamp:0})
+      api.post(`/api/scenes/${scene_id}/annotation`, {text:"", timestamp:0})
         .then((res:any) => setAnnotations(concat(annotations, res.data as never[])))
         .catch((e) => console.log(e))
     }
@@ -172,16 +153,16 @@ const Editor: React.FC = () => {
      * Fetches the objects that are stored in the database for this scene
      */
     const fetchSceneObjects = async () => {
-      axios
-          .get(`/api/scenes/${scene_id}/objects`, {})
-          .then((res) => {setObjects(res.data); console.log(res); loadMeshes(res.data);} )
-          .catch(() => {
-              console.log("Could not load assets")
-          });
+      api
+        .get(`/api/scenes/${scene_id}/objects`, {})
+        .then((res) => {setObjects(res.data); console.log(res); loadMeshes(res.data);} )
+        .catch(() => {
+            console.log("Could not load assets")
+        });
     };
 
     useEffect(() => {
-      if( scene_id !== undefined) {
+      if (scene_id !== undefined) {
         fetchSceneData();
         fetchAnnotations();
       }
@@ -201,6 +182,7 @@ const Editor: React.FC = () => {
 
     // loads video when we have fetched the video data
     useEffect(() => {
+      console.log(video);
       if (video !== undefined)
         loadVideo();
     }, [video]);
@@ -359,7 +341,9 @@ const Editor: React.FC = () => {
         "w_rotation": 1,
       }
 
-      axios.post(`/api/scenes/${scene_id}/objects`, payload)
+      console.log("payload", payload);
+
+      api.post(`/api/scenes/${scene_id}/objects`, payload)
         .then((res) => {fetchSceneObjects();} )
         .catch(() => {
             console.log("Could not load assets")
@@ -382,13 +366,13 @@ const Editor: React.FC = () => {
         "z_rotation": rotation.z,
         "w_rotation": rotation.w
       }
-      axios.put(`/api/scenes/${scene_id}/objects`, payload)
+      api.put(`/api/scenes/${scene_id}/objects`, payload)
         .catch(() => {
             console.log("Could not update assets")
         });
     }
 
-    const onVideoElemRef = useCallback(videoElem => {
+    const onVideoElemRef = useCallback((videoElem: any) => {
       if (hls == undefined) {
         console.warn("HLS not available");
         return;
@@ -413,15 +397,29 @@ const Editor: React.FC = () => {
       loadVideoBabylon(videoElem);
     }, [hls, video]);
 
+    const rootRef = useRef<ReactDOM.Root | null>(null);
+
     const loadVideo = () => {
       const component = <video ref={onVideoElemRef}></video>;
-      ReactDOM.render(component, document.getElementById('video-player-root'));
+      const container = document.getElementById("video-player-root") as HTMLElement;
+
+      if (!rootRef.current) {
+        // Create the root once and store it in rootRef
+        rootRef.current = ReactDOM.createRoot(container);
+      }
+
+      // Use the existing root to render the component
+      rootRef.current.render(component);
     }
 
     const loadVideoBabylon = (videoElem: HTMLVideoElement) => {
       if (videoDome !== undefined) {
         videoDome.dispose();
       }
+      if (videoElem === null) return;
+
+      console.log("videoelem");
+      console.log(videoElem);
 
       const posterURL = `/api/asset/${video.id}/thumbnail`;
       videoDome = new VideoDome(
@@ -584,12 +582,13 @@ const Editor: React.FC = () => {
 
     // callback for asset list selection
     const onAddAsset = (assetID: string) => {
+      console.log("Asset selected with ID:", assetID);
       loadMesh(assetID);
     }
 
     const renderAddAnnotation = () => {
       return (
-        <Grid container>
+        <Grid key='addAnnotationGrid' container>
           <Grid item xs={6}>
             <Typography variant="subtitle1" component="p">No annotation added yet.</Typography>
           </Grid>
@@ -616,16 +615,18 @@ const Editor: React.FC = () => {
       setPlaying(true);
     }
 
-    const enableHls = async () => {
-      try {
-        console.log(`Enabling HLS for ${video.name} (${video.id}).`)
-        const response = await initHLS(video.id)
-        setVideo(response.data)
-        console.log(`HLS Enabled for ${video.name} (${video.id}).`)
-      } catch (error) {
-        console.error(`Error Enabling HLS: ${error}`)
-      }
-    }
+    const enableHls = () => {
+      console.log(`Enabling HLS for ${video.name} (${video.id}).`);
+      
+      initHLS(video.id)
+        .then(response => {
+          setVideo(response.data);
+          console.log(`HLS Enabled for ${video.name} (${video.id}).`);
+        })
+        .catch(error => {
+          console.error(`Error Enabling HLS: ${error}`);
+        });
+    };
 
     const updateVideo = (event: any, newValue: number | number[]) => {
       setCurrentVideoTime(newValue);
@@ -669,15 +670,15 @@ const Editor: React.FC = () => {
           </Paper>
         </Grid>
         <Grid item xs={12}>
-            <Paper variant="outlined" className="listPaper" style={{minHeight: 250}}>
-              <Typography variant="h6" className="title">
-                Assets
-              </Typography>
-              <div className="listView">
-                <AssetList activeProject={scene?.project_id} onAddAsset={onAddAsset}/>
-              </div>
-            </Paper>
-          </Grid>
+          <Paper variant="outlined" className="listPaper" style={{minHeight: 250}}>
+            <Typography variant="h6" className="title">
+              Assets
+            </Typography>
+            <div className="listView">
+              <AssetList activeProject={scene?.project_id} onAddAsset={onAddAsset}/>
+            </div>
+          </Paper>
+        </Grid>
       </Grid>
     )
 
@@ -805,11 +806,22 @@ const Editor: React.FC = () => {
             <div id="video-player-root" style={{display: "none"}}></div>
             <TopBar></TopBar>
             <SideMenu activeView={View.Project}/>
-            <div className={classes.root}>
+            <Box sx={{
+              flexGrow: 1,
+              padding: theme.spacing(1),
+              [theme.breakpoints.up('sm')]: {
+                marginLeft: '240px'
+              }}}
+            >
               <Container maxWidth="xl">
                 <Grid container spacing={0}>
                   <Grid item xs={12}>
-                    <Paper elevation={0} variant="outlined" className={classes.top}>
+                    <Paper elevation={0} variant="outlined"
+                    sx={{
+                      padding: theme.spacing(2),
+                      boxSizing: 'border-box'
+                    }}
+                    >
                       {renderTop()}
                     </Paper>
                   </Grid>
@@ -838,7 +850,7 @@ const Editor: React.FC = () => {
                   onAnnotationCreated={onAnnotationCreated}
                 />
               </Container>
-            </div>
+            </Box>
             <UpdateSceneDialog
               sceneID={scene_id!}
               scene={{name: scene ? scene.name : "", description: scene ? scene.description : ""}}

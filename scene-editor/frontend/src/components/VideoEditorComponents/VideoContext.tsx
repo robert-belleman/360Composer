@@ -42,7 +42,7 @@ interface VideoContextProps {
 
 const VideoContext = createContext<VideoContextProps | undefined>(undefined);
 
-const VideoProvider: React.FC = ({ children }) => {
+const VideoProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   /* Reference to the HTMLVideoElement. */
   const videoRef = useRef<HTMLVideoElement | null>(null);
   /* Indicate if the video is playing. */

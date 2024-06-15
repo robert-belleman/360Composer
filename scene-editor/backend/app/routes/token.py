@@ -28,7 +28,6 @@ ns = api.namespace("token")
 
 @ns.route("/")
 class Token(Resource):
-
     @user_or_customer_jwt_required
     def get(self):
         try:

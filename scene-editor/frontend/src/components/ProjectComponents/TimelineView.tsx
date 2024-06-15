@@ -1,11 +1,8 @@
 import React, { ReactElement, useState, useEffect } from 'react';
 import {useNavigate} from 'react-router-dom';
 
-import axios from 'axios';
-
 import { range } from 'lodash';
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
 import Button from '@mui/material/Button';
@@ -35,11 +32,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import Skeleton from '@mui/material/Skeleton';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { api } from '../../util/api';
 
 type DialogProps = {
-  open:boolean,
-  handleSubmit:any,
-  handleClose:any
+  open: boolean,
+  handleSubmit: any,
+  handleClose: any
 }
 
 type TimelineViewProps = {
@@ -51,7 +49,7 @@ const Alert = (props: AlertProps) => {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-const TimelineSnackbar = ({open, message, severity, handleClose}:any) => {
+const TimelineSnackbar = ({open, message, severity, handleClose}: any) => {
   return (
     <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
       <Alert onClose={handleClose} severity={severity}>
@@ -61,7 +59,7 @@ const TimelineSnackbar = ({open, message, severity, handleClose}:any) => {
   )
 }
 
-const DeleteWarningDialog = ({open, id, handleClose, handleDelete}:any) => {
+const DeleteWarningDialog = ({open, id, handleClose, handleDelete}: any) => {
   return (
     <Dialog
       open={open}
@@ -139,7 +137,7 @@ const AddTimelineDialog = ({open, handleSubmit, handleClose}:DialogProps) => {
   )
 }
 
-export default ({activeProject, fullWidth}: TimelineViewProps): ReactElement => {
+const TimelineView = ({activeProject, fullWidth}: TimelineViewProps): ReactElement => {
   const navigate = useNavigate();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -150,7 +148,7 @@ export default ({activeProject, fullWidth}: TimelineViewProps): ReactElement => 
   const [loadingTimelines, setLoadingTimelines] = useState(true)
 
   const fetchTimelines = async () => {
-    return axios.get(`/api/project/${activeProject}/timelines`)
+    return api.get(`/api/project/${activeProject}/timelines`)
       .then((res:any) => setTimelines(res.data))
       .then(() => setLoadingTimelines(false))
       .catch((e) => {console.log('Error when fetching timelines: ', e); setLoadingTimelines(false)})
@@ -162,39 +160,9 @@ export default ({activeProject, fullWidth}: TimelineViewProps): ReactElement => 
   }, [])
 
   const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-    createStyles({
-        root: {
-          flexGrow: 1,
-          padding: theme.spacing(2),
-        },
-        addButton: {
-          marginTop: '20px',
-        },
-        paper: {
-          padding: theme.spacing(2),
-          boxSizing: 'border-box'
-        },
-        overview: {
-          height: fullWidth ? 400 :300,
-          overflow: 'auto'
-        },
-        header: {
-          display: 'flex',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          fontSize: '1.1rem',
-          fontWeight: 700,
-          color: '#2196f3',
-          marginBottom: 10
-        }
-      }),
-    );
-
-  const classes = useStyles();
 
   const handleDelete = (id:string) => {
-    axios.post(`/api/timeline/${id}/delete`, {project_id: activeProject})
+    api.post(`/api/timeline/${id}/delete`, {project_id: activeProject})
       .then(() => setWarningState({open: false, id: ""}))
       .then(() => setAlertState({open: true, message: "Successfully deleted timeline", severity: "success"}))
       .then(fetchTimelines)
@@ -205,7 +173,7 @@ const useStyles = makeStyles((theme) =>
   }
 
   const handleAddTimeline = (name:string, description:string) => {
-    axios.post(`/api/project/${activeProject}/timelines`, {name, description, randomized: true})
+    api.post(`/api/project/${activeProject}/timelines`, {name, description, randomized: true})
       .then(() => { setDialogOpen(false); fetchTimelines(); })
       .then(() => setAlertState({open: true, message: "Successfully created timeline", severity: "success"}))
       .catch((e) => setAlertState({open: true, message: "Something went wrong while creating timeline", severity: "error"}))
@@ -282,15 +250,38 @@ const useStyles = makeStyles((theme) =>
       : timelines.map(timelineCard)
 
     return (
-      <Grid container spacing={2} className={classes.overview} style={{margin: 0}}>
+      <Grid container spacing={2}
+      sx={{
+        margin: 0,
+        height: fullWidth ? 400 : 300,
+        overflow: 'auto'
+      }}
+      >
         { loadingTimelines ? loading_() : timelines_() }
       </Grid>
     )
   }
 
   return (
-    <Paper elevation={0} variant="outlined" className={classes.paper}>
-      <Typography variant="h4" component="p" className={classes.header}><TimelineIcon style={{marginRight:5}}/> 4. Timelines</Typography>
+    <Paper elevation={0} variant="outlined"
+    sx={{
+      padding: theme.spacing(2),
+      boxSizing: 'border-box'
+    }}
+    >
+      <Typography variant="h4" component="p"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          fontSize: '1.1rem',
+          fontWeight: 700,
+          color: '#2196f3',
+          marginBottom: 10
+        }}
+      >
+        <TimelineIcon style={{marginRight:5}}/> 4. Timelines
+      </Typography>
       <Grid container spacing={2} style={{margin: 0}}>
         { renderOverview() }
         <Grid item xs={12}>
@@ -310,3 +301,5 @@ const useStyles = makeStyles((theme) =>
     </Paper>
   )
 }
+
+export default TimelineView;

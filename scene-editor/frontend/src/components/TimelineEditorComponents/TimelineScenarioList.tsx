@@ -4,7 +4,6 @@ import { range } from 'lodash';
 
 //import { Container, Draggable } from "react-smooth-dnd";
 
-import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
@@ -29,34 +28,6 @@ import Skeleton from '@mui/material/Skeleton';
 import TimelineAddScenarioDialog from './TimelineAddScenarioDialog';
 
 const theme = createTheme();
-const useStyles = makeStyles((theme) =>
-    createStyles({
-      root: {
-        flexGrow: 1,
-        padding: theme.spacing(2),
-      },
-      paper: {
-        padding: theme.spacing(2),
-        boxSizing: 'border-box'
-      },
-      box: {
-        flexGrow: 1
-      },
-      list: {
-        height: 300,
-        overflow: 'auto'
-      },
-      header: {
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        fontSize: '1.1rem',
-        fontWeight: 700,
-        color: '#2196f3',
-        marginBottom: 10
-      }
-    }),
-  );
 
 type ScenarioListProps = {
   timelineID: string;
@@ -95,8 +66,6 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
     setChecked(newChecked);
   };
 
-  const classes = useStyles();
-
   const onScenariosAdded_ = () => {
     setScenarioDialogOpen(false);
     onScenariosAdded()
@@ -124,8 +93,8 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
     </ListItem>
   )
 
-  const ScenarioList = ({scenarios}:any) => (
-    <List className={classes.list}>
+  const ScenarioList = ({scenarios} :any) => (
+    <List sx={{ height: 300, width: 400, overflow: 'auto' }}>
       {/*<Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onSortEnd}>
         {scenarios.map((scenario:any, i:number) => (
           <Draggable key={scenario.id}>
@@ -138,7 +107,7 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
 
   const renderScenarios = () => {
     if (timelineScenarios.length === 0) {
-      return <div className={classes.list}><Typography variant="subtitle1" component="p">No scenarios have been added yet</Typography></div>
+      return <Box sx={{ height: 300, width: 400, overflow: 'auto' }}><Typography variant="subtitle1" component="p">No scenarios have been added yet</Typography></Box>
     }
 
     return <ScenarioList scenarios={timelineScenarios} onSortEnd={onSortEnd} useDragHandle/>
@@ -150,9 +119,9 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
   const renderScenariosList = () => {
     if (loadingTimelineScenarios) {
       return (
-        <div className={classes.list}>
+        <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
-        </div>
+        </Box>
       )
     }
 
@@ -160,15 +129,32 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
   }
 
   return (
-    <Paper elevation={0} variant="outlined" className={classes.paper}>
-      <Typography variant="h4" component="p" className={classes.header}><AccountTreeIcon style={{marginRight:5}}/> Scenarios</Typography>
+    <Paper elevation={0} variant="outlined"
+    sx={{
+      padding: theme.spacing(2),
+      boxSizing: 'border-box'
+    }}
+    >
+      <Typography variant="h4" component="p"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          fontSize: '1.1rem',
+          fontWeight: 700,
+          color: '#2196f3',
+          marginBottom: 10
+        }}
+      >
+        <AccountTreeIcon style={{marginRight:5}}/> Scenarios
+      </Typography>
       {renderScenariosList()}
       <Grid container>
         <Grid item xs={4}>
           <Button style={{marginTop: 10}} color="primary" startIcon={<AddIcon />} onClick={() => setScenarioDialogOpen(true)}>Add</Button>
         </Grid>
         <Grid item xs={2}>
-          <Box className={classes.box}></Box>
+          <Box sx={{ flexGrow: 1 }}></Box>
         </Grid>
         <Grid item xs={6}>
           <Button 
