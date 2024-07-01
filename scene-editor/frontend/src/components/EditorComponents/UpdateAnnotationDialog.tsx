@@ -27,6 +27,7 @@ import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+import { api } from '../../util/api';
 import axios from "axios";
 
 import "./NewAnnotationDialog.scss";
@@ -109,7 +110,7 @@ let tempId = 0
 let initialOptions: Array<string> = []
 let types: Array<AnnotationType> = []
 
-export default ({sceneID, annotationID, open, closeHandler, onError, videoLength}:UpdateAnnotationDialogProps) => {
+export default ({sceneID, annotationID, open, closeHandler, onError, videoLength}: UpdateAnnotationDialogProps) => {
   const [annotation, setAnnotation] = useState(INITIAL_ANNOTATION)
   const [defaultOptions, setDefaultOptions] = useState(false);
 

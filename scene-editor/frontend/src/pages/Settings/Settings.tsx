@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 
 import { reduce, extend } from 'lodash';
 
-import axios from 'axios';
+import { api } from '../../util/api';
+import axios from "axios";
 
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';

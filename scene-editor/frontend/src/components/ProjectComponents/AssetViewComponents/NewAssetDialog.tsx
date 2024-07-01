@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 
 import {concat} from 'lodash'
 
@@ -10,7 +10,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
-import axios from "axios";
+import { api } from '../../../util/api';
+import axios from 'axios';
 import NewAssetDropzone from './NewAssetDropzone';
 
 
@@ -21,7 +22,7 @@ type NewAssetDialog = {
     onAssetCreated: any;
 };
 
-const NewAssetDialog: React.FC<NewAssetDialog> = ({activeProject, open, closeHandler, onAssetCreated}) => {
+const NewAssetDialog = forwardRef<HTMLDivElement, NewAssetDialog>(({ activeProject, open, closeHandler, onAssetCreated }, ref) => {
   const [showProgress, setShowProgess] = useState(false);
   const [files, setFiles] = useState([] as any[])
 
@@ -95,5 +96,6 @@ const NewAssetDialog: React.FC<NewAssetDialog> = ({activeProject, open, closeHan
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewAssetDialog;

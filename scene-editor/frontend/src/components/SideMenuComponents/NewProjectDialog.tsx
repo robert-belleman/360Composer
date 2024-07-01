@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {forwardRef, useState} from 'react';
 import { useSelector } from 'react-redux';
 
 import Button from '@mui/material/Button';
@@ -8,6 +8,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import { api } from '../../util/api';
 import axios from "axios";
 
 type NewProjectDialogProps = {
@@ -16,15 +17,12 @@ type NewProjectDialogProps = {
     onProjectCreated: any;
 };
 
-
-
-const NewProjectDialog: React.FC<NewProjectDialogProps> = ({open, closeHandler, onProjectCreated}) => {
+const NewProjectDialog = forwardRef<HTMLDivElement, NewProjectDialogProps>(({open, closeHandler, onProjectCreated}, ref) => {
   const token = useSelector((state:any) => state.token);
   const [text, setText] = useState("");
 
   const createProject = async () => {
-      axios
-          .post(`/api/project/create`, {'id': token.id, 'name': text} )
+      axios.post(`/api/project/create`, {'id': token.id, 'name': text} )
           .then((res) => {console.log(res); onProjectCreated() })
           .catch(() => {
               // setError(true);
@@ -63,5 +61,6 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({open, closeHandler, 
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewProjectDialog;

@@ -35,7 +35,8 @@ import {
 } from "@babylonjs/gui"
 import "@babylonjs/loaders"
 
-import axios from "axios";
+import { api } from '../util/api';
+import axios from 'axios';
 
 import SceneComponent from "./SceneComponent";
 import "./ScenePlayerComponent.scss";

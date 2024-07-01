@@ -1,7 +1,8 @@
 import React, { ReactElement, useState, useEffect } from 'react';
 import {useNavigate} from 'react-router-dom';
 
-import axios from 'axios';
+import { api } from '../../util/api';
+import axios from "axios";
 
 import { range } from 'lodash';
 

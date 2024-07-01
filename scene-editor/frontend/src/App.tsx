@@ -8,7 +8,7 @@ import { ThemeProvider, Theme, StyledEngineProvider, createTheme } from '@mui/ma
 import "./App.scss";
 import AppRouter from "./AppRouter";
 import { store } from "./Store"
-import {Helmet} from "react-helmet";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import Hls from "hls.js";
 
 declare module '@mui/styles/defaultTheme' {
@@ -35,16 +35,18 @@ export const App: React.FC = () => {
 
     return (
         <StyledEngineProvider injectFirst>
-            <Helmet>
-                <meta name="apple-mobile-web-app-capable" content="yes" />
-            </Helmet>
-            <ThemeProvider theme={theme}>
-                <Provider store={store}>
-                    <HlsContext.Provider value={hls}>
-                        <AppRouter />
-                    </HlsContext.Provider>
-                </Provider>
-            </ThemeProvider>
+            <HelmetProvider>
+                <Helmet>
+                    <meta name="apple-mobile-web-app-capable" content="yes" />
+                </Helmet>
+                <ThemeProvider theme={theme}>
+                    <Provider store={store}>
+                        <HlsContext.Provider value={hls}>
+                            <AppRouter />
+                        </HlsContext.Provider>
+                    </Provider>
+                </ThemeProvider>
+            </HelmetProvider>
         </StyledEngineProvider>
     );
 };

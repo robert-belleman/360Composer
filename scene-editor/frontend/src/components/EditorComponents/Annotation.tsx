@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
-import axios from 'axios';
+import { api } from '../../util/api';
+import axios from "axios";
 
 import { makeStyles, createStyles } from '@mui/styles';
 
@@ -57,9 +58,9 @@ const Alert = (props: AlertProps) => {
 
 type AnnotationSnackbarProps = {
   open: boolean,
-  handleClose: string,
+  handleClose: any,
   message: string,
-  severity: string,
+  severity: any,
 }
 
 const AnnotationSnackbar: React.FC<AnnotationSnackbarProps> = ({open, handleClose, message, severity}: AnnotationSnackbarProps):React.ReactElement => {

@@ -4,8 +4,6 @@ import { useSelector } from 'react-redux';
 
 import { range } from 'lodash';
 
-import axios from 'axios';
-
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardActions from '@mui/material/CardActions';
@@ -28,6 +26,8 @@ import placeholder from '../static/images/placeholder.jpg'
 
 import NewProjectDialog from "./SideMenuComponents/NewProjectDialog";
 import AlertDialog from "./UIComponents/AlertDialog"
+import { api } from '../util/api';
+import axios from 'axios';
 
 const theme = createTheme();
 const useStyles = makeStyles((theme) =>
@@ -60,9 +60,9 @@ const ProjectOverview : React.FC = () => {
   const fetchProjects = async () => {
     setLoading(true);
     axios.get(`/api/user/${token.id}/projects`)
-      .then((res) => setProjects(res.data))
+      .then((res:any) => setProjects(res.data))
       .then(() => setLoading(false))
-      .catch((e) => console.log('error while fetching projects', e));
+      .catch((e:any) => console.log('error while fetching projects', e));
   };
 
   const onProjectCreated = () => {

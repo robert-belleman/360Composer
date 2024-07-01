@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import axios from 'axios';
+import { api } from '../../util/api';
+import axios from "axios";
 
 import ReactFlow, { Handle, Controls, Background, isEdge } from 'react-flow-renderer';
 

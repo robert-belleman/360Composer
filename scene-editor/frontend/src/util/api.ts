@@ -1,5 +1,11 @@
 import axios from "axios";
 
+// Create an Axios instance with the base URL
+export const api = axios.create({
+  baseURL: 'http://localhost:8080',
+  withCredentials: true
+});
+
 export const logIn = async (username: string, password: string) => {
   return await axios.post(`/api/user/login`, {
     username: username,
@@ -41,7 +47,13 @@ export const getAssets = async (activeProject: string) => {
 };
 
 export const initHLS = async (assetId: string) => {
-  return await axios.put(`/api/asset/${assetId}/stream`);
+  const response = await axios.put(`/api/asset/${assetId}/stream`, null, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  });
+  return response;
 };
 
 export const exportVideoEdits = async (activeProject: string, data: any) => {

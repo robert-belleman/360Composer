@@ -210,9 +210,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, annotations, 
         console.debug("Attaching HLS.js");
 
         const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
-        // TODO: check if asset is HLS encoded.
-        const hlsSource = `/assets/${video.path}`;
-
+        let hlsSource = `/assets/${video.hls_path ? video.hls_path : video.path}`;
+        
         if (Hls.isSupported()) {
             hls.loadSource(hlsSource);
             hls.attachMedia(videoElement);

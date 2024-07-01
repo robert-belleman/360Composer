@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React,  { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
+import { api } from '../../util/api';
 import axios from "axios";
 
 import {
@@ -25,8 +26,7 @@ const ScenePlayer: React.FC = () => {
     const { scene_id }: EditorPageParams = useParams();
 
     const fetchObjects = async () => {
-        axios
-            .get(`/api/scenes/` + scene_id + `/objects`, {})
+        axios.get(`/api/scenes/` + scene_id + `/objects`, {})
             .then((res) => {setObjects(res.data); console.log(res); loadMeshes(res.data);} )
             .catch(() => {
                 // setError(true);

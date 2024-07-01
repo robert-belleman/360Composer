@@ -1,6 +1,7 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
+import { api } from '../../util/api';
+import axios from "axios";
 
 import {range} from 'lodash';
 
@@ -49,19 +50,20 @@ type ScenarioTileProps = {
   setWarningState: any;
 };
 
-const Alert = (props: AlertProps) => {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
+const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
+  return <MuiAlert elevation={6} variant="filled" ref={ref} {...props} />;
+});
 
-const ScenarioSnackbar = ({open, message, severity, handleClose}:any) => {
+const ScenarioSnackbar = ({ open, message, severity, handleClose }: any) => {
   return (
     <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
       <Alert onClose={handleClose} severity={severity}>
         {message}
       </Alert>
     </Snackbar>
-  )
-}
+  );
+};
+
 
 const DeleteWarningDialog = ({open, id, handleClose, handleDelete}:any) => {
   return (

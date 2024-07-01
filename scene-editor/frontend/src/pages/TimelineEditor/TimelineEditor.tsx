@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import arrayMove from 'array-move';
 
-import axios from 'axios';
+import { api } from '../../util/api';
+import axios from "axios";
 
 import { View } from '../../types/views';
 import TopBar from "../../components/TopBar";

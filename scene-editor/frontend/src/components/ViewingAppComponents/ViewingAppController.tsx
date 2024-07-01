@@ -2,6 +2,7 @@
  *  the video and annotation data of the current scene to the viewing app implementation.
  *  The implementation components then communicates the actions of the user back to the controller.
  */
+import { api } from '../../util/api';
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import ViewingAppAframe from "./ViewingAppAframe";
@@ -22,8 +23,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     // Request the scene data of the given id
     const fetchSceneData = async (id: string) => {
-        axios
-          .get(`/api/scenes/${id}/`)
+        axios.get(`/api/scenes/${id}/`)
           .then((res) => {setScene(res.data)})
           .catch((e) => {
             console.log(e);
@@ -75,7 +75,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     };
 
     // Sets a new scenario. Is only called when there is a timeline id.
-    // TODO: Set next scenario in order in stead of starting over.
+    // TODO: Set next scenario in order instead of starting over.
     const setNewScenario = () => {
         // Randomly select the next scenario.
         if (timeline.randomized) {

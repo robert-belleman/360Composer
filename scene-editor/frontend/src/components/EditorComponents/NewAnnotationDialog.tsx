@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -22,6 +22,7 @@ import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+import { api } from '../../util/api';
 import axios from "axios";
 
 import "./NewAnnotationDialog.scss";
@@ -44,7 +45,7 @@ type NewAnnotationDialogProps = {
     onAnnotationCreated: any;
 };
 
-const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeStamp, open, closeHandler, onAnnotationCreated}) => {
+const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>(({ sceneID, timeStamp, open, closeHandler, onAnnotationCreated }, ref) => {
   type AnnotationOption = {
     value: string;
     feedback: string;
@@ -299,5 +300,6 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewAnnotationDialog;

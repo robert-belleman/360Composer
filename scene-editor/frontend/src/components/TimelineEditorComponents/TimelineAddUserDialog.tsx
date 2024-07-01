@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 import { useSelector } from 'react-redux';
 
 import { makeStyles, createStyles } from '@mui/styles';
@@ -23,6 +23,7 @@ import Skeleton from '@mui/material/Skeleton';
 
 import PersonIcon from '@mui/icons-material/Person';
 
+import { api } from '../../util/api';
 import axios from "axios";
 
 const theme = createTheme();
@@ -44,7 +45,7 @@ type NewAssetDialog = {
     addedUsers:string[];
 };
 
-const NewAssetDialog: React.FC<NewAssetDialog> = ({timelineID, open, closeHandler, onUsersAdded, addedUsers}) => {
+const NewAssetDialog = forwardRef<HTMLDivElement, NewAssetDialog>(({timelineID, open, closeHandler, onUsersAdded, addedUsers}, ref) => {
   const userID = useSelector((state:any) => state.token.id)
 
   const [users, setUsers] = useState([] as any);
@@ -133,6 +134,6 @@ const NewAssetDialog: React.FC<NewAssetDialog> = ({timelineID, open, closeHandle
         </DialogActions>
       </Dialog>
   );
-}
+});
 
 export default NewAssetDialog;

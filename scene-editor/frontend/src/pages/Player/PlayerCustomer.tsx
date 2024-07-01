@@ -2,7 +2,8 @@
 *   to view the viewing application.
 */
 
-import axios from 'axios';
+import { api } from '../../util/api';
+import axios from "axios";
 import React,  { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
 import { Button, Container, Grid, TextField } from '@mui/material';
@@ -32,10 +33,10 @@ const PlayerCustomer: React.FC = () => {
         <Container>
             <Grid container spacing={2}>
                 <Grid className='player-title' xs={8} item={true} >
-                    <h1>360 COMPOSER</h1>
+                    <h1>360COMPOSER</h1>
                 </Grid>
                 <Grid xs={12} item={true}>
-                    <h2>Welcome to 360 Composer. Please enter your user code to start.</h2>
+                    <h2>Welcome to 360Composer. Please enter your user code to start.</h2>
                 </Grid>
                 <Grid xs={8} item={true}>
                     <TextField

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 
 import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
@@ -22,6 +22,7 @@ import Skeleton from '@mui/material/Skeleton';
 
 import PersonIcon from '@mui/icons-material/Person';
 
+import { api } from '../../util/api';
 import axios from "axios";
 
 const theme = createTheme();
@@ -44,7 +45,7 @@ type NewScenarioDialog = {
   addedScenarios:string[];
 };
 
-const NewScenarioDialog: React.FC<NewScenarioDialog> = ({projectID, timelineID, open, closeHandler, onScenariosAdded, addedScenarios}) => {
+const NewScenarioDialog = forwardRef<HTMLDivElement, NewScenarioDialog>(({projectID, timelineID, open, closeHandler, onScenariosAdded, addedScenarios}, ref) => {
   const [scenarios, setScenarios] = useState([] as any);
   const [checked, setChecked] = useState([] as any[]);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
@@ -132,6 +133,6 @@ const NewScenarioDialog: React.FC<NewScenarioDialog> = ({projectID, timelineID, 
         </DialogActions>
       </Dialog>
   );
-}
+});
 
 export default NewScenarioDialog;

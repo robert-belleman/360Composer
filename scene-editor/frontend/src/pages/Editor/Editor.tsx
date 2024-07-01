@@ -50,6 +50,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
+import { api } from '../../util/api';
 import axios from "axios";
 
 import Hls from "hls.js";
@@ -136,8 +137,7 @@ const Editor: React.FC = () => {
     const [lightIntensity, setLightIntensity]: any = useState(0);
 
     const fetchSceneData = async () => {
-        axios
-          .get(`/api/scenes/${scene_id}/`)
+        axios.get(`/api/scenes/${scene_id}/`)
           .then((res) => {setScene(res.data); return res.data;})
           .then(fetchAssets)
           .catch((e) => {
@@ -172,8 +172,7 @@ const Editor: React.FC = () => {
      * Fetches the objects that are stored in the database for this scene
      */
     const fetchSceneObjects = async () => {
-      axios
-          .get(`/api/scenes/${scene_id}/objects`, {})
+      axios.get(`/api/scenes/${scene_id}/objects`, {})
           .then((res) => {setObjects(res.data); console.log(res); loadMeshes(res.data);} )
           .catch(() => {
               console.log("Could not load assets")

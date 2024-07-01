@@ -4,7 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import {range} from 'lodash';
 
-import axios from 'axios';
+import { api } from '../../util/api';
+import axios from "axios";
 
 import { makeStyles, createStyles } from '@mui/styles';
 import { createTheme } from '@mui/material/styles';
