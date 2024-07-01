@@ -55,8 +55,8 @@ class Thumbnail(Resource):
     Handles requests related to fetching asset thumbnails.
     """
 
-    @user_jwt_required
-    @project_access_required
+    # @user_jwt_required
+    # @project_access_required
     def get(self, id):
         """
         Fetches the asset's thumbnail location and returns it as a file

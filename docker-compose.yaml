@@ -1,83 +1,47 @@
-version: '3'
-
 services:
-
-  backend: # port 5000
-    build:
-        context: ./scene-editor/backend
-        dockerfile: ops/Dockerfile
+  backend:
+    # image: ghcr.io/visualisationlab/360composer-backend
     image: backend
-    container_name: backend
     environment:
         DATABASE_URI: "postgresql://postgres:${DATABASE_PASSWORD}@postgres/postgres_pcitvr"
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
         JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-        DEBUG: 1
     volumes:
-        - type: bind
-          source: ./scene-editor/backend
-          target: /app
-          read_only: True
-        - type: bind
-          source: ./assets
-          target: /assets
+      - type: volume
+        source: assets
+        target: /assets
     command: bash -c "/entrypoint.sh"
-    depends_on:
-        - postgres
-        - redis
+    depends_on: [postgres, redis]
+    restart: unless-stopped
+    # ports:
+    #   - "8080:8080"
 
   redis:
     image: redis
+    restart: unless-stopped
 
   postgres:
     image: postgres:15
-    container_name: postgres-db
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - type: volume
+        source: postgres
+        target: /var/lib/postgresql/data
     environment:
         - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
         - POSTGRES_USER=postgres
         - POSTGRES_DB=postgres_pcitvr
-    ports:
-      - 5433:5432
+    restart: unless-stopped
 
-  # adminer:
-  #   image: adminer
-  #   depends_on:
-  #     - postgres
-  #   ports:
-  #     - 8081:8081
-
-  nginx:
-    image: nginx
-    depends_on:
-      - backend
-      - frontend
+  frontend:
+    # image: ghcr.io/visualisationlab/360composer-frontend
+    image: frontend
+    ports: [8080:8080]
     volumes:
-      - type: bind
-        source: ./scene-editor/frontend/ops/nginx-dev.conf
-        target: /etc/nginx/conf.d/default.conf
-        read_only: true
-      - type: bind
-        source: ./assets
+      - type: volume
+        source: assets
         target: /assets
-        read_only: true
-    ports:
-      - 8080:8080
-
-  frontend: # port 3000
-    image: node:18
-    volumes:
-      - type: bind
-        source: ./scene-editor/frontend
-        target: /app
-    environment:
-      HOST: 0.0.0.0
-      NODE_ENV: development
-      NODE_OPTIONS: --openssl-legacy-provider
-    working_dir: /app
-    entrypoint: npm
-    command: start
+    restart: unless-stopped
 
 volumes:
+  assets:
   postgres:
