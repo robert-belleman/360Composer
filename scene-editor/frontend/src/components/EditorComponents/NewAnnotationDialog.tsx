@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -43,8 +43,7 @@ type NewAnnotationDialogProps = {
     onAnnotationCreated: any;
 };
 
-const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeStamp, open, closeHandler, onAnnotationCreated}) => {
-  type AnnotationOption = {
+const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>(({ sceneID, timeStamp, open, closeHandler, onAnnotationCreated }, ref) => {  type AnnotationOption = {
     value: string;
     feedback: string;
   }
@@ -298,5 +297,6 @@ const NewAnnotationDialog: React.FC<NewAnnotationDialogProps> = ({sceneID, timeS
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewAnnotationDialog;

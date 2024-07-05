@@ -1,10 +1,7 @@
 import axios from "axios";
 
 // Create an Axios instance with the base URL
-export const api = axios.create({
-  // baseURL: 'http://localhost:8080',
-  // withCredentials: true,
-});
+export const api = axios;
 
 export const logIn = async (username: string, password: string) => {
   return await api.post(`/api/user/login`, {

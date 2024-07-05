@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, forwardRef} from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Chip from '@mui/material/Chip';
@@ -18,7 +18,7 @@ type NewUserDialog = {
     userID: string;
 };
 
-const NewUserDialog: React.FC<NewUserDialog> = ({open, userID, closeHandler, onUserCreated}) => {
+const NewUserDialog = forwardRef<HTMLDivElement, NewUserDialog>(({open, userID, closeHandler, onUserCreated}, ref) => {
   const [name, setName] = useState("")
   const [accessCode, setAccessCode] = useState("")
   const [tag, setTag] = useState("")
@@ -92,5 +92,6 @@ const NewUserDialog: React.FC<NewUserDialog> = ({open, userID, closeHandler, onU
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewUserDialog;

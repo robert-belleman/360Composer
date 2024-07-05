@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 import { useNavigate } from "react-router-dom";
 
 import { range } from 'lodash';
@@ -45,9 +45,10 @@ type ScenarioTileProps = {
   setWarningState: any;
 };
 
-const Alert = (props: AlertProps) => {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
+
+const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
+  return <MuiAlert elevation={6} variant="filled" ref={ref} {...props} />;
+});
 
 const ScenarioSnackbar = ({open, message, severity, handleClose}:any) => {
   return (

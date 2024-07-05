@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, forwardRef} from 'react';
 import { useSelector } from 'react-redux';
 
 import Button from '@mui/material/Button';
@@ -16,9 +16,7 @@ type NewProjectDialogProps = {
     onProjectCreated: any;
 };
 
-
-
-const NewProjectDialog: React.FC<NewProjectDialogProps> = ({open, closeHandler, onProjectCreated}) => {
+const NewProjectDialog = forwardRef<HTMLDivElement, NewProjectDialogProps>(({open, closeHandler, onProjectCreated}, ref) => {
   const token = useSelector((state:any) => state.token);
   const [text, setText] = useState("");
 
@@ -63,5 +61,6 @@ const NewProjectDialog: React.FC<NewProjectDialogProps> = ({open, closeHandler, 
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewProjectDialog;

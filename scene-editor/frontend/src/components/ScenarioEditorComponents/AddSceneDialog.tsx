@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
@@ -34,7 +34,7 @@ type NewSceneDialogType = {
   onScenesAdded: any;
 };
 
-const NewSceneDialog: React.FC<NewSceneDialogType> = ({projectID, scenarioID, open, closeHandler, onScenesAdded}) => {
+const NewSceneDialog = forwardRef<HTMLDivElement, NewSceneDialogType>(({projectID, scenarioID, open, closeHandler, onScenesAdded}, ref) => {
   const [scenes, setScenes] = useState([] as any);
   const [checked, setChecked] = useState([] as any[]);
   const [loadingScenes, setLoadingScenes] = useState(true);
@@ -130,6 +130,6 @@ const NewSceneDialog: React.FC<NewSceneDialogType> = ({projectID, scenarioID, op
         </DialogActions>
       </Dialog>
   );
-}
+});
 
 export default NewSceneDialog;

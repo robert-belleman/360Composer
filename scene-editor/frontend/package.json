@@ -2,7 +2,7 @@
   "name": "scene-editor",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/",
+  "homepage": "app/",
   "dependencies": {
     "@babylonjs/core": "^7.7.0",
     "@babylonjs/gui": "^7.7.0",

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, forwardRef} from 'react';
 import { useSelector } from 'react-redux';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -16,7 +16,7 @@ type NewSceneDialogProps = {
     onSceneCreated: any;
 };
 
-const NewAssetDialog: React.FC<NewSceneDialogProps> = ({activeProject, open, closeHandler, onSceneCreated}) => {
+const NewAssetDialog = forwardRef<HTMLDivElement, NewSceneDialogProps>(({ activeProject, open, closeHandler, onSceneCreated }, ref) => {
   const token = useSelector((state:any) => state.token)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -86,5 +86,6 @@ const NewAssetDialog: React.FC<NewSceneDialogProps> = ({activeProject, open, clo
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewAssetDialog;

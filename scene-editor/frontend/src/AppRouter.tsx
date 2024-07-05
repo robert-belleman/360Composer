@@ -24,18 +24,14 @@ import Player from "./pages/Player/Player";
 
 const AppRouter: React.FC = () => {
     // TODO: routes should be protected in the future
-    const token = useSelector((state:any) => state.token);
+    const token = useSelector((state:any) => state.token)
     const hasUserToken = () => token.id !== "" && token.id !== null && token.role === 'user';
     const hasCustomerToken = () => token.id !== "" && token.id !== null && token.role === 'customer';
     const dispatch = useDispatch();
 
     useEffect(() => {
         if (!hasUserToken() && !hasCustomerToken()) {
-            try {
-                dispatch(retrieveToken());
-            } catch (error) {
-                console.error('Error during token retrieval', error);
-            }
+            dispatch(retrieveToken())
         }
     }, [])
 
@@ -55,15 +51,15 @@ const AppRouter: React.FC = () => {
                 <Route path="/app/users" element={<Dashboard view={View.Users}/>}></Route>
                 <Route path="/app/settings" element={<Settings/>}></Route>
                 <Route path="/app/test" element={<ViewingAppTest/>}/>
-                <Route path="/app/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
-                <Route path="/app/preview-player/:type/:id" element={<Player/>} />
                 <Route path="/app/*" element={<Navigate to="/app/projects" />} />
+                <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
+                <Route path="/app/preview-player/:type/:id" element={<Player/>} />
             </Routes>
         </BrowserRouter>:
             hasCustomerToken() ?
             <BrowserRouter basename={process.env.BASEPATH}>
                 <Routes>
-                    <Route path="/app/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
+                    <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                     <Route path="/app/*" element={<Login/>} />
                 </Routes>
             </BrowserRouter>
@@ -72,8 +68,8 @@ const AppRouter: React.FC = () => {
                 <Routes>
                     <Route path="/app/register" element={<Register/>}></Route>
                     <Route path="/app/register-done" element={<RegisterDone/>}></Route>
-                    <Route path="/app/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                     <Route path="/app/*" element={<Login/>} />
+                    <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                 </Routes>
             </BrowserRouter>
     );

@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, useEffect } from 'react';
+import React, { ReactElement, useState, useEffect, forwardRef } from 'react';
 import {useNavigate} from 'react-router-dom';
 
 import { range } from 'lodash';
@@ -86,7 +86,8 @@ const DeleteWarningDialog = ({open, id, handleClose, handleDelete}: any) => {
   )
 }
 
-const AddTimelineDialog = ({open, handleSubmit, handleClose}:DialogProps) => {
+// const UpdateTimelineDialog = forwardRef<HTMLDivElement, UpdateTimelineDialogProps>(({timeline, open, closeHandler, onTimelineUpdated}, ref) => {
+const AddTimelineDialog = forwardRef<HTMLDivElement, DialogProps>(({open, handleSubmit, handleClose}, ref) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -135,7 +136,7 @@ const AddTimelineDialog = ({open, handleSubmit, handleClose}:DialogProps) => {
         </DialogActions>
       </Dialog>
   )
-}
+});
 
 const TimelineView = ({activeProject, fullWidth}: TimelineViewProps): ReactElement => {
   const navigate = useNavigate();

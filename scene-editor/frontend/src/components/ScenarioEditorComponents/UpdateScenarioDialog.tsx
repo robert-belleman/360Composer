@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -16,7 +16,7 @@ type UpdateScenarioDialogProps = {
     onScenarioUpdated: any;
 };
 
-const UpdateScenarioDialog: React.FC<UpdateScenarioDialogProps> = ({scenarioID, scenario, open, closeHandler, onScenarioUpdated}) => {
+const UpdateScenarioDialog = forwardRef<HTMLDivElement, UpdateScenarioDialogProps>(({scenarioID, scenario, open, closeHandler, onScenarioUpdated}, ref) => {
   const [state, setState] = useState(scenario)
 
   const updateScenario = async () => {
@@ -84,5 +84,6 @@ const UpdateScenarioDialog: React.FC<UpdateScenarioDialogProps> = ({scenarioID, 
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default UpdateScenarioDialog;

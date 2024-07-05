@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, forwardRef} from 'react';
 import { useSelector } from 'react-redux';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -17,7 +17,7 @@ type NewScenarioDialogProps = {
     onScenarioCreationFailed:any;
 };
 
-const NewScenarioDialog: React.FC<NewScenarioDialogProps> = ({activeProject, open, closeHandler, onScenarioCreated, onScenarioCreationFailed}) => {
+const NewScenarioDialog = forwardRef<HTMLDivElement, NewScenarioDialogProps>(({ activeProject, open, closeHandler, onScenarioCreated, onScenarioCreationFailed }, ref) => {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
 
@@ -84,5 +84,6 @@ const NewScenarioDialog: React.FC<NewScenarioDialogProps> = ({activeProject, ope
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewScenarioDialog;

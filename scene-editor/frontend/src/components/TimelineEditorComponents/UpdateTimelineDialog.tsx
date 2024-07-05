@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -15,7 +15,7 @@ type UpdateTimelineDialogProps = {
     onTimelineUpdated: any;
 };
 
-const UpdateTimelineDialog: React.FC<UpdateTimelineDialogProps> = ({timeline, open, closeHandler, onTimelineUpdated}) => {
+const UpdateTimelineDialog = forwardRef<HTMLDivElement, UpdateTimelineDialogProps>(({timeline, open, closeHandler, onTimelineUpdated}, ref) => {
   const [state, setState] = useState(timeline)
 
   const updateTimeline = async () => {
@@ -79,5 +79,6 @@ const UpdateTimelineDialog: React.FC<UpdateTimelineDialogProps> = ({timeline, op
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default UpdateTimelineDialog;

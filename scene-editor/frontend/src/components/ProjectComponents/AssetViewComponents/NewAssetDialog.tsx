@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 
 import { concat } from 'lodash'
 
@@ -21,7 +21,7 @@ type NewAssetDialogType = {
     onAssetCreated: any;
 };
 
-const NewAssetDialog: React.FC<NewAssetDialogType> = ({activeProject, open, closeHandler, onAssetCreated}) => {
+const NewAssetDialog = forwardRef<HTMLDivElement, NewAssetDialogType>(({ activeProject, open, closeHandler, onAssetCreated }, ref) => {
   const [showProgress, setShowProgess] = useState(false);
   const [files, setFiles] = useState([] as any[])
 
@@ -95,5 +95,6 @@ const NewAssetDialog: React.FC<NewAssetDialogType> = ({activeProject, open, clos
         </DialogActions>
       </Dialog>
   );
-}
+});
+
 export default NewAssetDialog;
