@@ -86,7 +86,6 @@ const DeleteWarningDialog = ({open, id, handleClose, handleDelete}: any) => {
   )
 }
 
-// const UpdateTimelineDialog = forwardRef<HTMLDivElement, UpdateTimelineDialogProps>(({timeline, open, closeHandler, onTimelineUpdated}, ref) => {
 const AddTimelineDialog = forwardRef<HTMLDivElement, DialogProps>(({open, handleSubmit, handleClose}, ref) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
