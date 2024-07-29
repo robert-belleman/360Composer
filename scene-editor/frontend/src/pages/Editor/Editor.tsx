@@ -279,7 +279,6 @@ const Editor: React.FC = () => {
       if (babylonScene !== undefined) {
           console.log("starting mapping of objects")
 
-
           objects.map((object: any) => {
             // only load objects that are not yet in the list
               SceneLoader.ImportMesh(

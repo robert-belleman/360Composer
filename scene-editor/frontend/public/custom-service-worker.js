@@ -12,7 +12,11 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  console.log(event);
+  if (event.request.method !== 'GET') {
+    // Only cache GET requests, skip others (e.g., POST)
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -27,10 +31,7 @@ self.addEventListener('fetch', (event) => {
 
         const responseToCache = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
-          // if (event.request.url.includes('/api/') || event.request.url.endsWith('.mp4') || event.request.url.endsWith('.m3u8')) {
-          console.log("caching", event.request, responseToCache);
           cache.put(event.request, responseToCache);
-          // }
         });
 
         return response;
