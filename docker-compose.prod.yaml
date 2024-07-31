@@ -2,8 +2,8 @@ version: '3'
 
 services:
   backend:
-    # image: ghcr.io/visualisationlab/360composer-backend
-    image: backend
+    image: ghcr.io/slashizard/360composer-backend
+    # image: backend
     environment:
         DATABASE_URI: "postgresql://postgres:${DATABASE_PASSWORD}@postgres/postgres_pcitvr"
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
@@ -35,8 +35,8 @@ services:
     restart: unless-stopped
 
   frontend:
-    # image: ghcr.io/visualisationlab/360composer-frontend
-    image: frontend
+    image: ghcr.io/slashizard/360composer-frontend
+    # image: frontend
     ports: [8080:8080]
     volumes:
       - type: volume
