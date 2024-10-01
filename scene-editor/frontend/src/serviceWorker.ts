@@ -41,7 +41,6 @@ export function register(config?: Config) {
 
     window.addEventListener('load', () => {
       const swUrl = `${process.env.PUBLIC_URL}/custom-service-worker.js`;
-
       if (isLocalhost) {
         // This is running on localhost. Let's check if a service worker still exists or not.
         checkValidServiceWorker(swUrl, config);
@@ -64,7 +63,7 @@ export function register(config?: Config) {
 
 function registerValidSW(swUrl: string, config?: Config) {
   navigator.serviceWorker
-    .register(swUrl)
+    .register(swUrl, { scope: '/' })
     .then(registration => {
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
@@ -114,10 +113,7 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
     .then(response => {
       // Ensure service worker exists, and that we really are getting a JS file.
       const contentType = response.headers.get('content-type');
-      if (
-        response.status === 404 ||
-        (contentType !== null && contentType.indexOf('javascript') === -1)
-      ) {
+      if (response.status === 404 || (contentType !== null && contentType.indexOf('javascript') === -1)) {
         // No service worker found. Probably a different app. Reload the page.
         navigator.serviceWorker.ready.then(registration => {
           registration.unregister().then(() => {

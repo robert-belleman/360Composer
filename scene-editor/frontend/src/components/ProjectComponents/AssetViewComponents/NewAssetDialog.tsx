@@ -11,7 +11,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
 import NewAssetDropzone from './NewAssetDropzone';
-import { api } from '../../../util/api';
+import { api, initHLS } from '../../../util/api';
 
 
 type NewAssetDialogType = {
@@ -31,9 +31,9 @@ const NewAssetDialog = forwardRef<HTMLDivElement, NewAssetDialogType>(({ activeP
     const requests = files.map((file:any) => {
       const data = new FormData(); 
       // @ts-ignore: 
-      data.append("file", file)
+      data.append("file", file);
       
-      return api.post(`/api/project/${activeProject}/assets?name=${file.name}`, data)
+      return api.post(`/api/project/${activeProject}/assets?name=${file.name}`, data);
     })
 
     Promise.all(requests)
@@ -43,7 +43,14 @@ const NewAssetDialog = forwardRef<HTMLDivElement, NewAssetDialogType>(({ activeP
         onAssetCreated();
       })
       .catch((e) => {
-        console.log(e)
+        if (e.message === "Request failed with status code 502") {
+          setShowProgess(false);
+          setFiles([]);
+          onAssetCreated();
+          // TODO: Display message that says HLS init is still in progress.
+        } else {
+          console.log(e);
+        }
       });
   };
 

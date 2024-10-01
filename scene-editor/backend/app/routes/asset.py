@@ -41,8 +41,6 @@ class Asset(Resource):
         Fetches the asset location from database and returns it as a file
         """
         asset = AssetModel.query.filter_by(id=id.split(".")[0]).first_or_404()
-        print("asset is")
-        print(asset)
         return asset
 
 

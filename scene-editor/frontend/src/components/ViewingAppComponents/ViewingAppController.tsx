@@ -10,21 +10,22 @@ interface ViewingAppControllerProps {
     sceneId?: string,
     scenarioId?: string,
     timelineId?: string,
+    offline?: boolean,
     onFinish?: Function
 }
 
-const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", onFinish}: ViewingAppControllerProps) => {
-    const [scene, setScene]: any  = useState(undefined);
+const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", offline=false, onFinish}: ViewingAppControllerProps) => {
+    const [scene, setScene]: any = useState(undefined);
     const [currentVideo, setCurrentVideo]: any = useState(undefined);
     const [currentAnnotations, setCurrentAnnotations]: any = useState(undefined);
-    const [scenario, setScenario]: any  = useState(undefined);
-    const [timeline, setTimeline]: any  = useState(undefined);
+    const [scenario, setScenario]: any = useState(undefined);
+    const [timeline, setTimeline]: any = useState(undefined);
 
     // Request the scene data of the given id
     const fetchSceneData = async (id: string) => {
         api
           .get(`/api/scenes/${id}/`)
-          .then((res) => {setScene(res.data)})
+          .then((res) => {setScene(res.data);})
           .catch((e) => {
             console.log(e);
           })
@@ -32,29 +33,29 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     // Request the video data of the given id
     const fetchVideo = async (id: string) => {
-        await api.get(`/api/asset/${id}`)
-             .then((res: any) => {setCurrentVideo(res.data)})
-             .catch((e:any) => console.log('Something went wrong while fetching video:', e));
+        await api.get(`/api/asset/${id}${offline ? '?cache=true' : ''}`)
+            .then((res: any) => {setCurrentVideo(res.data);})
+            .catch((e:any) => console.log('Something went wrong while fetching video:', e));
     };
 
     // Request the annotation data of the given id
     const fetchAnnotations = async (id: string) => {
         await api.get(`/api/scenes/${id}/annotations`)
-        .then((res:any) => handleAnnotationData(res.data))
-        .catch((e:any) => console.log('Something went wrong while fetching annotations:', e));
+            .then((res:any) => {handleAnnotationData(res.data);})
+            .catch((e:any) => console.log('Something went wrong while fetching annotations:', e));
     };
 
     // Request the scenario data of the given id
     const fetchScenarioData = async (id: string) => {
         await api.get(`/api/scenario/${id}/`)
-        .then((res:any) => setScenario(res.data))
+        .then((res:any) => {setScenario(res.data);})
         .catch((e:any) => console.log('Something went wrong while fetching scenario:', e));
     };
 
     // Request the timeline data of the given id
     const fetchTimelineData = async (id: string) => {
-        await api.get(`/api/timeline/${id}/export`)
-        .then((res:any) => setTimeline(res.data[0]))
+        await api.get(`/api/timeline/${id}/export${offline ? '?cache=true' : ''}`)
+        .then((res:any) => {setTimeline(res.data[0]);})
         .catch((e:any) => console.log('Something went wrong while fetching timeline:', e));
     };
 
@@ -79,12 +80,12 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     const setNewScenario = () => {
         // Randomly select the next scenario.
         if (timeline.randomized) {
-            const newScenario = timeline.scenarios[Math.floor(Math.random() * timeline.scenarios.length)]
-            setScenario(newScenario)
-            if(scenario) {
+            const newScenario = timeline.scenarios[Math.floor(Math.random() * timeline.scenarios.length)];
+            setScenario(newScenario);
+            if (scenario) {
                 const firstScene = newScenario.scenes.find((scene: any) => {return scene.id === newScenario.start_scene});
                 setNewScene(scenarioId ? firstScene.scene_id : firstScene.id);
-             }
+            }
             return;
         }
         const firstScenario = timeline.scenarios.find((scenario: any) => {return scenario.uuid === timeline.start});
@@ -135,31 +136,31 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     };
 
     useEffect(() => {
-        if(sceneId) {
+        if (sceneId) {
             fetchSceneData(sceneId);
         }
     }, [sceneId]);
 
     useEffect(() => {
-        if(scenarioId) {
+        if (scenarioId) {
             fetchScenarioData(scenarioId);
         }
     }, [scenarioId]);
 
     useEffect(() => {
-        if(timelineId) {
+        if (timelineId) {
             fetchTimelineData(timelineId);
         }
     }, [timelineId]);
 
     useEffect(() => {
         if (timeline) {
-            setNewScenario()
+            setNewScenario();
         }
     }, [timeline]);
 
     useEffect(() => {
-        if(scenario) {
+        if (scenario) {
             const firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
             setNewScene(scenarioId ? firstScene.scene_id : firstScene.id);
             return;
@@ -183,9 +184,10 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     return (currentVideo && currentAnnotations) ?
         <ViewingAppAframe
         video={currentVideo}
+        offline={offline}
         annotations={currentAnnotations}
         onFinish={onFinishScene}/>
-        : null
+        : null;
 };
 
 export default ViewingAppController;

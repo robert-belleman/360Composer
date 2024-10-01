@@ -2,9 +2,10 @@ import React, {useState} from 'react';
 
 import { range } from 'lodash';
 
-//import { Container, Draggable } from "react-smooth-dnd";
-
 import { createTheme } from '@mui/material/styles';
+
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -38,9 +39,51 @@ type ScenarioListProps = {
   deleteCheckedScenarios: any;
   loadingTimelineScenarios: any;
   onSortEnd: any;
-}
+};
 
-const TimelineScenarioList:React.FC<ScenarioListProps> = ({
+// React DnD Item type
+const ItemType = "SCENARIO_ITEM";
+
+// Scenario Item Component (Drag and Drop)
+const ScenarioItem = ({ scenario, index, moveItem, checked, handleToggle }: any) => {
+  const [, ref] = useDrag({
+    type: ItemType,
+    item: { index },
+  });
+
+  const [, drop] = useDrop({
+    accept: ItemType,
+    hover: (draggedItem: any) => {
+      if (draggedItem.index !== index) {
+        moveItem(draggedItem.index, index);
+        draggedItem.index = index;
+      }
+    },
+  });
+
+  return (
+    <ListItem ref={(node) => ref(drop(node))} key={`${scenario.id}-${index}`} button>
+      <ListItemAvatar className="drag-handle">
+        <DragHandleIcon />
+      </ListItemAvatar>
+      <ListItemText
+        id={scenario.id}
+        primary={`${!scenario.randomized ? `${index + 1}. ` : ""}${scenario.scenario.name}`}
+        secondary={scenario.scenario.description}
+      />
+      <ListItemSecondaryAction>
+        <Checkbox
+          edge="end"
+          onChange={handleToggle(scenario.id)}
+          checked={checked.indexOf(scenario.id) !== -1}
+          inputProps={{ "aria-labelledby": scenario.id }}
+        />
+      </ListItemSecondaryAction>
+    </ListItem>
+  );
+};
+
+const TimelineScenarioList: React.FC<ScenarioListProps> = ({
   projectID,
   timelineID,
   randomized,
@@ -49,9 +92,9 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
   deleteCheckedScenarios,
   onSortEnd,
   loadingTimelineScenarios
-}:ScenarioListProps) => {
+}: ScenarioListProps) => {
   const [scenarioDialogOpen, setScenarioDialogOpen] = useState(false);
-  const [checked, setChecked] = useState([] as any[])
+  const [checked, setChecked] = useState([] as any[]);
 
   const handleToggle = (value: number) => () => {
     const currentIndex = checked.indexOf(value);
@@ -68,113 +111,123 @@ const TimelineScenarioList:React.FC<ScenarioListProps> = ({
 
   const onScenariosAdded_ = () => {
     setScenarioDialogOpen(false);
-    onScenariosAdded()
-  }
+    onScenariosAdded();
+  };
 
+  const moveItem = (fromIndex: number, toIndex: number) => {
+    const updatedScenarios = [...timelineScenarios];
+    const [movedItem] = updatedScenarios.splice(fromIndex, 1);
+    updatedScenarios.splice(toIndex, 0, movedItem);
+    onSortEnd(updatedScenarios);
+  };
 
-  const ScenarioItem = ({scenario, i}:any) => (
-    <ListItem key={`${scenario.id}-${i}`} button>
-      <ListItemAvatar className="drag-handle">
-        <DragHandleIcon/>
-      </ListItemAvatar>
-      <ListItemText
-        id={scenario.id}
-        primary={`${!randomized ? `${i+1}. ` : ''}${scenario.scenario.name}`}
-        secondary={scenario.scenario.description} 
-      />
-      <ListItemSecondaryAction>
-          <Checkbox
-            edge="end"
-            onChange={handleToggle(scenario.id)}
-            checked={checked.indexOf(scenario.id) !== -1}
-            inputProps={{ 'aria-labelledby': scenario.id }}
-          />
-      </ListItemSecondaryAction>
-    </ListItem>
-  )
-
-  const ScenarioList = ({scenarios} :any) => (
-    <List sx={{ height: 300, width: 400, overflow: 'auto' }}>
-      {/*<Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onSortEnd}>
-        {scenarios.map((scenario:any, i:number) => (
-          <Draggable key={scenario.id}>
-            <ScenarioItem key={scenario.id} i={i} scenario={scenario} />
-          </Draggable>
-        ))}
-      </Container>*/}
+  const ScenarioList = ({scenarios}: any) => (
+    <List sx={{ height: 300, width: 400, overflow: "auto" }}>
+      {scenarios.map((scenario: any, i: number) => (
+        <ScenarioItem
+          key={scenario.id}
+          index={i}
+          scenario={scenario}
+          moveItem={moveItem}
+          checked={checked}
+          handleToggle={handleToggle}
+        />
+      ))}
     </List>
-  )
+  );
 
   const renderScenarios = () => {
     if (timelineScenarios.length === 0) {
-      return <Box sx={{ height: 300, width: 400, overflow: 'auto' }}><Typography variant="subtitle1" component="p">No scenarios have been added yet</Typography></Box>
+      return (
+        <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
+          <Typography variant="subtitle1" component="p">
+            No scenarios have been added yet
+          </Typography>
+        </Box>
+      );
     }
 
-    return <ScenarioList scenarios={timelineScenarios} onSortEnd={onSortEnd} useDragHandle/>
-  }
+    return <ScenarioList scenarios={timelineScenarios}/>;
+  };
 
   const deleteChecked = () => deleteCheckedScenarios(checked)
-    .then(() => setChecked([]))
+    .then(() => setChecked([]));
 
   const renderScenariosList = () => {
     if (loadingTimelineScenarios) {
       return (
         <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
-          {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
+          {range(6).map((elem: number) => ( <Skeleton key={elem} animation="wave" /> ))}
         </Box>
-      )
+      );
     }
 
     return renderScenarios();
-  }
+  };
 
   return (
-    <Paper elevation={0} variant="outlined"
-    sx={{
-      padding: theme.spacing(2),
-      boxSizing: 'border-box'
-    }}
-    >
-      <Typography variant="h4" component="p"
+    <DndProvider backend={HTML5Backend}>
+      <Paper
+        elevation={0}
+        variant="outlined"
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          fontSize: '1.1rem',
-          fontWeight: 700,
-          color: '#2196f3',
-          marginBottom: 10
+          padding: theme.spacing(2),
+          boxSizing: "border-box",
         }}
       >
-        <AccountTreeIcon style={{marginRight:5}}/> Scenarios
-      </Typography>
-      {renderScenariosList()}
-      <Grid container>
-        <Grid item xs={4}>
-          <Button style={{marginTop: 10}} color="primary" startIcon={<AddIcon />} onClick={() => setScenarioDialogOpen(true)}>Add</Button>
+        <Typography
+          variant="h4"
+          component="p"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            fontSize: "1.1rem",
+            fontWeight: 700,
+            color: "#2196f3",
+            marginBottom: 10,
+          }}
+        >
+          <AccountTreeIcon style={{ marginRight: 5 }} /> Scenarios
+        </Typography>
+        {renderScenariosList()}
+        <Grid container>
+          <Grid item xs={4}>
+            <Button
+              style={{ marginTop: 10 }}
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => setScenarioDialogOpen(true)}
+            >
+              Add
+            </Button>
+          </Grid>
+          <Grid item xs={2}>
+            <Box sx={{ flexGrow: 1 }}></Box>
+          </Grid>
+          <Grid item xs={6}>
+            <Button
+              style={{ marginTop: 10 }}
+              color="secondary"
+              startIcon={<DeleteIcon />}
+              disabled={checked.length === 0}
+              onClick={deleteChecked}
+            >
+              Remove
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item xs={2}>
-          <Box sx={{ flexGrow: 1 }}></Box>
-        </Grid>
-        <Grid item xs={6}>
-          <Button 
-            style={{marginTop: 10}}
-            color="secondary"
-            startIcon={<DeleteIcon />}
-            disabled={checked.length === 0}
-            onClick={deleteChecked}>Remove</Button>
-        </Grid>
-      </Grid>
-      <TimelineAddScenarioDialog
-        projectID={projectID!}
-        timelineID={timelineID}
-        open={scenarioDialogOpen}
-        closeHandler={() => setScenarioDialogOpen(false)}
-        onScenariosAdded={onScenariosAdded_}
-        addedScenarios={timelineScenarios.map((scenario:any) => scenario.id)}
-      />
-    </Paper>
-  )
-}
+        <TimelineAddScenarioDialog
+          projectID={projectID!}
+          timelineID={timelineID}
+          open={scenarioDialogOpen}
+          closeHandler={() => setScenarioDialogOpen(false)}
+          onScenariosAdded={onScenariosAdded_}
+          addedScenarios={timelineScenarios.map((scenario: any) => scenario.id)}
+        />
+      </Paper>
+    </DndProvider>
+  );
+};
 
 export default TimelineScenarioList;

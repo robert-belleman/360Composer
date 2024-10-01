@@ -45,9 +45,8 @@ ns = api.namespace("timeline")
 @ns.response(HTTPStatus.NOT_FOUND, "Timeline not found")
 @ns.param("id", "The timeline identifier")
 class Timeline(Resource):
-
-    @user_jwt_required
-    @project_access_required
+    @user_or_customer_jwt_required
+    @timeline_access_required
     @ns.marshal_with(timeline_schema)
     def get(self, id):
         timeline = TimelineModel.query.filter_by(id=id).first_or_404()

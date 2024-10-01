@@ -41,7 +41,7 @@ const ScenePlayer: React.FC = () => {
     let currentScene = undefined;
 
     const loadMeshes = (objects) => {
-        // console.log("Startig object mapping");
+        // console.log("Starting object mapping");
         if (currentScene !== undefined) {
             console.log("starting mapping of objects")
             

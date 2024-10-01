@@ -131,8 +131,46 @@ class ProjectAssets(Resource):
         path = base_name + extension
 
         # Only commit to database if files were uploaded and transcoded successfully
-        row = AssetModel(name=asset_name, user_id=project.user_id, path=path, asset_type=asset_type, thumbnail_path=meta['thumbnail_path'], width=meta["width"], height=meta["height"], duration=meta["duration"], file_size=meta["file_size"], projects=[project])
-        db.session.commit()
+        row = AssetModel(
+            name=asset_name,
+            user_id=project.user_id,
+            path=path,
+            asset_type=asset_type,
+            thumbnail_path=meta['thumbnail_path'],
+            width=meta["width"],
+            height=meta["height"],
+            duration=meta["duration"],
+            file_size=meta["file_size"],
+            projects=[project]
+        )
+
+        try:
+            # Determine path for HLS playlist.
+            asset = row  # Using the asset we're about to commit
+            base_name = asset.path.split(".")[0]
+            raw_video_path = Path(ASSET_DIR, base_name + ".mp4")
+
+            # Create a directory and store the HLS playlist there.
+            hls_output_dir = Path(ASSET_DIR, base_name)
+            hls_output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Call the function that creates the HLS playlist.
+            create_hls(raw_video_path, hls_output_dir)
+            hls_playlist = base_name + "/main.m3u8"
+
+            # Update the `hls_path` field of the asset.
+            asset.hls_path = hls_playlist
+
+            # Commit both asset creation and HLS path in one transaction
+            db.session.add(row)
+            db.session.commit()
+
+            return asset, HTTPStatus.OK
+
+        except Exception as e:
+            db.session.rollback()  # Roll back the transaction on failure
+            logging.error(f"Error during HLS initialization: {e}")
+            return {"message": "Internal server error"}, HTTPStatus.INTERNAL_SERVER_ERROR
 
         return row, HTTPStatus.CREATED
 

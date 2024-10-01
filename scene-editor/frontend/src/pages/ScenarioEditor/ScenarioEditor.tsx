@@ -136,8 +136,10 @@ const SceneNode = ({selected, data}:SceneNodeProps) => {
     event.preventDefault();
   }
 
-  const handleEdit = () => {
-    navigate(`/app/editor/${data.projectID}/${data.scene_id}?goBack=true`)
+  const handleEdit = (event:any) => {
+    navigate(`/app/editor/${data.projectID}/${data.scene_id}?goBack=true`);
+    event.stopPropagation();
+    event.preventDefault();
   }
 
   const renderHandles = () => data.actions.map((action:any, index:number) => {
@@ -199,7 +201,7 @@ const SceneNode = ({selected, data}:SceneNodeProps) => {
             <Typography variant="subtitle1" component="p" style={{fontSize: '0.8rem', color: '#cfcfcf', display: 'flex', alignItems: 'center', flexWrap: 'wrap'}}>{selected ? data.scene.name : 'Scene'}</Typography>
           </Grid>
           <Grid item xs={2}>
-            <IconButton onClick={handleEdit} style={{color: selected? 'white' : '#757575'}} size="small">
+            <IconButton className="nodrag" onClick={handleEdit} style={{color: selected? 'white' : '#757575'}} size="small">
               <EditIcon fontSize="inherit"/>
             </IconButton>
           </Grid>

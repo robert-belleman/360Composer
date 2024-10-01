@@ -32,12 +32,12 @@ const INITIAL_TIMELINE = {
   description: "",
   created_at: "",
   updated_at: ""
-}
+};
 
 const TimelineEditor = () => {
   const {projectID, timelineID} = useParams<'projectID' | 'timelineID'>();
 
-  const [timeline, setTimeline] = useState(INITIAL_TIMELINE)
+  const [timeline, setTimeline] = useState(INITIAL_TIMELINE);
   const [timelineScenarios, setTimelineScenarios] = useState([] as any[]);
 
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
@@ -50,7 +50,7 @@ const TimelineEditor = () => {
     fetchTimeline();
     setLoadingTimelineScenarios(true)
     fetchTimelineScenarios()
-  }, [])
+  }, []);
 
   const fetchTimeline = () => api.get(`/api/timeline/${timelineID}/`)
       .then((res:any) => setTimeline(res.data))
@@ -89,7 +89,7 @@ const TimelineEditor = () => {
       ...elem,
       next_scenario: i === length - 1 ? null : updatedIndexArr[i+1].id
     }))
-  }
+  };
 
   const onSortEnd = ({removedIndex, addedIndex}:any) => {
     const prevOrder = timelineScenarios;
@@ -101,16 +101,16 @@ const TimelineEditor = () => {
 
     updateOrder(updatedOrder)
       .catch((e) => { console.log('error in onSortEnd', e); setTimelineScenarios(prevOrder); })
-  }
+  };
 
   const onScenariosAdded = () => {
     setLoadingTimelineScenarios(true);
     fetchTimelineScenarios()
-  }
+  };
 
   const startPreview = () => {
     navigate(`/app/preview-player/timeline/${timelineID}`);
-  }
+  };
 
   const renderTop = () => (
     <div>
@@ -123,7 +123,7 @@ const TimelineEditor = () => {
         </Grid>
       </Grid>
     </div>
-  )
+  );
 
   return (
     <div>

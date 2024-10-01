@@ -50,6 +50,7 @@ const Alert = (props: AlertProps) => {
 }
 
 const TimelineSnackbar = ({open, message, severity, handleClose}: any) => {
+  if (!open) return null;
   return (
     <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
       <Alert onClose={handleClose} severity={severity}>
@@ -86,7 +87,7 @@ const DeleteWarningDialog = ({open, id, handleClose, handleDelete}: any) => {
   )
 }
 
-const AddTimelineDialog = forwardRef<HTMLDivElement, DialogProps>(({open, handleSubmit, handleClose}, ref) => {
+const AddTimelineDialog = ({open, handleSubmit, handleClose}: DialogProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -98,44 +99,44 @@ const AddTimelineDialog = forwardRef<HTMLDivElement, DialogProps>(({open, handle
   }
 
   const handleAdd = () => {
+    handleSubmit(name, description);
     resetState();
-    handleSubmit(name, description)
   }
 
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Add Timeline</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Please enter a name and description for the timeline.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
-            required
-          />
-          <TextField
-            margin="dense"
-            label="Description"
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            fullWidth
-            required
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancel} color="primary">Cancel</Button>
-          <Button onClick={handleAdd} color="primary">Add</Button>
-        </DialogActions>
-      </Dialog>
+      <DialogTitle id="form-dialog-title">Add Timeline</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Please enter a name and description for the timeline.
+        </DialogContentText>
+        <TextField
+          autoFocus
+          margin="dense"
+          label="Name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          fullWidth
+          required
+        />
+        <TextField
+          margin="dense"
+          label="Description"
+          type="text"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          fullWidth
+          required
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCancel} color="primary">Cancel</Button>
+        <Button onClick={handleAdd} color="primary">Add</Button>
+      </DialogActions>
+    </Dialog>
   )
-});
+};
 
 const TimelineView = ({activeProject, fullWidth}: TimelineViewProps): ReactElement => {
   const navigate = useNavigate();
@@ -163,11 +164,11 @@ const TimelineView = ({activeProject, fullWidth}: TimelineViewProps): ReactEleme
 
   const handleDelete = (id:string) => {
     api.post(`/api/timeline/${id}/delete`, {project_id: activeProject})
-      .then(() => setWarningState({open: false, id: ""}))
-      .then(() => setAlertState({open: true, message: "Successfully deleted timeline", severity: "success"}))
       .then(fetchTimelines)
+      .then(() => setWarningState({open: false, id: ""}))
+      // .then(() => setAlertState({open: true, message: "Successfully deleted timeline", severity: "success"}))
       .catch((e) => {
-        setAlertState({open: true, message: "Something went wrong while deleting timeline", severity: "error"});
+        // setAlertState({open: true, message: "Something went wrong while deleting timeline", severity: "error"});
         setWarningState({open: false, id: ""});
       })
   }
@@ -175,8 +176,8 @@ const TimelineView = ({activeProject, fullWidth}: TimelineViewProps): ReactEleme
   const handleAddTimeline = (name:string, description:string) => {
     api.post(`/api/project/${activeProject}/timelines`, {name, description, randomized: true})
       .then(() => { setDialogOpen(false); fetchTimelines(); })
-      .then(() => setAlertState({open: true, message: "Successfully created timeline", severity: "success"}))
-      .catch((e) => setAlertState({open: true, message: "Something went wrong while creating timeline", severity: "error"}))
+      // .then(() => setAlertState({open: true, message: "Successfully created timeline", severity: "success"}))
+      // .catch((e) => setAlertState({open: true, message: "Something went wrong while creating timeline", severity: "error"}))
   }
 
   const handleAlertClose = () => {
