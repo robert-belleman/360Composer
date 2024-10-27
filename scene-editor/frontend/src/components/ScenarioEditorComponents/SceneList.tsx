@@ -50,7 +50,7 @@ const SceneList:React.FC<SceneListProps> = ({isLoading, scenes, addHandler}:Scen
 
   const renderLoadingElement = () => range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))
 
-  return isLoading ? (<Box sx={{ height: 300, width: 400, overflow: 'auto' }}>{renderLoadingElement()}</Box>) : (<List sx={{ height: 300, width: 400, overflow: 'auto' }}>{createListItems()}</List>)
+  return isLoading ? (<Box sx={{ overflow: 'auto' }}>{renderLoadingElement()}</Box>) : (<List sx={{ overflow: 'auto' }}>{createListItems()}</List>)
 }
 
 export default SceneList

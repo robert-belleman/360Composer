@@ -100,11 +100,6 @@ const SceneTile: React.FC<SceneTileProps> = ({ name, id, activeProject, descript
     <Grid item xs={12} md={6} lg={fullWidth ? 3 : 6} xl={fullWidth ? 3 : 4}>
       <Card style={{backgroundColor: '#eeeeee'}} variant="outlined">
         <CardHeader
-          action={
-            <IconButton aria-label="settings" size="large">
-              <MoreVertIcon />
-            </IconButton>
-          }
           titleTypographyProps={{variant:"subtitle1"}}
           title={name}
           subheader={created_at}

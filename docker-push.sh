@@ -7,5 +7,5 @@ set -ex
 # docker buildx build -t 'ghcr.io/visualisationlab/360composer-backend'  -f scene-editor/backend/ops/Dockerfile  --push scene-editor/backend
 # docker buildx build -t 'ghcr.io/visualisationlab/360composer-frontend' -f scene-editor/frontend/ops/Dockerfile --push scene-editor/frontend
 
-docker buildx build -t 'ghcr.io/SlashiZard/360composer-backend'  -f scene-editor/backend/ops/Dockerfile  --push scene-editor/backend
-docker buildx build -t 'ghcr.io/SlashiZard/360composer-frontend' -f scene-editor/frontend/ops/Dockerfile --push scene-editor/frontend
+docker buildx build -t 'ghcr.io/slashizard/360composer-backend'  -f scene-editor/backend/ops/Dockerfile  --push scene-editor/backend
+docker buildx build -t 'ghcr.io/slashizard/360composer-frontend' -f scene-editor/frontend/ops/Dockerfile --push scene-editor/frontend

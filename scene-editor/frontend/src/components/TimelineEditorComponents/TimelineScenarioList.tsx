@@ -122,7 +122,7 @@ const TimelineScenarioList: React.FC<ScenarioListProps> = ({
   };
 
   const ScenarioList = ({scenarios}: any) => (
-    <List sx={{ height: 300, width: 400, overflow: "auto" }}>
+    <List sx={{ overflow: "auto" }}>
       {scenarios.map((scenario: any, i: number) => (
         <ScenarioItem
           key={scenario.id}
@@ -139,7 +139,7 @@ const TimelineScenarioList: React.FC<ScenarioListProps> = ({
   const renderScenarios = () => {
     if (timelineScenarios.length === 0) {
       return (
-        <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
+        <Box sx={{ overflow: 'auto' }}>
           <Typography variant="subtitle1" component="p">
             No scenarios have been added yet
           </Typography>
@@ -156,7 +156,7 @@ const TimelineScenarioList: React.FC<ScenarioListProps> = ({
   const renderScenariosList = () => {
     if (loadingTimelineScenarios) {
       return (
-        <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
+        <Box sx={{ overflow: 'auto' }}>
           {range(6).map((elem: number) => ( <Skeleton key={elem} animation="wave" /> ))}
         </Box>
       );

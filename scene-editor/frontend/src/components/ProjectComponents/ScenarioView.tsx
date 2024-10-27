@@ -93,11 +93,6 @@ const ScenarioTile: React.FC<ScenarioTileProps> = ({ name, activeProject, id, de
     <Grid item xs={12} md={6} lg={fullWidth ? 3 : 6} xl={fullWidth ? 3 : 4}>
       <Card variant="outlined" style={{backgroundColor: '#eeeeee'}}>
         <CardHeader
-          action={
-            <IconButton aria-label="settings" size="large">
-                <MoreVertIcon />
-            </IconButton>
-          }
           titleTypographyProps={{variant:"subtitle1"}}
           title={name}
           subheader={created_at}

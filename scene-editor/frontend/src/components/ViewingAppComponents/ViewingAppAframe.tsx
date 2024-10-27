@@ -169,7 +169,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     const onVideoLoaded = () => {
         console.debug('Video loaded');
         // If the starting menu is open. Do not start playing.
-        // if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
+        if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
         playVideo();
         setAppState({
             ...appState,

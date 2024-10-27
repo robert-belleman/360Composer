@@ -93,13 +93,13 @@ const NewAssetDialog = forwardRef<HTMLDivElement, NewAssetDialog>(({timelineID, 
   const renderUserList = () => {
     if (loadingUsers) {
       return (
-        <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
+        <Box sx={{ overflow: 'auto' }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
         </Box>
       )
     }
 
-    return (<List sx={{ height: 300, width: 400, overflow: 'auto' }}>{users.map(createUser)}</List>)
+    return (<List sx={{ overflow: 'auto' }}>{users.map(createUser)}</List>)
   }
 
   return (

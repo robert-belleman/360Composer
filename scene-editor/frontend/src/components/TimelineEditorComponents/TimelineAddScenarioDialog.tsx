@@ -92,13 +92,13 @@ const NewScenarioDialog = forwardRef<HTMLDivElement, NewScenarioDialog>(({projec
   const renderScenarioList = () => {
     if (loadingScenarios) {
       return (
-        <Box sx={{ height: 300, width: 400, overflow: 'auto' }}>
+        <Box sx={{ overflow: 'auto' }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
         </Box>
       )
     }
 
-    return (<List sx={{ height: 300, width: 400, overflow: 'auto' }}>{scenarios.map(createScenario)}</List>)
+    return (<List sx={{ overflow: 'auto' }}>{scenarios.map(createScenario)}</List>)
   }
 
   return (

@@ -102,8 +102,6 @@ const NewSceneDialog = forwardRef<HTMLDivElement, NewSceneDialogType>(({projectI
     if (loadingScenes) {
       return (
         <Box sx={{
-          height: 300,
-          width: 400,
           overflow: 'auto'
         }}>
           {range(6).map((elem:number) => ( <Skeleton key={elem} animation="wave" /> ))}
@@ -111,7 +109,7 @@ const NewSceneDialog = forwardRef<HTMLDivElement, NewSceneDialogType>(({projectI
       )
     }
 
-    return (<List sx={{ height: 300, width: 400, overflow: 'auto' }}>{scenes.map(createScene)}</List>)
+    return (<List sx={{ overflow: 'auto' }}>{scenes.map(createScene)}</List>)
   }
 
   return (
