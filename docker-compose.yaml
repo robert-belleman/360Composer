@@ -35,7 +35,7 @@ services:
   frontend:
     image: ghcr.io/slashizard/360composer-frontend
     # image: frontend
-    ports: [8080:8080]
+    ports: [8092:8092]
     volumes:
       - type: volume
         source: assets
