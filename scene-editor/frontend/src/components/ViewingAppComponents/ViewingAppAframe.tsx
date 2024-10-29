@@ -44,7 +44,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     // Plays the current video by id
     const playVideo: Function = () => {
-        const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
+        const videoElement: any = document.getElementById(`aframe-video`);
         if (!videoElement) { return };
         videoElement.play()
 
@@ -54,7 +54,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     // Pauses the current video
     const pauseVideo: Function = () => {
-        const videoElement: any = document.getElementById(`aframe-video-${video.id}`);
+        const videoElement: any = document.getElementById(`aframe-video`);
         if (!videoElement) { return };
         videoElement.pause();
     };
@@ -143,7 +143,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     const replay = () => {
         console.debug('Replay');
-        const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
+        const videoElement = document.getElementById(`aframe-video`) as HTMLMediaElement;
         videoElement.currentTime = 0;
         setAppState({
             started: true,
@@ -203,7 +203,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     }, [video]);
 
     useEffect(() => {
-        const videoElement = document.getElementById(`aframe-video-${video.id}`) as HTMLMediaElement;
+        const videoElement = document.getElementById(`aframe-video`) as HTMLMediaElement;
     
         if (offline) {
             // If offline, load the local video file directly
@@ -240,7 +240,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         <>
         <div id="video-player-root" style={{display: "none"}}>
             <video
-                id={`aframe-video-${video.id}`}
+                id={`aframe-video`}
                 playsInline
                 onTimeUpdate={(e: any) => onTimeUpdate(e.target.currentTime)}
                 autoPlay={false}
@@ -254,7 +254,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             background={{color: "black"}}
             embedded>
             <StereoComponent
-                    videoId={`aframe-video-${video.id}`}
+                    videoId={`aframe-video`}
                     stereoMode={video.view_type}
                     paused={!appState.videoPlaying}
                     loading={!appState.videoPlaying && !appState.menuEnabled}/>

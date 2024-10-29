@@ -48,15 +48,15 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     // Request the scenario data of the given id
     const fetchScenarioData = async (id: string) => {
         await api.get(`/api/scenario/${id}/`)
-        .then((res:any) => {setScenario(res.data);})
-        .catch((e:any) => console.log('Something went wrong while fetching scenario:', e));
+            .then((res:any) => {setScenario(res.data);})
+            .catch((e:any) => console.log('Something went wrong while fetching scenario:', e));
     };
 
     // Request the timeline data of the given id
     const fetchTimelineData = async (id: string) => {
         await api.get(`/api/timeline/${id}/export${offline ? '?cache=true' : ''}`)
-        .then((res:any) => {setTimeline(res.data[0]);})
-        .catch((e:any) => console.log('Something went wrong while fetching timeline:', e));
+            .then((res:any) => {setTimeline(res.data[0]);})
+            .catch((e:any) => console.log('Something went wrong while fetching timeline:', e));
     };
 
     const handleAnnotationData = (data: any) => {
