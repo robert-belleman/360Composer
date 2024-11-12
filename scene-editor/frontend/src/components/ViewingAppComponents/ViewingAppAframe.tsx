@@ -75,21 +75,30 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     // menuOptionCallback receives a response from the controller
     // when an option is submitted to the controller.
     const menuOptionCallback = (response: string) => {
+        console.log(response);
         switch(response) {
             // Exiting application. Exit VR and set to ended
             case 'exit': {
+                console.log('executing callback exit');
                 setAppState({
-                    ...appState,
-                    ended:true
+                    started: true,
+                    menuEnabled: false,
+                    videoPlaying: false,
+                    ended: true,
+                    videoLoaded: true
                 });
                 exitVR();
                 break;
             }
             // The action had no next step. Bring application to end screen
             case 'end': {
+                console.log('executing callback end');
                 setAppState({
-                    ...appState,
-                    ended:true
+                    started: true,
+                    menuEnabled: false,
+                    videoPlaying: false,
+                    ended: true,
+                    videoLoaded: true
                 });
                 break;
             }
@@ -118,31 +127,33 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     // (Currently only supports the first annotation.)
     const onTimeUpdate = (time: number) => {
         if (annotations) {
-            if (time >= annotations.timestamp) {
+            // console.log('annotations are', annotations);
+            // console.log('time is', time);
+            // console.log('timestamp is', annotations.timestamp)
+            if (time >= annotations.timestamp - 1) {
                 pauseVideo();
                 setAppState({
                     ...appState,
                     videoPlaying:false,
                     menuEnabled:true
                 });
+                // Pick first option automatically for load testing purposes
+                console.log(annotations);
+                console.log(annotations.options);
+                console.log(annotations.options[0]);
+                // setTimeout(() => {chosenMenuOption(annotations.options[0].id);}, 1000);
             }
         }
     };
 
     const onVideoEnded = () => {
-        console.debug('Video ended');
-        onFinish("", () => {return});
-        setAppState({
-            started: true,
-            menuEnabled: false,
-            videoPlaying: false,
-            ended: true,
-            videoLoaded: true
-        });
+        console.log('Video ended');
+        onFinish("", menuOptionCallback);
     }
 
     const replay = () => {
-        console.debug('Replay');
+        console.log('Replay');
+        onFinish("replay", () => {return});
         const videoElement = document.getElementById(`aframe-video`) as HTMLMediaElement;
         videoElement.currentTime = 0;
         setAppState({
@@ -167,9 +178,13 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     };
 
     const onVideoLoaded = () => {
-        console.debug('Video loaded');
+        console.log('Video loaded');
         // If the starting menu is open. Do not start playing.
-        // if (!appState.started) {setAppState({...appState, videoLoaded:true}); return};
+        if (!appState.started) {
+            setAppState({...appState, videoLoaded:true});
+            // setTimeout(() => {startVideo();}, 1000);
+            return;
+        }
         playVideo();
         setAppState({
             ...appState,

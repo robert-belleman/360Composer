@@ -48,7 +48,7 @@ export const initHLS = async (assetId: string) => {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-    },
+    }
   });
   return response;
 };

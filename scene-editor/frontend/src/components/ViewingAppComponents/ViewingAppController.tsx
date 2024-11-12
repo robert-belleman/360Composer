@@ -66,9 +66,11 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     // Sets a scene given an id
     const setNewScene = (id: string) => {
+        console.log('setNewScene');
         // timeline and scenario data are structured differently.
         if (timelineId) {
             const newScene = scenario.scenes.find((scene: any) => {return scene.id === id});
+            console.log("setting next scene", newScene);
             setScene(newScene);
         } else {
             fetchSceneData(id);
@@ -76,8 +78,9 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     };
 
     // Sets a new scenario. Is only called when there is a timeline id.
-    // TODO: Set next scenario in order in stead of starting over.
     const setNewScenario = () => {
+        console.log('setNewScenario');
+        console.log(timeline.randomized);
         // Randomly select the next scenario.
         if (timeline.randomized) {
             const newScenario = timeline.scenarios[Math.floor(Math.random() * timeline.scenarios.length)];
@@ -88,11 +91,26 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
             }
             return;
         }
-        const firstScenario = timeline.scenarios.find((scenario: any) => {return scenario.uuid === timeline.start});
-        setScenario(firstScenario);
+        // Select the next scenario in order, or loop to begin scenario if end is reached.
+        let nextScenario = scenario ?
+            timeline.scenarios.find((timelineScenario: any) => {return timelineScenario.uuid === scenario.next_scenario}) :
+            timeline.scenarios.find((timelineScenario: any) => {return timelineScenario.uuid === timeline.start});
+        if (!nextScenario) {
+            nextScenario = timeline.scenarios.find((timelineScenario: any) => {return timelineScenario.uuid === timeline.start});
+        }
+        console.log("setting next scenario", nextScenario);
+        setScenario(nextScenario);
+        // if (scenario) {
+        //     console.log('setting first scene');
+        //     const firstScene = nextScenario.scenes.find((scene: any) => {return scene.id === nextScenario.start_scene});
+        //     setNewScene(scenarioId ? firstScene.scene_id : firstScene.id);
+        // }
+        // const firstScenario = timeline.scenarios.find((scenario: any) => {return scenario.uuid === timeline.start});
+        // setScenario(firstScenario);
     }
 
     const onFinishScenario = () => {
+        console.log('onFinishScenario');
         // Replay current scenario.
         if (scenarioId) {
             const firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
@@ -104,33 +122,60 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     // Is called by the implementation component when an action is taken
     const onFinishScene = (actionId: string = "", callback: Function) => {
+        console.log('onFinishScene');
+        console.log('actionId is', actionId);
+
+        if (actionId === "replay") {
+            if (timelineId || scenarioId) {
+                onFinishScenario();
+            } else if (sceneId) {
+                setNewScene(scene.id);
+            }
+            return;
+        }
+
         // Call onFinish when scene is ended
         if (!actionId && onFinish) {onFinish(); return; }
         // If only playing scene reload scene
         if (!onFinish && sceneId) {
-            setNewScene(scene.id);
             callback('end');
             return;
         }
 
         // Find all links of current scene
         const sceneLinks: any = timelineId ? scene.links : scenario.scenes.find((targetScene: any) => targetScene.scene_id === scene.id).links;
+        console.log(sceneLinks);
 
         // If no action id load first scene
-        if (!actionId && !onFinish && !sceneId) { onFinishScenario(); callback('end'); return; }
+        if (!actionId && !onFinish && !sceneId) {
+            if (scenarioId) {
+                console.log('end2'); callback('end');
+            } else if (timelineId) {
+                const nextScenario = scenario.next_scenario;
+                if (nextScenario) {
+                    onFinishScenario();
+                } else {
+                    console.log('end2'); callback('end');
+                }
+            }
+            return;
+        }
 
         // If the current scene has no further actions, finish or end the scene depending on a onfinish function.
-        if (!sceneLinks.length && onFinish) { callback('exit'); onFinish(); return; }
-        if (!sceneLinks.length) { callback('end'); return; }
+        if (!sceneLinks.length && onFinish) { callback('exit'); console.log('exit1'); onFinish(); return; }
+        if (!sceneLinks.length) { callback('end'); console.log('end3'); return; }
 
         // Find the given action data.
         const action = sceneLinks.find((link:any) => link.action_id === actionId);
+        console.log(action);
 
         // If the action has no target, finish or end the scene depending on a onfinish function.
-        if (!action.target_id && onFinish) { callback('exit'); onFinish(); return; }
-        if (!action.target_id) { callback('end'); onFinishScenario(); return; }
+        if (!action.target_id && onFinish) { callback('exit'); console.log('exit2'); onFinish(); return; }
+        if (!action.target_id) { callback('end'); console.log('end4'); onFinishScenario(); return; }
 
         // Find the next scene given the action target.
+        console.log(scenario.scenes);
+        console.log(action.target_id);
         const newScene = scenario.scenes.find((targetScene: any) => targetScene.id === action.target_id);
         setNewScene(scenarioId ? newScene.scene_id : newScene.id);
     };
@@ -154,6 +199,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     }, [timelineId]);
 
     useEffect(() => {
+        console.log('timeline is', timeline);
         if (timeline) {
             setNewScenario();
         }
