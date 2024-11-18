@@ -100,6 +100,9 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     ended: true,
                     videoLoaded: true
                 });
+                setTimeout(() => {
+                    replay();
+                }, 3000);
                 break;
             }
             // Resume current video. (Currently no support from editor)
@@ -141,7 +144,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                 console.log(annotations);
                 console.log(annotations.options);
                 console.log(annotations.options[0]);
-                // setTimeout(() => {chosenMenuOption(annotations.options[0].id);}, 1000);
+                setTimeout(() => {chosenMenuOption(annotations.options[0].id);}, 2000);
             }
         }
     };
@@ -182,7 +185,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         // If the starting menu is open. Do not start playing.
         if (!appState.started) {
             setAppState({...appState, videoLoaded:true});
-            // setTimeout(() => {startVideo();}, 1000);
+            setTimeout(() => {startVideo();}, 1000);
             return;
         }
         playVideo();
