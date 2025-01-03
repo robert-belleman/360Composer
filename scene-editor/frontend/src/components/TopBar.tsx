@@ -17,7 +17,7 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
 
-import logo from "../static/images/levvel-logo.png";
+import logo from "../static/images/360_Composer_1.png";
 
 import "./TopBar.scss";
 
