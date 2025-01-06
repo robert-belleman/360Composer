@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 import { range } from 'lodash';
@@ -77,7 +77,7 @@ const ProjectOverview : React.FC = () => {
   const renderProject = (project:any) => (
     <Grid item xs={12} md={4} lg={3} key={project.id}>
       <Card variant="outlined">
-        <CardActionArea>
+        <CardActionArea component={Link} to={"/app/project/" + project.id}>
           <CardMedia
             component="img"
             alt={project.name}

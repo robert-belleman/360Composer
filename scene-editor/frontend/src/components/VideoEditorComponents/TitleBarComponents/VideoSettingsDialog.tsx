@@ -251,7 +251,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Save</Button>
+        <Button onClick={handleClose}>Cancel</Button>
         <Button onClick={handleSave} disabled={isExportButtonDisabled}>
           Export
         </Button>
