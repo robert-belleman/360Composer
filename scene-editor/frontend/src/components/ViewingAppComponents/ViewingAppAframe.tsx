@@ -229,21 +229,26 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             videoElement.src = videoSource;
             videoElement.addEventListener('loadedmetadata', onVideoLoaded);
         } else {
-            if (hls == undefined) {
-                console.warn("HLS not available");
-                return;
-            }
             // If online, use HLS or fallback to direct source
-            let hlsSource = `/assets/${video.hls_path || video.path}`;
-            if (Hls.isSupported()) {
-                hls.loadSource(hlsSource);
-                hls.attachMedia(videoElement);
-                hls.once(Hls.Events.FRAG_LOADED, onVideoLoaded);
-            } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-                videoElement.src = hlsSource;
+
+            /* If hls is not supported, or not available, load the unprocessed video */
+            if (hls == undefined || !video.hls_path) {
+                console.log("HLS is not supported (for this video), falling back to original.");
+                if (hls !== undefined) hls.detachMedia();
+                videoElement.src = `/assets/${video.path}`;
                 videoElement.addEventListener('loadedmetadata', onVideoLoaded);
             } else {
-                console.error("No HLS support");
+                let hlsSource = `/assets/${video.hls_path || video.path}`;
+                if (Hls.isSupported()) {
+                    hls.loadSource(hlsSource);
+                    hls.attachMedia(videoElement);
+                    hls.once(Hls.Events.FRAG_LOADED, onVideoLoaded);
+                } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoElement.src = hlsSource;
+                    videoElement.addEventListener('loadedmetadata', onVideoLoaded);
+                } else {
+                    console.error("No HLS support");
+                }
             }
         }
     

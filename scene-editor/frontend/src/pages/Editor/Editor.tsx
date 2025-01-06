@@ -372,25 +372,23 @@ const Editor: React.FC = () => {
     }
 
     const onVideoElemRef = useCallback((videoElem: any) => {
-      if (hls == undefined) {
-        console.warn("HLS not available");
-        return;
-      }
+      /* Dirty, but changing .src calls this routine again without videoElem being defined. */
+      if (videoElem == undefined) return;
 
-      /* If video is not Hls encoded, delay the creation of the video dome. */
-      if (!video.hls_path) {
-        console.log("Video has not been HLS encoded yet.")
-        return;
-      }
-
-      const hlsSource = `/assets/${video.hls_path}`;
-      if (Hls.isSupported()) {
-        hls.loadSource(hlsSource);
-        hls.attachMedia(videoElem);
-      } else if (videoElem.canPlayType('application/vnd.apple.mpegurl')) {
-        videoElem.src = hlsSource;
+      /* If hls is not supported, or not available, load the unprocessed video */
+      if (hls == undefined || !video.hls_path) {
+        console.log("HLS is not supported (for this video), falling back to original.");
+        videoElem.src = `/assets/${video.path}`;
       } else {
-        console.error("No HLS support");
+        const hlsSource = `/assets/${video.hls_path}`;
+        if (Hls.isSupported()) {
+          hls.loadSource(hlsSource);
+          hls.attachMedia(videoElem);
+        } else if (videoElem.canPlayType('application/vnd.apple.mpegurl')) {
+          videoElem.src = hlsSource;
+        } else {
+          console.error("No HLS support");
+        }
       }
 
       loadVideoBabylon(videoElem);
@@ -741,7 +739,7 @@ const Editor: React.FC = () => {
           <Grid item xs={8}>
             <Slider
               value={currentVideoTime}
-              disabled={!video || !video.hls_path}
+              disabled={!video || (!video.hls_path && !video.path)}
               defaultValue={0}
               min={0}
               max={currentVideoLength}
@@ -759,7 +757,8 @@ const Editor: React.FC = () => {
             <p>End: {valueLabelFormat(currentVideoLength)}</p>
           </Grid>
           <Grid item xs={12}>
-            {video && video.hls_path ? (playing ? stopButton : playButton) : hlsButton}
+            {video && (video.hls_path || video.path) && (playing ? stopButton : playButton)}
+            {video && !video.hls_path && hlsButton}
             {annotationButton}
           </Grid>
         </Grid>
