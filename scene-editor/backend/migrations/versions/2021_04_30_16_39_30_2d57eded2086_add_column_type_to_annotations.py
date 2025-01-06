@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('annotation', sa.Column('type', sa.Integer, nullable=False))
+    op.add_column('annotation', sa.Column('type', sa.Integer, nullable=False, server_default="0"))
 
 def downgrade():
     op.drop_column('annotation', 'type')
