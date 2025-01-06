@@ -53,7 +53,7 @@ const UpdateTimelineDialog = forwardRef<HTMLDivElement, UpdateTimelineDialogProp
             autoFocus
             margin="dense"
             id="name"
-            label="Scene Name"
+            label="Timeline Name"
             type="text"
             fullWidth
             value={state.name}
@@ -62,7 +62,7 @@ const UpdateTimelineDialog = forwardRef<HTMLDivElement, UpdateTimelineDialogProp
           <TextField
             margin="dense"
             id="description"
-            label="Scene Description"
+            label="Timeline Description"
             type="text"
             fullWidth
             value={state.description}

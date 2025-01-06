@@ -58,7 +58,7 @@ const UpdateScenarioDialog = forwardRef<HTMLDivElement, UpdateScenarioDialogProp
             autoFocus
             margin="dense"
             id="name"
-            label="Scene Name"
+            label="Scenario Name"
             type="text"
             fullWidth
             value={state.name}
@@ -67,7 +67,7 @@ const UpdateScenarioDialog = forwardRef<HTMLDivElement, UpdateScenarioDialogProp
           <TextField
             margin="dense"
             id="description"
-            label="Scene Description"
+            label="Scenario Description"
             type="text"
             fullWidth
             value={state.description}
