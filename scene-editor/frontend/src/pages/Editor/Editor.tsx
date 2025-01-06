@@ -666,16 +666,6 @@ const Editor: React.FC = () => {
               />
           </Paper>
         </Grid>
-        <Grid item xs={12}>
-          <Paper variant="outlined" className="listPaper" style={{minHeight: 250}}>
-            <Typography variant="h6" className="title">
-              Assets
-            </Typography>
-            <div className="listView">
-              <AssetList activeProject={scene?.project_id} onAddAsset={onAddAsset}/>
-            </div>
-          </Paper>
-        </Grid>
       </Grid>
     )
 
@@ -780,7 +770,7 @@ const Editor: React.FC = () => {
         <CardActionArea>
           <CardContent>
             <Typography style={{fontSize: 14}} color="textSecondary" gutterBottom>
-              Scenario Information
+              Scene Information
             </Typography>
             <Divider style={{marginBottom: 10}}/>
             <Typography gutterBottom variant="h5" component="h2">
