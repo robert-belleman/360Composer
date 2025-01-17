@@ -26,8 +26,30 @@ export const App: React.FC = () => {
         setHls(new Hls({
             startLevel: -1, // download lowest quality variant as speed test
             capLevelOnFPSDrop: true,
+            xhrSetup: (xhr, url) => {
+                const startTime = Date.now();
+                
+                // Configure the response type to get accurate file size
+                xhr.responseType = "arraybuffer";
+    
+                xhr.addEventListener("load", () => {
+                    const endTime = Date.now();
+                    const latency = (endTime - startTime) / 1000;
+    
+                    // Calculate the file size from the response
+                    const fileSizeBytes = xhr.response ? xhr.response.byteLength : 0;
+                    const fileSizeKilobytes = fileSizeBytes / 1024;
+    
+                    console.log(`[hls],${url},${endTime},${latency},${fileSizeKilobytes.toFixed(2)} KB`);
+                });
+
+                xhr.addEventListener("error", () => {
+                    console.error(`[HLS Error] URL: ${url}`);
+                });
+            },
         }));
     }, []);
+    
 
     return (
         <StyledEngineProvider injectFirst>
