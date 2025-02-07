@@ -60,7 +60,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     };
 
     const handleAnnotationData = (data: any) => {
-        // If a scene does not have any annotation data. Set annotation to empty array/
+        // If a scene does not have any annotation data. Set annotation to empty array.
         data.length ? setCurrentAnnotations(data[0]) : setCurrentAnnotations([]);
     };
 

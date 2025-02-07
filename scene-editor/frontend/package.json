@@ -22,6 +22,7 @@
     "aframe": "^1.4.0",
     "array-move": "^3.0.1",
     "axios": "^1.7.2",
+    "got": "^12.6.1",
     "hls.js": "^1.4.3",
     "lodash": "^4.17.20",
     "react": "^18.3.0",
@@ -83,6 +84,11 @@
   },
   "overrides": {
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "body-parser": "1.20.3",
+    "nth-check": ">=2.0.2",
+    "serve-static": "2.1.0",
+    "postcss": ">=8.4.31",
+    "got": "^12.6.1"
   }
 }

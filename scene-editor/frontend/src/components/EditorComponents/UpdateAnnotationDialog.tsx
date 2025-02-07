@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef } from 'react';
 
 import { concat } from 'lodash'
 
@@ -108,7 +108,7 @@ let tempId = 0
 let initialOptions: Array<string> = []
 let types: Array<AnnotationType> = []
 
-const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onError, videoLength}: UpdateAnnotationDialogProps) => {
+const UpdateAnnotationDialog = forwardRef<HTMLDivElement, UpdateAnnotationDialogProps>(({ sceneID, annotationID, open, closeHandler, onError, videoLength }, ref) => {
   const [annotation, setAnnotation] = useState(INITIAL_ANNOTATION)
   const [defaultOptions, setDefaultOptions] = useState(false);
 
@@ -526,6 +526,6 @@ const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onEr
         </DialogActions>
       </Dialog>
   );
-}
+});
 
 export default UpdateAnnotationDialog;
