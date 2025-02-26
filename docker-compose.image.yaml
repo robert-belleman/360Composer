@@ -1,0 +1,47 @@
+services:
+  backend:
+    image: ghcr.io/slashizard/360composer-backend
+    # image: backend
+    environment:
+        DATABASE_URI: "postgresql://postgres:${DATABASE_PASSWORD}@postgres/postgres_pcitvr"
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+        JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    volumes:
+      - type: volume
+        source: assets
+        target: /assets
+    command: bash -c "/entrypoint.sh"
+    depends_on: [postgres, redis]
+    restart: unless-stopped
+    # ports:
+    #   - "8080:8080"
+
+  redis:
+    image: redis
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    volumes:
+      - type: volume
+        source: postgres
+        target: /var/lib/postgresql/data
+    environment:
+        - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+        - POSTGRES_USER=postgres
+        - POSTGRES_DB=postgres_pcitvr
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/slashizard/360composer-frontend
+    # image: frontend
+    ports: [8092:8092]
+    volumes:
+      - type: volume
+        source: assets
+        target: /assets
+    restart: unless-stopped
+
+volumes:
+  assets:
+  postgres:

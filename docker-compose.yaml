@@ -1,20 +1,23 @@
+version: "3.2"
+
 services:
   backend:
-    image: ghcr.io/slashizard/360composer-backend
-    # image: backend
+    image: backend
+    build:
+      context: ./scene-editor/backend
+      dockerfile: ops/Dockerfile
     environment:
         DATABASE_URI: "postgresql://postgres:${DATABASE_PASSWORD}@postgres/postgres_pcitvr"
         DATABASE_PASSWORD: ${DATABASE_PASSWORD}
         JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+        DEBUG: 1
     volumes:
-      - type: volume
-        source: assets
+      - type: bind
+        source: ${PATH_ASSETS}
         target: /assets
     command: bash -c "/entrypoint.sh"
     depends_on: [postgres, redis]
     restart: unless-stopped
-    # ports:
-    #   - "8080:8080"
 
   redis:
     image: redis
@@ -23,8 +26,8 @@ services:
   postgres:
     image: postgres:15
     volumes:
-      - type: volume
-        source: postgres
+      - type: bind
+        source: ${PATH_DB}
         target: /var/lib/postgresql/data
     environment:
         - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
@@ -32,16 +35,44 @@ services:
         - POSTGRES_DB=postgres_pcitvr
     restart: unless-stopped
 
-  frontend:
-    image: ghcr.io/slashizard/360composer-frontend
-    # image: frontend
-    ports: [8092:8092]
+  nginx:
+    image: nginx
+    depends_on:
+      - backend
+      - frontend
     volumes:
-      - type: volume
-        source: assets
+      - type: bind
+        source: ${NGINX_CONF:-./conf/nginx-dev.conf}
+        target: /etc/nginx/conf.d/default.conf
+        read_only: true
+      - type: bind
+        source: ${SSL_CERT:-/dev/null}
+        target: /etc/ssl/certs/certificate.cer
+        read_only: true
+      - type: bind
+        source: ${SSL_PRIVKEY:-/dev/null}
+        target: /etc/ssl/private/certificate.key
+        read_only: true
+      - type: bind
+        source: ${PATH_ASSETS}
         target: /assets
+        read_only: false
+    ports:
+      - 8025:8080
     restart: unless-stopped
 
-volumes:
-  assets:
-  postgres:
+  frontend:
+    image: node:18
+    volumes:
+      - type: bind
+        source: ./scene-editor/frontend
+        target: /app
+    environment:
+      HOST: 0.0.0.0
+      NODE_ENV: development
+      NODE_OPTIONS: --openssl-legacy-provider
+    working_dir: /app
+    entrypoint: npm
+    command: start
+    restart: unless-stopped
+

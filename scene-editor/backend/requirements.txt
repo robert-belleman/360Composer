@@ -4,6 +4,7 @@ SQLAlchemy==1.4.*
 flask_sqlalchemy==2.5.*
 flask-migrate==4.*
 flask_jwt_extended==4.*
+pyjwt<2.10
 flask-cors==3.*
 werkzeug==2.*
 psycopg2-binary==2.9.*
