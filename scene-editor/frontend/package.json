@@ -34,7 +34,6 @@
     "react-helmet-async": "^2.0.5",
     "react-redux": "^7.2.6",
     "react-router-dom": "^6.0.2",
-    "react-scripts": "^5.0.1",
     "reactflow": "^11.11.3",
     "redux": "^4.0.0",
     "redux-persist": "^6.0.0",
@@ -44,11 +43,9 @@
     "three": "^0.126.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "postinstall": "patch-package"
+    "start": "vite --port 3000",
+    "build": "tsc -noEmit && vite build",
+    "preview": "vite preview"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -76,13 +73,16 @@
     "@types/react-helmet": "^6.1.11",
     "@types/react-redux": "^7.1.33",
     "@types/styled-components": "^5.1.16",
+    "@vitejs/plugin-react": "^4.3.4",
     "eslint-config-react-app": "^6.0.0",
     "patch-package": "^8.0.0",
     "redux-devtools-extension": "^2.13.9",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "vite": "^6.2.0"
   },
   "overrides": {
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "got": "^12.6.1"
   }
 }

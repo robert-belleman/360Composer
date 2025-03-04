@@ -37,7 +37,7 @@ const AppRouter: React.FC = () => {
 
     return (
         hasUserToken() ?
-        <BrowserRouter basename={process.env.BASEPATH}>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Routes>
                 <Route path="/app/video-editor/:projectID" element={<VideoEditor/>}></Route>
                 <Route path="/app/scenario-editor/:projectID/:scenarioID" element={<ScenarioEditor/>}></Route>
@@ -57,14 +57,14 @@ const AppRouter: React.FC = () => {
             </Routes>
         </BrowserRouter>:
             hasCustomerToken() ?
-            <BrowserRouter basename={process.env.BASEPATH}>
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
                 <Routes>
                     <Route path="/player/:timelineID/:uuID" element={<PlayerCustomer/>} />
                     <Route path="/app/*" element={<Login/>} />
                 </Routes>
             </BrowserRouter>
             :
-            <BrowserRouter basename={process.env.BASEPATH}>
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
                 <Routes>
                     <Route path="/app/register" element={<Register/>}></Route>
                     <Route path="/app/register-done" element={<RegisterDone/>}></Route>

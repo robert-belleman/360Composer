@@ -8,6 +8,8 @@ RUN npm ci && npm cache clean --force
 COPY src /app/src
 COPY public /app/public
 COPY tsconfig.json /app
+COPY vite.config.ts /app
+COPY index.html /app
 
 ENV NODE_OPTIONS=--openssl-legacy-provider
 
@@ -17,6 +19,6 @@ WORKDIR /
 
 FROM nginx
 
-COPY --from=build /app/build /var/www/html/app
+COPY --from=build /app/dist /var/www/html/app
 
 COPY ops/nginx-prod.conf /etc/nginx/conf.d/default.conf
