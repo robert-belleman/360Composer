@@ -43,7 +43,7 @@
     "three": "^0.126.1"
   },
   "scripts": {
-    "start": "vite --port 3000",
+    "start": "vite --host 0.0.0.0 --port 3000",
     "build": "tsc -noEmit && vite build",
     "preview": "vite preview"
   },
