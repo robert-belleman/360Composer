@@ -1,6 +1,3 @@
-/*  EndMenu manages the menu that is showed when the viewing application is in its starting state.
- *  It places the end menu on eye level in front of the user.
- */
 import React, { useEffect, useState } from "react";
 import 'aframe';
 import {
@@ -9,28 +6,27 @@ import {
     Text
 } from '@belivvr/aframe-react';
 import degToRad from "./DegToRad";
-import {Matrix4, Vector3} from'three';
+import {Matrix4, Vector3} from 'three';
 
-interface StartMenuProps {
-    onStart: Function
+interface StartPBProps {
+    onClick: Function
 }
 
-const StartMenu: React.FC<StartMenuProps> = ({onStart}: StartMenuProps) => {
-    const startTitle: string = "Welcome! Please look at play";
-    const startOption: string = "Play";
+const StartPlaybackMenu: React.FC<StartPBProps> = ({onClick}:StartPBProps) => {
+    const startTitle: string = " Please look to start recording";
+    const startPlaybackbOption: string = "Start Recording";
 
     const [rotation, setRotation] = useState<{x: number, y:number, z:number}>({x:0, y:0, z:0})
 
     // adds handleclick to menu option.
     useEffect(() => {
         const handleClick = (e: any) => {
-            onStart();
+            onClick();
         }
-
-        document.getElementById("startoption")?.addEventListener("click", handleClick);
+        document.getElementById("startPlaybackboption")?.addEventListener("click", handleClick);
 
         return () => {
-            document.getElementById("startoption")?.removeEventListener("click", handleClick);
+            document.getElementById("startPlaybackboption")?.removeEventListener("click", handleClick);
         };
     }, []);
 
@@ -40,7 +36,7 @@ const StartMenu: React.FC<StartMenuProps> = ({onStart}: StartMenuProps) => {
         setRotation(camera.getAttribute('rotation'));
     }, []);
 
-    // calculates the position where the menu should be placed
+    // calculates the position where the menu should be placed/
     const m = new Matrix4().makeTranslation(0,0,0);
     let position = new Vector3(-2 * Math.sin(degToRad(rotation.y)), 1.6, -2 * Math.cos(degToRad(rotation.y))).applyMatrix4(m);
 
@@ -55,17 +51,17 @@ const StartMenu: React.FC<StartMenuProps> = ({onStart}: StartMenuProps) => {
             <Plane
                 position={{ x: 0, y: -1/4 + ((-1)/2/4), z: 0}}
                 height={0.2}
-                id={'startoption'}
+                id={'startPlaybackboption'}
                 class={"intersectable"}
                 animation__fusing={{property: "components.material.material.color", type: "color",
                                     startEvents: ["fusing"], from: "white", to: "grey", dur: 50}}
                 animation__mouseleave={{property: "components.material.material.color", type: "color",
                                         startEvents: ["mouseleave"], to: "white", dur: 150}}
             >
-                <Text position={{ x: 0, y: 0, z: +0.01}} value={startOption} align={"center"} color={"black"} width={2} />
+                <Text position={{ x: 0, y: 0, z: +0.01}} value={startPlaybackbOption} align={"center"} color={"black"} width={2} />
             </Plane>
         </Entity>
     );
 };
 
-export default StartMenu;
+export default StartPlaybackMenu;

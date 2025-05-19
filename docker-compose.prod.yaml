@@ -59,6 +59,6 @@ services:
         target: /assets
         read_only: false
     ports:
-      - 18080:8080
+      - 8080:8080
     restart: unless-stopped
 

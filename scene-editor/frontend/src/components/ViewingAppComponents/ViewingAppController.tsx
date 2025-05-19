@@ -5,6 +5,9 @@
 import React, { useEffect, useState } from "react";
 import ViewingAppAframe from "./ViewingAppAframe";
 import { api } from "../../util/api";
+import Annotation from "../EditorComponents/Annotation";
+
+import { startRecord, stopRecord } from "../EditorComponents/recording";
 
 interface ViewingAppControllerProps {
     sceneId?: string,
@@ -14,10 +17,17 @@ interface ViewingAppControllerProps {
     onFinish?: Function
 }
 
+var current_annot_index = 0;
+var prev_annotation = -1;
+var curSceneID = "";
+// var curData;
+var curData: any = null;
+
 const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", offline=false, onFinish}: ViewingAppControllerProps) => {
     const [scene, setScene]: any = useState(undefined);
     const [currentVideo, setCurrentVideo]: any = useState(undefined);
     const [currentAnnotations, setCurrentAnnotations]: any = useState(undefined);
+    const [allAnnotations, setAllAnnotations]: any = useState(undefined);
     const [scenario, setScenario]: any = useState(undefined);
     const [timeline, setTimeline]: any = useState(undefined);
 
@@ -25,8 +35,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     const fetchSceneData = async (id: string) => {
         api
           .get(`/api/scenes/${id}/`)
-          .then((res) => {setScene(res.data);})
-          .catch((e) => {
+          .then((res:any) => {setScene(res.data);})
+          .catch((e:any) => {
             console.log(e);
           })
     };
@@ -45,6 +55,16 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
             .catch((e:any) => console.log('Something went wrong while fetching annotations:', e));
     };
 
+
+
+    const onStartRecording = async (callback: Function) => {
+        console.log("started recording in controller");
+        startRecord()
+        // await recording_test(5, onFinishRecording, callback);
+    };
+
+    // add a function to request the audio recording data
+
     // Request the scenario data of the given id
     const fetchScenarioData = async (id: string) => {
         await api.get(`/api/scenario/${id}/`)
@@ -59,9 +79,36 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
             .catch((e:any) => console.log('Something went wrong while fetching timeline:', e));
     };
 
+    const setNextAnnotation = async (callback: Function) => {
+        current_annot_index += 1;
+        prev_annotation += 1;
+        if (curData != null) {
+            console.log("\n curdata = " + curData);
+        }
+        else
+        {
+            console.log("aaaa");
+        }
+
+        if (curData) {
+            callback(curData[current_annot_index]);
+        }
+        else {
+            console.log("callback == null")
+            callback(null)
+        }
+    };
+
     const handleAnnotationData = (data: any) => {
         // If a scene does not have any annotation data. Set annotation to empty array/
-        data.length ? setCurrentAnnotations(data[0]) : setCurrentAnnotations([]);
+        if (data) {
+            console.log("setting curdata");
+            curData = data;
+        }
+        console.log(data)
+        console.log(data[current_annot_index])
+        data.length ? setCurrentAnnotations(data[current_annot_index]) : setCurrentAnnotations([]);
+        data.length ? setAllAnnotations(data) : setAllAnnotations([]);
     };
 
     // Sets a scene given an id
@@ -118,6 +165,21 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
             return;
         }
         setNewScenario();
+    }
+
+    const onStartPlayback = () => {}
+
+    const onFinishPlayback = (callback: Function) => {
+        // do stuff
+        callback();
+    }
+
+    const onFinishRecording = (callback: Function, res: string) => {
+        console.log('onFinishRecording');
+
+        // fetchAnnotations(scene.id)
+        stopRecord();
+        setNextAnnotation(callback);
     }
 
     // Is called by the implementation component when an action is taken
@@ -182,7 +244,9 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     useEffect(() => {
         if (sceneId) {
+            curSceneID = sceneId;
             fetchSceneData(sceneId);
+            // get_mic_rights();
         }
     }, [sceneId]);
 
@@ -232,6 +296,11 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         video={currentVideo}
         offline={offline}
         annotations={currentAnnotations}
+        allAnnotations={allAnnotations}
+        startRecord={onStartRecording}
+        stopRecord={onFinishRecording}
+        startPlayback={onStartPlayback}
+        stopPlayback={onFinishPlayback}
         onFinish={onFinishScene}/>
         : null;
 };

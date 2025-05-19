@@ -28,7 +28,8 @@ def upgrade():
     op.execute("INSERT INTO annotation_type(id, text) VALUES (1, 'Knikken/schudden')")
     op.execute("INSERT INTO annotation_type(id, text) VALUES (2, 'Blazen')")
     op.execute("INSERT INTO annotation_type(id, text) VALUES (3, 'Anders')")
-    op.execute("INSERT INTO annotation_type(id, text) VALUES (4, 'Geluidsopname')")
+    # op.execute("INSERT INTO annotation_type(id, text) VALUES (4, 'Geluidsopname')")
+    # op.execute("INSERT INTO annotation_type(id, text) VALUES (5, 'Geluidsplayback')")
 
     op.create_foreign_key(constraint_name='annotation_type_id_fkey', source_table='annotation', referent_table='annotation_type', local_cols=['type'], remote_cols=['id'])
 
