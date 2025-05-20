@@ -57,7 +57,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
 
 
-    const onStartRecording = async (callback: Function) => {
+    const onStartRecording = () => {
         console.log("started recording in controller");
         startRecord()
         // await recording_test(5, onFinishRecording, callback);
@@ -79,25 +79,6 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
             .catch((e:any) => console.log('Something went wrong while fetching timeline:', e));
     };
 
-    const setNextAnnotation = async (callback: Function) => {
-        current_annot_index += 1;
-        prev_annotation += 1;
-        if (curData != null) {
-            console.log("\n curdata = " + curData);
-        }
-        else
-        {
-            console.log("aaaa");
-        }
-
-        if (curData) {
-            callback(curData[current_annot_index]);
-        }
-        else {
-            console.log("callback == null")
-            callback(null)
-        }
-    };
 
     const handleAnnotationData = (data: any) => {
         // If a scene does not have any annotation data. Set annotation to empty array/
@@ -179,7 +160,10 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
         // fetchAnnotations(scene.id)
         stopRecord();
-        setNextAnnotation(callback);
+        // setNextAnnotation(callback);
+        console.log("using callback");
+        callback('OK');
+        return;
     }
 
     // Is called by the implementation component when an action is taken

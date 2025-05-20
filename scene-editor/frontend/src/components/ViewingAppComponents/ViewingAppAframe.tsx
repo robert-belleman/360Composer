@@ -158,8 +158,9 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             // console.log('annotations are', annotations);
             // console.log('time is', time);
             // console.log('timestamp is', annotations.timestamp)
+            console.log(appState.recordingEnded);
 
-            if (finishedRecording? time >= annotations.timestamp - 1: time >= allAnnotations[1].timestamp - 1) {
+            if (appState.recordingEnded? time >= allAnnotations[1].timestamp - 1: time >= allAnnotations[0].timestamp - 1) {
                 console.log("pausing video...");
                 pauseVideo();
                 setAppState({
@@ -193,10 +194,14 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     const startRecording = () => {
         setStartRecordingButton(false);
         setStopRecordingButton(true);
+        setAppState({
+            ...appState,
+            recordingStarted:true
+        });
         startRecord();
     }
     const stopRecording = () => {
-        stopRecord();
+        stopRecord(recordingCallback);
     }
 
     const AFramestopPlayback = () => {
@@ -207,19 +212,16 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     // set the current annotation to be next. this allows for the dialogue
     // options.
-    const record_callback = (next_annotation: any) => {
-        if (next_annotation != null) {
-            annotations = next_annotation;
-        }
-        else {
-            // startedRecording = true;
-            console.log("got null back");
-            annotations = allAnnotations[1];
-        }
+    const recordingCallback = (res: string) => {
+        console.log(res);
         console.log("annotation = ");
-        console.log(annotations);
+        console.log(allAnnotations[1]);
         console.log("restarting video");
         finishedRecording = true;
+        setAppState({
+            ...appState,
+            recordingEnded:true
+        });
         startVideo();
     }
 
@@ -360,9 +362,15 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             {startRecordingButtonOpen &&
              !appState.videoPlaying &&
              appState.menuEnabled &&
-             !appState.recordingStarted
+             !appState.recordingStarted &&
+             !appState.recordingEnded
              && annotations.type === 4 ? <StartRecordingMenu onClick={startRecording} /> : null}
-            {!stopRecordingButtonOpen && !appState.videoPlaying && appState.menuEnabled && appState.recordingStarted && annotations.type === 4 ? <EndRecordingMenu onClick={stopRecording} /> : null}
+            {stopRecordingButtonOpen &&
+            !appState.videoPlaying &&
+            appState.menuEnabled &&
+            appState.recordingStarted &&
+            !appState.recordingEnded &&
+            annotations.type === 4 ? <EndRecordingMenu onClick={stopRecording} /> : null}
             {appState.ended ? <EndMenu onEnd={replay}/> : null}
             {appState.menuEnabled && appState.started && !appState.ended ?
                 <Menu
@@ -414,13 +422,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                 ENTER VR
             </Button>
 
-            { startRecordingButtonOpen && !appState.videoPlaying && appState.menuEnabled && !appState.recordingStarted && annotations.type === 4? null :
-                null
-            }
-
-            { !stopRecordingButtonOpen && !appState.videoPlaying && appState.menuEnabled && appState.recordingStarted && annotations.type === 4? null :
-            null
-            }
         </>
     );
 };
