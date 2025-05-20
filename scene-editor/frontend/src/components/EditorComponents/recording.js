@@ -133,7 +133,7 @@ const saveFile = () => {
 
     window.URL.revokeObjectURL(blobUrl);
     chunks = [];
-    console.log("done :3");
+    console.log("done in js");
 }
 
 function uploadBlob(audioBlob) {
