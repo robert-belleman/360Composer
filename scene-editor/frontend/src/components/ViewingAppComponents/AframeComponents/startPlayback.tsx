@@ -13,8 +13,8 @@ interface StartPBProps {
 }
 
 const StartPlaybackMenu: React.FC<StartPBProps> = ({onClick}:StartPBProps) => {
-    const startTitle: string = " Please look to start recording";
-    const startPlaybackbOption: string = "Start Recording";
+    const startTitle: string = " Please look to start playback";
+    const startPlaybackbOption: string = "Start playback";
 
     const [rotation, setRotation] = useState<{x: number, y:number, z:number}>({x:0, y:0, z:0})
 

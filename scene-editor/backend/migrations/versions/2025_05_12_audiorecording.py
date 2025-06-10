@@ -20,26 +20,21 @@ depends_on = None
 
 def upgrade():
     # how the audio recordings are stored
-    op.create_table('audio_recording',
-        sa.Column('scenario', UUID(), nullable=False),
-        sa.Column('tag', sa.Integer(), nullable=False),
-        sa.Column('id', UUID(), nullable=False),
-        sa.PrimaryKeyConstraint('id')
+    op.create_table('audio_asset',
+        # sa.Column('id', UUID(), nullable=False),
+        sa.Column('scenario_id', UUID(), nullable=False),
+        sa.Column('customer_id', UUID(), nullable=False),
+        sa.Column('tag', sa.String(128), nullable=False),
+        sa.Column('path', sa.String(128), nullable=False),
+        sa.PrimaryKeyConstraint('scenario_id', 'customer_id', 'tag'),
+        # sa.ForeignKeyConstraint(['customer_id'], ['customer.id']),
+        # sa.ForeignKeyConstraint(['scenario_id'], ['scenario.id']),
     )
 
-    # op.create_table('audio_assets',
-    #     sa.Column('id', sa.Integer, nullable=False),
-    #     sa.Column('name', sa.Text(), nullable=False))
+    # add the tag parameter to the scene so the audio can be stored and
+    # retrieved properly
+    op.add_column('annotation', sa.Column('tag', sa.Text, nullable=False, server_default=""))
 
-    # how to decide which audio recording to play
-    op.create_table('playback_type',
-        sa.Column('id', sa.Integer, nullable=False),
-        sa.Column('text', sa.Text(), nullable=False),
-        sa.Column('timestamp', sa.Integer, nullable=False),
-        sa.PrimaryKeyConstraint('id'))
-
-    op.execute("INSERT INTO playback_type(id, text) VALUES (0, 'recorded audio')")
-    op.execute("INSERT INTO playback_type(id, text) VALUES (1, 'audio file')")
 
     # add the audio recording annotation types
     op.execute("INSERT INTO annotation_type(id, text) VALUES (4, 'Geluidsopname')")
@@ -50,4 +45,4 @@ def upgrade():
 
 def downgrade():
     op.drop_table('playback_type')
-    op.drop_table('audio_recording')
+    op.drop_table('audio_asset')

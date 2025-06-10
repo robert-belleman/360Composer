@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r /requirements.txt
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.app
 ENV ASSET_DIR=/assets
+ENV AUDIOASSET_DIR=/audio_assets
 
 COPY ops/entrypoint.sh /
 COPY ops/uwsgi.ini /

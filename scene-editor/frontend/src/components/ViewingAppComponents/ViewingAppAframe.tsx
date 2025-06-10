@@ -25,8 +25,6 @@ import { delay } from "lodash";
 import { HlsContext } from "../../App";
 import Hls from "hls.js";
 
-import { recording_test } from "../EditorComponents/recording";
-
 stereoscopic(AFRAME);
 
 interface ViewingAppAframeProps {
@@ -35,16 +33,13 @@ interface ViewingAppAframeProps {
     annotations: any,
     allAnnotations: any,
     startRecord: Function,
-    stopRecord: Function,
+    controllerStopRecord: Function,
     onFinish: Function,
     startPlayback: Function,
     stopPlayback: Function
 }
 
-var startedRecording: boolean = false;
-var finishedRecording: boolean = false;
-
-const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, annotations, allAnnotations, startRecord, stopRecord, startPlayback, stopPlayback, onFinish}: ViewingAppAframeProps) => {
+const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, annotations, allAnnotations, startRecord, controllerStopRecord, startPlayback, stopPlayback, onFinish}: ViewingAppAframeProps) => {
     const hls = useContext<Hls | undefined>(HlsContext);
 
     const [appState, setAppState] = useState({
@@ -55,15 +50,34 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         videoPlaying: false,
         ended: false,
         videoLoaded: false,
-        // startedPlayback: false,
-        // stoppedPlayback: false,
+
+        startRecMenu: false,
+        startedRec: false,
+        stopRecMenu: false,
+        finishedRec: false,
+
+        startPBMenu:false,
+        startedPB:false,
+        stopPBMenu:false,
+        finishedPB:false,
     });
 
     const [playButtonOpen, setPlayButtonOpen] = useState(false);
     const [startRecordingButtonOpen, setStartRecordingButton] = useState(false);
     const [stopRecordingButtonOpen, setStopRecordingButton] = useState(false);
-    const [startedPlayback, setStartedPlayback] = useState(false);
-    const [stoppenPlayback, setStoppedPlayback] = useState(false);
+
+    // reset these when new scene appears
+
+    const [startRecMenu, setStartRecMenu] = useState(false);
+    const [startRec, setStartRec] = useState(false);
+    const [finishRec, setFinishRec] = useState(false);
+    const [stopRecMenu, setStopRecMenu] = useState(false);
+
+    const [startPBMenu, setStartPBMenu] = useState(false);
+    const [startPB, setStartPB] = useState(false);
+    const [finishPB, setFinishPB] = useState(false);
+    const [stopPBMenu, setStopPBMenu] = useState(false);
+    // const [menuEnabled, setMenuEnabled] = useState(false);
 
     // Plays the current video by id
     const playVideo: Function = () => {
@@ -110,7 +124,15 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     recordingStarted: false,
                     recordingEnded: false,
                     ended: true,
-                    videoLoaded: true
+                    videoLoaded: true,
+                    startRecMenu:false,
+                    startedRec:false,
+                    stopRecMenu:false,
+                    finishedRec:false,
+                    startPBMenu:false,
+                    startedPB:false,
+                    stopPBMenu:false,
+                    finishedPB:false,
                 });
                 exitVR();
                 break;
@@ -125,7 +147,15 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     recordingEnded: false,
                     videoPlaying: false,
                     ended: true,
-                    videoLoaded: true
+                    videoLoaded: true,
+                    startRecMenu:false,
+                    startedRec:false,
+                    stopRecMenu:false,
+                    finishedRec:false,
+                    startPBMenu:false,
+                    startedPB:false,
+                    stopPBMenu:false,
+                    finishedPB:false,
                 });
                 break;
             }
@@ -141,52 +171,87 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     }
 
     // Communicate to controller which actionid was taken.
-    // try to have different actions depending on annotation type?
     const chosenMenuOption = (id: string) => {
         setAppState({
             ...appState,
             menuEnabled:false
         });
-        const actionId = annotations.options.find((option: any) => option.id === id).action.id;
+        var actionId;
+        if (allAnnotations.length > 1) {
+            actionId = second_annot().options.find((option: any) => option.id === id).action.id;
+        }
+        else {
+            actionId = first_annot().options.find((option: any) => option.id === id).action.id;
+        }
         onFinish(actionId, menuOptionCallback);
     };
+
+    const first_annot = () => {
+        if (allAnnotations.length === 1) {
+            return allAnnotations[0];
+        }
+
+        if (allAnnotations[0].timestamp > allAnnotations[1].timestamp) {
+            return allAnnotations[1]
+        }
+        else {
+            return allAnnotations[0]
+        }
+    }
+
+    const second_annot = () => {
+        if (allAnnotations[0].timestamp > allAnnotations[1].timestamp) {
+            return allAnnotations[0]
+        }
+        else {
+            return allAnnotations[1]
+        }
+    }
 
     // Checks if the video has reached the annotation and opens menu.
     // (Currently only supports the first annotation.)
     const onTimeUpdate = async (time: number) => {
-        if (annotations) {
+        if (allAnnotations) {
             // console.log('annotations are', annotations);
             // console.log('time is', time);
             // console.log('timestamp is', annotations.timestamp)
-            console.log(appState.recordingEnded);
-
-            if (appState.recordingEnded? time >= allAnnotations[1].timestamp - 1: time >= allAnnotations[0].timestamp - 1) {
-                console.log("pausing video...");
+            if ((finishRec || finishPB)? time >= second_annot().timestamp - 1: time >= first_annot().timestamp - 1) {
                 pauseVideo();
                 setAppState({
                     ...appState,
                     videoPlaying:false,
-                    menuEnabled:true
+                    menuEnabled:true,
                 });
 
                 // change to check for 4 or 5, then call corresponding function.
-                if (annotations.type === 4 && startedRecording === false) {
-                    console.log("using recording function ");
-                    startedRecording = true;
-                    setStartRecordingButton(true);
-                    // startRecord(record_callback);
+                if (first_annot().type === 4 && !startRec && !finishRec) {
+                    setAppState({
+                        ...appState,
+                        startRecMenu:true,
+                        startedRec: true,
+                        videoPlaying:false,
+                        menuEnabled:true
+                    });
+
+                    setStartRecMenu(true)
                 };
 
-                if (annotations.type === 5 && startedPlayback === false) {
-                    // useState()
-                    setStartedPlayback(true);
-                    startPlayback();
-                }
+                if (first_annot().type === 5 && !startPB && !finishPB) {
+                    setAppState({
+                        ...appState,
+                        startPBMenu:true,
+                        startedPB:true,
+                        videoPlaying:false,
+                        menuEnabled:true
+                    });
+
+                    setStartPBMenu(true)
+                };
 
                 // Pick first option automatically for load testing purposes
-                console.log(annotations);
-                console.log(annotations.options);
-                console.log(annotations.options[0]);
+                // console.log(annotations);
+                // console.log(annotations.options);
+                // console.log(annotations.options[0]);
             }
         }
     };
@@ -196,32 +261,47 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         setStopRecordingButton(true);
         setAppState({
             ...appState,
-            recordingStarted:true
+            recordingStarted:true,
+            stopRecMenu:true,
+            startedRec:true,
+            startRecMenu:false,
         });
+        // send api call function to javascript. let that send the file.
+        setStopRecMenu(true);
+        setStartRec(true)
         startRecord();
     }
-    const stopRecording = () => {
-        stopRecord(recordingCallback);
+    const stopRecording = async () => {
+        setAppState({
+            ...appState,
+            recordingStarted:true,
+            stopRecMenu:false,
+            finishedRec:true
+        });
+        setFinishRec(true);
+        controllerStopRecord(recordingCallback, first_annot().tag);
     }
 
     const AFramestopPlayback = () => {
-        stopPlayback();
+        setFinishPB(true);
+        // stopPlayback();
+        startVideo();
     }
 
-    const playback_callback = () => {}
+    const AFramestartPlayback = () => {
+        setStopPBMenu(true);
+        setStartPB(true)
+        startPlayback(first_annot().tag);
+    }
 
     // set the current annotation to be next. this allows for the dialogue
     // options.
     const recordingCallback = (res: string) => {
-        console.log(res);
-        console.log("annotation = ");
-        console.log(allAnnotations[1]);
-        console.log("restarting video");
-        finishedRecording = true;
         setAppState({
             ...appState,
             recordingEnded:true
         });
+        setFinishRec(true);
         startVideo();
     }
 
@@ -242,7 +322,15 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             recordingStarted: false,
             recordingEnded: false,
             ended: false,
-            videoLoaded: true
+            videoLoaded: true,
+            startRecMenu:false,
+            startedRec:false,
+            stopRecMenu:false,
+            finishedRec:false,
+            startPBMenu:false,
+            startedPB:false,
+            stopPBMenu:false,
+            finishedPB:false,
         });
         playVideo();
     };
@@ -258,6 +346,18 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         playVideo();
     };
 
+    const reset_states = () => {
+        setStartRecMenu(false);
+        setStopRecMenu(false);
+        setFinishRec(false);
+        setStartRec(false);
+
+        setStartPBMenu(false);
+        setStartPB(false)
+        setFinishPB(false);
+        setStopPBMenu(false)
+    }
+
     const onVideoLoaded = () => {
         console.log('Video loaded');
         // If the starting menu is open. Do not start playing.
@@ -265,6 +365,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             setAppState({...appState, videoLoaded:true});
             return;
         }
+        reset_states();
         playVideo();
         setAppState({
             ...appState,
@@ -359,22 +460,18 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     paused={!appState.videoPlaying}
                     loading={!appState.videoPlaying && !appState.menuEnabled}/>
             {!appState.started ? <StartMenu onStart={startVideo} /> : null}
-            {startRecordingButtonOpen &&
-             !appState.videoPlaying &&
-             appState.menuEnabled &&
-             !appState.recordingStarted &&
-             !appState.recordingEnded
-             && annotations.type === 4 ? <StartRecordingMenu onClick={startRecording} /> : null}
-            {stopRecordingButtonOpen &&
-            !appState.videoPlaying &&
-            appState.menuEnabled &&
-            appState.recordingStarted &&
-            !appState.recordingEnded &&
-            annotations.type === 4 ? <EndRecordingMenu onClick={stopRecording} /> : null}
+
+            {!startRec && startRecMenu && first_annot().type === 4 ? <StartRecordingMenu onClick={startRecording} /> : null}
+            {!startPB && startPBMenu && first_annot().type === 5 ? <StartPlaybackMenu onClick={AFramestartPlayback} /> : null}
+
+            {!finishRec && stopRecMenu && first_annot().type === 4 ? <EndRecordingMenu onClick={stopRecording} /> : null}
+            {!finishPB && stopPBMenu && first_annot().type === 5 ? <EndPlaybackgMenu onClick={AFramestopPlayback} /> : null}
+
             {appState.ended ? <EndMenu onEnd={replay}/> : null}
-            {appState.menuEnabled && appState.started && !appState.ended ?
+
+            {(first_annot().type === 0 ? true: (finishRec || finishPB)) && appState.menuEnabled && appState.started && !appState.ended && !appState.videoPlaying?
                 <Menu
-                            annotations={appState.recordingStarted && appState.recordingEnded? allAnnotations[1] : annotations}
+                            annotations={(finishRec || finishPB)? second_annot() : first_annot()}
                             enabled={appState.menuEnabled && appState.started && !appState.ended}
                             onOption={chosenMenuOption}/>
             : null}

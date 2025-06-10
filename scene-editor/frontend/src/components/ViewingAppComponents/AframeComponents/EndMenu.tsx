@@ -19,7 +19,7 @@ interface EndMenuProps {
 const EndMenu: React.FC<EndMenuProps> = ({onEnd}: EndMenuProps) => {
     const endTitle: string = "Thanks for playing";
     const endOption: string = "Play again";
-    
+
     const [rotation, setRotation] = useState<{x: number, y:number, z:number}>({x:0, y:0, z:0})
 
     // adds handleclick to menu option.
@@ -44,7 +44,7 @@ const EndMenu: React.FC<EndMenuProps> = ({onEnd}: EndMenuProps) => {
     // calculates the position where the menu should be placed
     const m = new Matrix4().makeTranslation(0,0,0);
     let position = new Vector3(-2 * Math.sin(degToRad(rotation.y)), 1.6, -2 * Math.cos(degToRad(rotation.y))).applyMatrix4(m);
-    
+
     return (
         <Entity
             position={{ x: position.x, y: position.y, z: position.z }}
@@ -53,7 +53,7 @@ const EndMenu: React.FC<EndMenuProps> = ({onEnd}: EndMenuProps) => {
             <Entity position={{x: 0, y: 1/4+(-1)/2/4, z: 0}}>
                 <Text position={{ x: 0, y: 0, z: +0.01}} value={endTitle} align={"center"} color={"white"} width={2.5}/>
             </Entity>
-            <Plane 
+            <Plane
                 position={{ x: 0, y: -1/4 + ((-1)/2/4), z: 0}}
                 height={0.2}
                 id={'startoption'}

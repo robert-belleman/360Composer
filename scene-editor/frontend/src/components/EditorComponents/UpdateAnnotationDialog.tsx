@@ -38,6 +38,7 @@ type Annotation = {
   text: string,
   timestamp: number,
   type: number,
+  tag: String,
 }
 
 type Option = {
@@ -73,6 +74,7 @@ const INITIAL_ANNOTATION: Annotation = {
   text: "",
   timestamp: 0,
   type: 0,
+  tag: ""
 }
 
 type UpdateAnnotationDialogProps = {
@@ -111,11 +113,14 @@ let types: Array<AnnotationType> = []
 const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onError, videoLength}: UpdateAnnotationDialogProps) => {
   const [annotation, setAnnotation] = useState(INITIAL_ANNOTATION)
   const [defaultOptions, setDefaultOptions] = useState(false);
+  // you don't need the tag everywhere, but the option should be made available.
+  const [tag, setTag] = useState("")
 
   const fetchAnnotation = () => {
     api.get(`/api/scenes/${sceneID}/annotation?id=${annotationID}`)
       .then((res) => res.data)
       .then((data) => {
+        // console.log("fetched annot: ", data, data.tag);
         setAnnotation(data)
         if (data.type === 1 || data.type === 2) {
           setDefaultOptions(true)
@@ -264,6 +269,11 @@ const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onEr
     setAnnotation({...annotation, options: newList})
   }
 
+  const handleTagChange = (event: any) => {
+    console.log("in update annot, setting annotation to ", event.target.value, "from ", annotation.tag);
+    setAnnotation({...annotation, tag: event.target.value});
+  }
+
   const handleFeedbackChange = (index: number, event: any) => {
     // TODO: check if this will scale for many options
     const newList: Option[] = annotation.options.map((option: Option, i: number) => {
@@ -392,6 +402,16 @@ const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onEr
     )
   }
 
+  const tagSelection = () => {
+    return (
+    <TextField
+        label="Tag"
+        value={annotation.tag}
+        onChange={handleTagChange}
+        helperText="Set the annotation tag">
+    </TextField>)
+  }
+
   const optionTable = () => {
     return (
       <div>
@@ -483,6 +503,7 @@ const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onEr
                 onChange={handleDescriptionChange}
               />
               {typeSelection()}
+              {tagSelection()}
             </Grid>
           </Grid>
           <Grid container style={{marginTop: 20}}>

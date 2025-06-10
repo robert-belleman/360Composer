@@ -1,14 +1,14 @@
 """initial revision
 
 Revision ID: 0f03d2b20fc4
-Revises: 
+Revises:
 Create Date: 2020-12-03 13:22:19.827504
 
 """
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.dialects import postgresql 
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -72,7 +72,7 @@ def upgrade():
     )
 
 
-    op.create_table('scene_object', 
+    op.create_table('scene_object',
         sa.Column('id', UUID(), nullable=False),
         sa.Column('scene_id', UUID(), nullable=False),
         sa.Column('asset_id', UUID(), nullable=False),

@@ -24,7 +24,21 @@ from app.models.scene import Scene as SceneModel
 from app.models.action import Action as ActionModel
 from app.models.project import Project as ProjectModel
 
+from app.models.audio_asset import AudioAsset
+from app.schemas.audio_asset import audio_asset_schema
+
 from uuid import UUID
+
+import app.util.util as util
+
+import os
+# import app.util.util as util
+# from app.models.audioAsset import AudioAsset as AssetModel, AssetType
+from pathlib import Path
+# from app.util.ffmpeg import create_thumbnail, get_duration, get_resolution, create_hls
+# from werkzeug.datastructures import FileStorage
+
+from app.config import AUDIOASSET_DIR
 
 def uuid_convert(o):
     if isinstance(o, UUID):
@@ -154,7 +168,7 @@ class ScenarioScenesDelete(Resource):
         for scene in scenes_to_delete:
             for link in ScenarioSceneLinkModel.query.filter_by(target_id=scene.id).all():
                 db.session.delete(link)
-            
+
             if scenario.start_scene == scene.id:
                 scenario.start_scene = None
 
@@ -174,7 +188,7 @@ class ScenarioScenesUpdate(Resource):
     @ns.expect(scenario_scenes_update_schema)
     def post(self, id):
         scenario = ScenarioModel.query.filter_by(id=id).first_or_404()
-        
+
         update_scenes(api.payload['scenes'])
         db.session.commit()
 
@@ -264,3 +278,82 @@ class ScenarioValidate(Resource):
 
         return jsonify(validation)
 
+
+# asset_upload = reqparse.RequestParser()
+# asset_upload.add_argument("file", type=FileStorage, location="files", required=True, help="Asset file")
+# asset_upload.add_argument("name", type=str, required=True, help="Name for the asset")
+@ns.route("/<string:id>/audio/<string:tag>")
+@ns.response(HTTPStatus.NOT_FOUND, "Scenario not found")
+@ns.param("id", "The scenario identifier")
+class ScenarioCreateAudio(Resource):
+    @user_jwt_required
+    @project_access_required
+    @ns.marshal_with(audio_asset_schema)
+    def get(self, id, tag):
+        claims = get_jwt()
+        print("\n\n tag = ", tag)
+        res = AudioAsset.query.filter_by(scenario_id=UUID(id), tag=tag,
+                                         customer_id=UUID(claims['id'])).all()
+        return res, HTTPStatus.OK
+
+    @user_jwt_required
+    @project_access_required
+    def post(self, id, tag):
+        claims = get_jwt()
+
+        if request.method == "POST":
+            print(request.files)
+        if 'file' not in request.files:
+            print('no files in request.files')
+            return 'FAILED'
+        file = request.files['file']
+        if file.name == '':
+            print("no file name")
+            return 'FAILED'
+        print("received a file! ", tag)
+
+        base_name = util.random_file_name()
+
+        raw_audio_path = Path(AUDIOASSET_DIR, base_name + ".webm")
+
+        with open(raw_audio_path, "wb") as dest_file:
+            dest_file.write(file.stream.read())
+
+        already_exists = AudioAsset.query.filter_by(scenario_id=UUID(id), tag=tag,
+                                         customer_id=UUID(claims['id'])).all()
+        if (already_exists == []):
+            # why do i need to convert the path to a string??
+            print("does not yet exist ", tag)
+            row = AudioAsset(
+                scenario_id=UUID(id),
+                customer_id=UUID(claims["id"]),
+                path=str(raw_audio_path),
+                tag=tag
+            )
+            db.session.add(row)
+        else:
+            print("already exists ", tag)
+            row = already_exists[0]
+            row.path = str(raw_audio_path)
+        db.session.commit()
+
+        return 'OK', HTTPStatus.CREATED
+
+@ns.route("/<string:id>/audio/delete")
+@ns.response(HTTPStatus.NOT_FOUND, "Scenario not found")
+@ns.param("id", "The scenario identifier")
+class ScenarioDeleteAudio(Resource):
+    @user_jwt_required
+    @ns.marshal_with(audio_asset_schema)
+    def post(self, id):
+        print("\n\nentering delete\n\n")
+        stats = get_jwt()
+        customer_id = stats['id']
+        res = AudioAsset.query.filter_by(scenario_id=UUID(id), customer_id=UUID(customer_id)).all()
+        for i in res:
+            print("path =", i.path)
+            if i.path:
+                print("\nremoving file\n")
+                os.remove(i.path)
+            db.session.delete(i)
+        db.session.commit()

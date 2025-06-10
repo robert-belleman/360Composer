@@ -21,14 +21,14 @@ const Feedback: React.FC<FeedbackProps> = ({id, text, onContinue}: FeedbackProps
     }, [id, text]);
 
     return (<>
-        <Plane 
+        <Plane
             position={{ x: 0, y: 0, z: 0}}
             height={0.6}
             visible={text ? true : false}
         >
             <Text value={text} align={"center"} color={"black"} width={1.4} />
         </Plane>
-        <Plane 
+        <Plane
             position={{ x: 0, y: -0.45, z: 0}}
             height={0.2}
             id={"continueFeedbackButton"}

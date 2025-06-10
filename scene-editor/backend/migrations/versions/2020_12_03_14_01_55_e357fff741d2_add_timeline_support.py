@@ -54,6 +54,7 @@ def upgrade():
         sa.PrimaryKeyConstraint('id')
     )
 
+
 def downgrade():
     op.drop_column('scene', 'video_id')
 

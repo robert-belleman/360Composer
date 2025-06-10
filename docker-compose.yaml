@@ -15,6 +15,9 @@ services:
       - type: bind
         source: ${PATH_ASSETS}
         target: /assets
+      - type: bind
+        source: ${PATH_AUDIOASSETS}
+        target: /audio_assets
     command: bash -c "/entrypoint.sh"
     depends_on: [postgres, redis]
     restart: unless-stopped

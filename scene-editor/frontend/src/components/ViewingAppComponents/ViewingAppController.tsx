@@ -8,6 +8,7 @@ import { api } from "../../util/api";
 import Annotation from "../EditorComponents/Annotation";
 
 import { startRecord, stopRecord } from "../EditorComponents/recording";
+import { playRecording } from "../EditorComponents/playback";
 
 interface ViewingAppControllerProps {
     sceneId?: string,
@@ -16,12 +17,6 @@ interface ViewingAppControllerProps {
     offline?: boolean,
     onFinish?: Function
 }
-
-var current_annot_index = 0;
-var prev_annotation = -1;
-var curSceneID = "";
-// var curData;
-var curData: any = null;
 
 const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", scenarioId="", timelineId="", offline=false, onFinish}: ViewingAppControllerProps) => {
     const [scene, setScene]: any = useState(undefined);
@@ -56,11 +51,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     };
 
 
-
     const onStartRecording = () => {
-        console.log("started recording in controller");
         startRecord()
-        // await recording_test(5, onFinishRecording, callback);
     };
 
     // add a function to request the audio recording data
@@ -82,14 +74,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     const handleAnnotationData = (data: any) => {
         // If a scene does not have any annotation data. Set annotation to empty array/
-        if (data) {
-            console.log("setting curdata");
-            curData = data;
-        }
-        console.log(data)
-        console.log(data[current_annot_index])
-        data.length ? setCurrentAnnotations(data[current_annot_index]) : setCurrentAnnotations([]);
         data.length ? setAllAnnotations(data) : setAllAnnotations([]);
+                data.length ? setCurrentAnnotations(data[0]) : setCurrentAnnotations([]);
     };
 
     // Sets a scene given an id
@@ -137,8 +123,15 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         // setScenario(firstScenario);
     }
 
+    const deleteRecordings = async () => {
+        // when the end of the scenario is reached, delete the recordings made.
+        // This is made for the experiments.
+        await api.post(`/api/scenario/${scenarioId}/audio/delete`)
+    }
+
+
     const onFinishScenario = () => {
-        console.log('onFinishScenario');
+        deleteRecordings();
         // Replay current scenario.
         if (scenarioId) {
             const firstScene = scenario.scenes.find((scene: any) => {return scene.id === scenario.start_scene});
@@ -148,29 +141,28 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         setNewScenario();
     }
 
-    const onStartPlayback = () => {}
+    const onStartPlayback = async (tag: string) => {
+        await api.get(`/api/scenario/${scenarioId}/audio/${tag}`)
+                        .then((res:any) => playRecording(res.data[0].path));
+    }
 
     const onFinishPlayback = (callback: Function) => {
-        // do stuff
         callback();
     }
 
-    const onFinishRecording = (callback: Function, res: string) => {
-        console.log('onFinishRecording');
+    const storeAudioFile = (formdata: FormData, tag: string) => {
+        api.post(`/api/scenario/${scenarioId}/audio/${tag}`, formdata);
+    }
 
-        // fetchAnnotations(scene.id)
-        stopRecord();
-        // setNextAnnotation(callback);
-        console.log("using callback");
+    const onFinishRecording = (callback: Function, tag: string) => {
+        var result = stopRecord(storeAudioFile, tag);
+
         callback('OK');
         return;
     }
 
     // Is called by the implementation component when an action is taken
     const onFinishScene = (actionId: string = "", callback: Function) => {
-        console.log('onFinishScene');
-        console.log('actionId is', actionId);
-
         if (actionId === "replay") {
             if (timelineId || scenarioId) {
                 onFinishScenario();
@@ -184,6 +176,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         if (!actionId && onFinish) {onFinish(); return; }
         // If only playing scene reload scene
         if (!onFinish && sceneId) {
+            deleteRecordings();
             callback('end');
             return;
         }
@@ -208,15 +201,15 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         }
 
         // If the current scene has no further actions, finish or end the scene depending on a onfinish function.
-        if (!sceneLinks.length && onFinish) { callback('exit'); console.log('exit1'); onFinish(); return; }
-        if (!sceneLinks.length) { callback('end'); console.log('end3'); return; }
+        if (!sceneLinks.length && onFinish) { callback('exit'); console.log('exit1'); deleteRecordings(); onFinish(); return; }
+        if (!sceneLinks.length) { callback('end'); console.log('end3'); deleteRecordings(); return; }
 
         // Find the given action data.
         const action = sceneLinks.find((link:any) => link.action_id === actionId);
         console.log(action);
 
         // If the action has no target, finish or end the scene depending on a onfinish function.
-        if (!action.target_id && onFinish) { callback('exit'); console.log('exit2'); onFinish(); return; }
+        if (!action.target_id && onFinish) { callback('exit'); console.log('exit2'); deleteRecordings(); onFinish(); return; }
         if (!action.target_id) { callback('end'); console.log('end4'); onFinishScenario(); return; }
 
         // Find the next scene given the action target.
@@ -228,7 +221,6 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     useEffect(() => {
         if (sceneId) {
-            curSceneID = sceneId;
             fetchSceneData(sceneId);
             // get_mic_rights();
         }
@@ -282,7 +274,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         annotations={currentAnnotations}
         allAnnotations={allAnnotations}
         startRecord={onStartRecording}
-        stopRecord={onFinishRecording}
+        controllerStopRecord={onFinishRecording}
         startPlayback={onStartPlayback}
         stopPlayback={onFinishPlayback}
         onFinish={onFinishScene}/>

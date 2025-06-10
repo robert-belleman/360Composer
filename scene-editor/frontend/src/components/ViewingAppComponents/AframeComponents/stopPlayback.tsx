@@ -13,8 +13,8 @@ interface StopPBProps {
 }
 
 const EndPlaybackgMenu: React.FC<StopPBProps> = ({onClick}:StopPBProps) => {
-    const startTitle: string = " Please look to stop recording";
-    const stopPlaybackOption: string = "Stop Recording";
+    const startTitle: string = " Please look to stop playback";
+    const stopPlaybackOption: string = "Stop playback";
 
     const [rotation, setRotation] = useState<{x: number, y:number, z:number}>({x:0, y:0, z:0})
 

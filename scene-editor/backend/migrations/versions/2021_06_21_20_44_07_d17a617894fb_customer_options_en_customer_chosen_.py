@@ -34,6 +34,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['option_id'], ['option.id'])
     )
 
+
 def downgrade():
     op.drop_table('customer_annotation')
     op.drop_table('customer_option')

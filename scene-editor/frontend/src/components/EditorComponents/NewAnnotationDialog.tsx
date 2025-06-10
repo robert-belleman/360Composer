@@ -56,6 +56,7 @@ const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>
   const [options, setOptions] : any = useState([]);
   const [question, setQuestion] = useState("");
   const [type, setType] = useState(0);
+  const [tag, setTag] = useState("");
   const [types, setTypes] = useState([]);
   const [defaultOptions, setDefaultOptions] = useState(false);
 
@@ -80,13 +81,16 @@ const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>
     [{value: "Geblazen", feedback: ""},
      {value: "Geen reactie", feedback: ""}]
 
+
   const createAnnotation = async () => {
 
     const payload = {
         text: question,
         timestamp: timeStamp,
         type: type,
+        tag: tag,
     }
+    console.log("payload in create annotation = ", payload)
 
     api.post(`/api/scenes/${sceneID}/annotation`, payload)
       .then(async (res) => {
@@ -96,7 +100,7 @@ const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>
             text: opt.value,
             feedback: opt.feedback,
             action: { type: "next_scene", payload: null},
-            scene_id: sceneID
+            scene_id: sceneID,
           };
 
           await api.post(`/api/annotation/${res.data.id}/options`, optionPayload)
@@ -130,6 +134,11 @@ const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>
     else {
       setDefaultOptions(false)
     }
+  }
+
+  const handleTagChange = (event: any) => {
+    console.log("in new annot, setting annotation to ", event.target.value)
+    setTag(event.target.value);
   }
 
   const handleOptionChange = (index: number, event: any) => {
@@ -197,6 +206,16 @@ const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>
         ))}
       </TextField>
     )
+  }
+
+  const tagSelection = () => {
+    return (
+    <TextField
+        label="Tag"
+        value={tag}
+        onChange={handleTagChange}
+        helperText="Set the annotation tag">
+    </TextField>)
   }
 
   const optionTable = () => {
@@ -285,6 +304,7 @@ const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>
             onChange={handleDescriptionChange}
           />
           {typeSelection()}
+          {tagSelection()}
           {optionTable()}
         </DialogContent>
         <DialogActions>
