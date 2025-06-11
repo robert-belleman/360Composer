@@ -24,9 +24,10 @@ For a development or production (non-image) configuration, you can alter the loc
 ```
 PATH_DB=./data/db
 PATH_ASSETS=./data/assets
+PATH_AUDIOASSETS=./data/audio_assets
 ```
 
-If using the default location, make sure it exists: `mkdir -p ./data/{assets,db}`
+If using the default location, make sure it exists: `mkdir -p ./data/{assets,db,audio_assets}`
 
 By default, none of the configurations are SSL-terminated so that you can provide your own. If you instead want SSL termination to occur in the nginx container, you need to provide a custom nginx configuration as well as your SSL certificate and private key:
 
