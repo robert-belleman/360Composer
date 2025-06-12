@@ -45,26 +45,12 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     const [appState, setAppState] = useState({
         started: false,
         menuEnabled: true,
-        recordingStarted: false,
-        recordingEnded: false,
         videoPlaying: false,
         ended: false,
         videoLoaded: false,
-
-        startRecMenu: false,
-        startedRec: false,
-        stopRecMenu: false,
-        finishedRec: false,
-
-        startPBMenu:false,
-        startedPB:false,
-        stopPBMenu:false,
-        finishedPB:false,
     });
 
     const [playButtonOpen, setPlayButtonOpen] = useState(false);
-    const [startRecordingButtonOpen, setStartRecordingButton] = useState(false);
-    const [stopRecordingButtonOpen, setStopRecordingButton] = useState(false);
 
     // keep track of which annotation has already been reached.
     const [currentAnnot, setCurrentAnnot] = useState(0);
@@ -87,7 +73,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     const playVideo: Function = () => {
         const videoElement: any = document.getElementById(`aframe-video`);
         if (!videoElement) { return };
-        // sort_annot();
         videoElement.play()
 
         // Unmute the video. Mute is set because of iOS devices.
@@ -126,18 +111,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     started: true,
                     menuEnabled: false,
                     videoPlaying: false,
-                    recordingStarted: false,
-                    recordingEnded: false,
                     ended: true,
                     videoLoaded: true,
-                    startRecMenu:false,
-                    startedRec:false,
-                    stopRecMenu:false,
-                    finishedRec:false,
-                    startPBMenu:false,
-                    startedPB:false,
-                    stopPBMenu:false,
-                    finishedPB:false,
                 });
                 exitVR();
                 break;
@@ -148,19 +123,9 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                 setAppState({
                     started: true,
                     menuEnabled: false,
-                    recordingStarted: false,
-                    recordingEnded: false,
                     videoPlaying: false,
                     ended: true,
                     videoLoaded: true,
-                    startRecMenu:false,
-                    startedRec:false,
-                    stopRecMenu:false,
-                    finishedRec:false,
-                    startPBMenu:false,
-                    startedPB:false,
-                    stopPBMenu:false,
-                    finishedPB:false,
                 });
                 break;
             }
@@ -242,8 +207,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                 if (allAnnotations[sortedAnnot[currentAnnot]].type === 4 && !startRec) {
                     setAppState({
                         ...appState,
-                        startRecMenu:true,
-                        startedRec: true,
                         videoPlaying:false,
                         menuEnabled:true
                     });
@@ -254,8 +217,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                 if (allAnnotations[sortedAnnot[currentAnnot]].type === 5 && !startPB) {
                     setAppState({
                         ...appState,
-                        startPBMenu:true,
-                        startedPB:true,
                         videoPlaying:false,
                         menuEnabled:true
                     });
@@ -272,15 +233,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     };
 
     const startRecording = () => {
-        setStartRecordingButton(false);
-        setStopRecordingButton(true);
-        setAppState({
-            ...appState,
-            recordingStarted:true,
-            stopRecMenu:true,
-            startedRec:true,
-            startRecMenu:false,
-        });
         // send api call function to javascript. let that send the file.
         setStopRecMenu(true);
         setFinishRec(false);
@@ -289,12 +241,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         startRecord();
     }
     const stopRecording = async () => {
-        setAppState({
-            ...appState,
-            recordingStarted:true,
-            stopRecMenu:false,
-            finishedRec:true
-        });
         setFinishRec(true);
         var allAnnotIndex = sortedAnnot[currentAnnot];
         controllerStopRecord(recordingCallback, allAnnotations[allAnnotIndex].tag);
@@ -317,10 +263,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     // set the current annotation to be next. this allows for the dialogue
     // options.
     const recordingCallback = (res: string) => {
-        setAppState({
-            ...appState,
-            recordingEnded:true
-        });
         setFinishRec(true);
         setCurrentAnnot(currentAnnot + 1);
         setStartRec(false);
@@ -341,18 +283,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             started: true,
             menuEnabled: false,
             videoPlaying: true,
-            recordingStarted: false,
-            recordingEnded: false,
             ended: false,
             videoLoaded: true,
-            startRecMenu:false,
-            startedRec:false,
-            stopRecMenu:false,
-            finishedRec:false,
-            startPBMenu:false,
-            startedPB:false,
-            stopPBMenu:false,
-            finishedPB:false,
         });
         playVideo();
     };
