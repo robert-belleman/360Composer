@@ -70,7 +70,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     const [currentAnnot, setCurrentAnnot] = useState(0);
     // order the annotations by timestamp
     const [sortedAnnot, setSortedAnnot] = useState([0])
-    const [isFirstScene, setIsFirstScene] = useState(true);
 
     // reset these when new scene appears
 
@@ -186,7 +185,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         var actionId;
         var annotation_index = sortedAnnot[currentAnnot];
         actionId = allAnnotations[annotation_index].options.find((option: any) => option.id === id).action.id;
-        console.log("id, alannot etc", actionId, allAnnotations, sortedAnnot[currentAnnot], sortedAnnot, currentAnnot);
         setCurrentAnnot(0);
         setSortedAnnot([0]);
         reset_states();
@@ -225,9 +223,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
             length_sorted += 1;
         }
-        console.log(temp_sort);
         setSortedAnnot(temp_sort);
-        // return temp_sort;
     }
 
     // Checks if the video has reached the annotation and opens menu.
@@ -236,10 +232,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         if (allAnnotations) {
             // if ((finishRec || finishPB)? time >= second_annot().timestamp - 1: time >= first_annot().timestamp - 1) {
             if (appState.videoPlaying && time >= allAnnotations[sortedAnnot[currentAnnot]].timestamp) {
-                console.log("All annotations are", allAnnotations)
-                console.log("order of annot = ", sortedAnnot);
-                console.log("current annotation is", allAnnotations[sortedAnnot[currentAnnot]])
-
                 pauseVideo();
                 setAppState({
                     ...appState,
@@ -317,7 +309,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     const AFramestartPlayback = () => {
         setStopPBMenu(true);
-        // setCurrentAnnot(currentAnnot + 1);
         setStartPB(true);
         setFinishPB(false);
         startPlayback(allAnnotations[currentAnnot].tag);
@@ -378,7 +369,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     };
 
     const reset_states = () => {
-        console.log("reset states");
         // setCurrentAnnot(0);
         // setSortedAnnot([0]);
 
@@ -391,17 +381,14 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         setStartPB(false);
         setFinishPB(false);
         setStopPBMenu(false);
-
-        console.log("end reset states");
     }
 
     const onVideoLoaded = () => {
-        console.log('Video loaded', allAnnotations, isFirstScene);
+        console.log('Video loaded');
         // If the starting menu is open. Do not start playing.
         if (!appState.started) {
             return;
         }
-        console.log("starting");
         playVideo();
         setAppState({
             ...appState,
@@ -434,8 +421,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         }
     }, [video]);
 
+    // sorts the annotations once new ones are loaded in.
     useEffect(() => {
-        console.log("annotations updated. sorting...", allAnnotations);
         sort_annot();
     }, [allAnnotations])
 
