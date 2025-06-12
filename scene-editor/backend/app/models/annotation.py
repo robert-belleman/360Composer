@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime
 
+
 from app.models.database import db
 from sqlalchemy.dialects.postgresql import UUID
+
 
 class Annotation(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
@@ -10,5 +12,6 @@ class Annotation(db.Model):
 
     text = db.Column(db.Text)
     timestamp = db.Column(db.Integer)
+    tag = db.Column(db.Text)
     type = db.Column(db.Integer)
     options = db.relationship('Option', primaryjoin="Option.annotation_id == Annotation.id", cascade="all", lazy=True)

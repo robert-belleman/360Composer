@@ -13,6 +13,7 @@ scene_annotation_schema = api.model("Scene Annotation", {
   "id": fields.String(description="ID of the annotation"),
   "scene_id": fields.String(description="ID of the related scene"),
   "text": fields.String(description="The text of the annotation"),
+  "tag": fields.String(description="the tag of the annotation"),
   "timestamp": fields.Integer(description="When the annotation is shown"),
   "type": fields.Integer(description="The type of the annotation"),
   "options": fields.Nested(annotation_option_schema)

@@ -291,7 +291,6 @@ class ScenarioCreateAudio(Resource):
     @ns.marshal_with(audio_asset_schema)
     def get(self, id, tag):
         claims = get_jwt()
-        print("\n\n tag = ", tag)
         res = AudioAsset.query.filter_by(scenario_id=UUID(id), tag=tag,
                                          customer_id=UUID(claims['id'])).all()
         return res, HTTPStatus.OK
@@ -310,7 +309,6 @@ class ScenarioCreateAudio(Resource):
         if file.name == '':
             print("no file name")
             return 'FAILED'
-        print("received a file! ", tag)
 
         base_name = util.random_file_name()
 
@@ -323,7 +321,6 @@ class ScenarioCreateAudio(Resource):
                                          customer_id=UUID(claims['id'])).all()
         if (already_exists == []):
             # why do i need to convert the path to a string??
-            print("does not yet exist ", tag)
             row = AudioAsset(
                 scenario_id=UUID(id),
                 customer_id=UUID(claims["id"]),
@@ -332,7 +329,10 @@ class ScenarioCreateAudio(Resource):
             )
             db.session.add(row)
         else:
-            print("already exists ", tag)
+            # delete previous recording
+            os.remove(already_exists[0].path)
+
+            # update to new path
             row = already_exists[0]
             row.path = str(raw_audio_path)
         db.session.commit()
@@ -346,14 +346,11 @@ class ScenarioDeleteAudio(Resource):
     @user_jwt_required
     @ns.marshal_with(audio_asset_schema)
     def post(self, id):
-        print("\n\nentering delete\n\n")
         stats = get_jwt()
         customer_id = stats['id']
         res = AudioAsset.query.filter_by(scenario_id=UUID(id), customer_id=UUID(customer_id)).all()
         for i in res:
-            print("path =", i.path)
             if i.path:
-                print("\nremoving file\n")
                 os.remove(i.path)
             db.session.delete(i)
         db.session.commit()

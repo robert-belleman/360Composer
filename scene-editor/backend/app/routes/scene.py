@@ -31,6 +31,7 @@ import hashlib, binascii, os
 import uuid
 import datetime
 
+
 def project_access_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -48,6 +49,7 @@ def project_access_required(fn):
 
 ns = api.namespace("scenes")
 
+
 @ns.route("/<string:id>/")
 @ns.response(HTTPStatus.NOT_FOUND, "Scene not found")
 @ns.param("id", "The scene identifier")
@@ -58,6 +60,7 @@ class Scene(Resource):
     @ns.marshal_with(scene_schema)
     def get(self, id):
         return SceneModel.query.filter_by(id=id).first_or_404()
+
 
 @ns.route("/<string:id>/delete")
 @ns.response(HTTPStatus.NOT_FOUND, "Scene not found")
@@ -74,6 +77,7 @@ class SceneDelete(Resource):
         db.session.commit()
 
         return "", HTTPStatus.OK
+
 
 @ns.route("/<string:id>/meta")
 @ns.response(HTTPStatus.NOT_FOUND, "Scene not found")
@@ -135,6 +139,7 @@ class SceneMedia(Resource):
 
         return scene, HTTPStatus.OK
 
+
 @ns.route("/<string:id>/annotations")
 @ns.response(HTTPStatus.NOT_FOUND, "Scene not found")
 @ns.param("id", "The scene identifier")
@@ -144,6 +149,7 @@ class SceneAnnotations(Resource):
     @ns.marshal_with(scene_annotation_schema)
     def get(self, id):
         return AnnotationModel.query.filter_by(scene_id=id).all()
+
 
 @ns.route("/<string:id>/annotation")
 @ns.response(HTTPStatus.NOT_FOUND, "Scene not found")
@@ -173,8 +179,8 @@ class SceneAnnotation(Resource):
             text=api.payload["text"],
             timestamp=api.payload["timestamp"],
             type=api.payload["type"],
+            tag=api.payload["tag"],
         )
-
         db.session.add(annotation)
         db.session.commit()
 
@@ -190,6 +196,7 @@ class SceneAnnotation(Resource):
         annotation.text = api.payload["text"]
         annotation.timestamp = api.payload["timestamp"]
         annotation.type = api.payload["type"]
+        annotation.tag = api.payload["tag"]
 
         db.session.commit()
 
@@ -212,6 +219,7 @@ class SceneAnnotationDelete(Resource):
 
         return "", HTTPStatus.OK
 
+
 @ns.route("/<string:id>/actions")
 @ns.response(HTTPStatus.NOT_FOUND, "Scene not found")
 @ns.param("id", "The scene identifier")
@@ -223,6 +231,7 @@ class SceneActions(Resource):
         scene = SceneModel.query.filter_by(id=id).first_or_404()
 
         return ActionModel.query.filter_by(scene_id=scene.id).all()
+
 
 @ns.route("/<string:id>/objects")
 @ns.response(HTTPStatus.NOT_FOUND, "Scene not found")

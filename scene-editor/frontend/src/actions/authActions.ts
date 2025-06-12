@@ -1,8 +1,10 @@
 import { SET_TOKEN, SET_LOADING } from '../types/actions';
-import { logIn as loginAPI, 
+import { logIn as loginAPI,
          logInCustomer as loginCustomerAPI,
-         logOut as logOutAPI,  
+         logOut as logOutAPI,
          fetchToken } from '../util/api';
+
+import { get_mic_rights } from '../components/EditorComponents/recording';
 
 export const setToken = (token: any) => ({
   type: SET_TOKEN,
@@ -17,7 +19,8 @@ export const setLoading = (loading:any) => ({
 export const logIn = (username:string, password:string) => (dispatch:any) => {
   loginAPI(username, password).then((res) => {
       const token = res.data;
-      dispatch(setToken({id: token.id, role: token.role}))
+      dispatch(setToken({id: token.id, role: token.role}));
+      get_mic_rights();
     })
     .catch((e) => {
       console.log(e);
@@ -28,7 +31,8 @@ export const logIn = (username:string, password:string) => (dispatch:any) => {
 export const logInCustomer = (id:string, access_code:string) => (dispatch:any) => {
   loginCustomerAPI(id, access_code).then((res) => {
       const token = res.data;
-      dispatch(setToken({id: token.id, role: token.role}))
+      dispatch(setToken({id: token.id, role: token.role}));
+      get_mic_rights();
     })
     .catch((e) => {
       console.log(e);

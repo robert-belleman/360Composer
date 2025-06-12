@@ -1,2 +1,3 @@
 **/node_modules
 /scene-editor/backend/assets
+/scene-editor/backend/audio_assets
