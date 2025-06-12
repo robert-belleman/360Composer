@@ -36,7 +36,7 @@ interface ViewingAppAframeProps {
     controllerStopRecord: Function,
     onFinish: Function,
     startPlayback: Function,
-    stopPlayback: Function
+    stopPlayback: Function,
 }
 
 const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, annotations, allAnnotations, startRecord, controllerStopRecord, startPlayback, stopPlayback, onFinish}: ViewingAppAframeProps) => {
@@ -66,6 +66,12 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     const [startRecordingButtonOpen, setStartRecordingButton] = useState(false);
     const [stopRecordingButtonOpen, setStopRecordingButton] = useState(false);
 
+    // keep track of which annotation has already been reached.
+    const [currentAnnot, setCurrentAnnot] = useState(0);
+    // order the annotations by timestamp
+    const [sortedAnnot, setSortedAnnot] = useState([0])
+    const [isFirstScene, setIsFirstScene] = useState(true);
+
     // reset these when new scene appears
 
     const [startRecMenu, setStartRecMenu] = useState(false);
@@ -77,12 +83,12 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     const [startPB, setStartPB] = useState(false);
     const [finishPB, setFinishPB] = useState(false);
     const [stopPBMenu, setStopPBMenu] = useState(false);
-    // const [menuEnabled, setMenuEnabled] = useState(false);
 
     // Plays the current video by id
     const playVideo: Function = () => {
         const videoElement: any = document.getElementById(`aframe-video`);
         if (!videoElement) { return };
+        // sort_annot();
         videoElement.play()
 
         // Unmute the video. Mute is set because of iOS devices.
@@ -172,50 +178,68 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     // Communicate to controller which actionid was taken.
     const chosenMenuOption = (id: string) => {
+        console.log("chosenmenu option", id)
         setAppState({
             ...appState,
             menuEnabled:false
         });
         var actionId;
-        if (allAnnotations.length > 1) {
-            actionId = second_annot().options.find((option: any) => option.id === id).action.id;
-        }
-        else {
-            actionId = first_annot().options.find((option: any) => option.id === id).action.id;
-        }
+        var annotation_index = sortedAnnot[currentAnnot];
+        actionId = allAnnotations[annotation_index].options.find((option: any) => option.id === id).action.id;
+        console.log("id, alannot etc", actionId, allAnnotations, sortedAnnot[currentAnnot], sortedAnnot, currentAnnot);
+        setCurrentAnnot(0);
+        setSortedAnnot([0]);
+        reset_states();
         onFinish(actionId, menuOptionCallback);
     };
 
-    const first_annot = () => {
-        if (allAnnotations.length === 1) {
-            return allAnnotations[0];
+    const sort_annot = () => {
+        if (!allAnnotations) {
+            return
         }
 
-        if (allAnnotations[0].timestamp > allAnnotations[1].timestamp) {
-            return allAnnotations[1]
-        }
-        else {
-            return allAnnotations[0]
-        }
-    }
+        // store the indeces of the annotations in order of timestamps
+        let temp_sort = [0]
+        var length_sorted = 1
 
-    const second_annot = () => {
-        if (allAnnotations[0].timestamp > allAnnotations[1].timestamp) {
-            return allAnnotations[0]
+        while (length_sorted < allAnnotations.length ){
+
+            let index = 0;
+
+            while (index <= length_sorted) {
+                if (index == length_sorted) {
+                    temp_sort.push(index);
+                    break;
+                }
+
+                var index_allAnnot = temp_sort[index];
+
+
+                if (allAnnotations[length_sorted].timestamp < allAnnotations[index_allAnnot].timestamp){
+                    temp_sort.splice(index, 0, length_sorted);
+                    break;
+                }
+
+                index += 1;
+            }
+
+            length_sorted += 1;
         }
-        else {
-            return allAnnotations[1]
-        }
+        console.log(temp_sort);
+        setSortedAnnot(temp_sort);
+        // return temp_sort;
     }
 
     // Checks if the video has reached the annotation and opens menu.
     // (Currently only supports the first annotation.)
     const onTimeUpdate = async (time: number) => {
         if (allAnnotations) {
-            // console.log('annotations are', annotations);
-            // console.log('time is', time);
-            // console.log('timestamp is', annotations.timestamp)
-            if ((finishRec || finishPB)? time >= second_annot().timestamp - 1: time >= first_annot().timestamp - 1) {
+            // if ((finishRec || finishPB)? time >= second_annot().timestamp - 1: time >= first_annot().timestamp - 1) {
+            if (appState.videoPlaying && time >= allAnnotations[sortedAnnot[currentAnnot]].timestamp) {
+                console.log("All annotations are", allAnnotations)
+                console.log("order of annot = ", sortedAnnot);
+                console.log("current annotation is", allAnnotations[sortedAnnot[currentAnnot]])
+
                 pauseVideo();
                 setAppState({
                     ...appState,
@@ -223,8 +247,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     menuEnabled:true,
                 });
 
-                // change to check for 4 or 5, then call corresponding function.
-                if (first_annot().type === 4 && !startRec && !finishRec) {
+                if (allAnnotations[sortedAnnot[currentAnnot]].type === 4 && !startRec) {
                     setAppState({
                         ...appState,
                         startRecMenu:true,
@@ -236,7 +259,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     setStartRecMenu(true)
                 };
 
-                if (first_annot().type === 5 && !startPB && !finishPB) {
+                if (allAnnotations[sortedAnnot[currentAnnot]].type === 5 && !startPB) {
                     setAppState({
                         ...appState,
                         startPBMenu:true,
@@ -268,6 +291,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         });
         // send api call function to javascript. let that send the file.
         setStopRecMenu(true);
+        setFinishRec(false);
+
         setStartRec(true)
         startRecord();
     }
@@ -279,19 +304,23 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             finishedRec:true
         });
         setFinishRec(true);
-        controllerStopRecord(recordingCallback, first_annot().tag);
+        var allAnnotIndex = sortedAnnot[currentAnnot];
+        controllerStopRecord(recordingCallback, allAnnotations[allAnnotIndex].tag);
     }
 
     const AFramestopPlayback = () => {
         setFinishPB(true);
-        // stopPlayback();
+        setStartPB(false);
+        setCurrentAnnot(currentAnnot + 1);
         startVideo();
     }
 
     const AFramestartPlayback = () => {
         setStopPBMenu(true);
-        setStartPB(true)
-        startPlayback(first_annot().tag);
+        // setCurrentAnnot(currentAnnot + 1);
+        setStartPB(true);
+        setFinishPB(false);
+        startPlayback(allAnnotations[currentAnnot].tag);
     }
 
     // set the current annotation to be next. this allows for the dialogue
@@ -302,6 +331,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             recordingEnded:true
         });
         setFinishRec(true);
+        setCurrentAnnot(currentAnnot + 1);
+        setStartRec(false);
         startVideo();
     }
 
@@ -347,25 +378,30 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     };
 
     const reset_states = () => {
+        console.log("reset states");
+        // setCurrentAnnot(0);
+        // setSortedAnnot([0]);
+
         setStartRecMenu(false);
         setStopRecMenu(false);
         setFinishRec(false);
         setStartRec(false);
 
         setStartPBMenu(false);
-        setStartPB(false)
+        setStartPB(false);
         setFinishPB(false);
-        setStopPBMenu(false)
+        setStopPBMenu(false);
+
+        console.log("end reset states");
     }
 
     const onVideoLoaded = () => {
-        console.log('Video loaded');
+        console.log('Video loaded', allAnnotations, isFirstScene);
         // If the starting menu is open. Do not start playing.
         if (!appState.started) {
-            setAppState({...appState, videoLoaded:true});
             return;
         }
-        reset_states();
+        console.log("starting");
         playVideo();
         setAppState({
             ...appState,
@@ -397,6 +433,11 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
             setPlayButtonOpen(true);
         }
     }, [video]);
+
+    useEffect(() => {
+        console.log("annotations updated. sorting...", allAnnotations);
+        sort_annot();
+    }, [allAnnotations])
 
     useEffect(() => {
         const videoElement = document.getElementById(`aframe-video`) as HTMLMediaElement;
@@ -461,17 +502,17 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     loading={!appState.videoPlaying && !appState.menuEnabled}/>
             {!appState.started ? <StartMenu onStart={startVideo} /> : null}
 
-            {!startRec && startRecMenu && first_annot().type === 4 ? <StartRecordingMenu onClick={startRecording} /> : null}
-            {!startPB && startPBMenu && first_annot().type === 5 ? <StartPlaybackMenu onClick={AFramestartPlayback} /> : null}
+            {!appState.videoPlaying && !startRec && startRecMenu && allAnnotations[sortedAnnot[currentAnnot]].type === 4 ? <StartRecordingMenu onClick={startRecording} /> : null}
+            {!appState.videoPlaying && !startPB && startPBMenu && allAnnotations[sortedAnnot[currentAnnot]].type === 5 ? <StartPlaybackMenu onClick={AFramestartPlayback} /> : null}
 
-            {!finishRec && stopRecMenu && first_annot().type === 4 ? <EndRecordingMenu onClick={stopRecording} /> : null}
-            {!finishPB && stopPBMenu && first_annot().type === 5 ? <EndPlaybackgMenu onClick={AFramestopPlayback} /> : null}
+            {!appState.videoPlaying && startRec && !finishRec && stopRecMenu && allAnnotations[sortedAnnot[currentAnnot]].type === 4 ? <EndRecordingMenu onClick={stopRecording} /> : null}
+            {!appState.videoPlaying && startPB && !finishPB && stopPBMenu && allAnnotations[sortedAnnot[currentAnnot]].type === 5 ? <EndPlaybackgMenu onClick={AFramestopPlayback} /> : null}
 
             {appState.ended ? <EndMenu onEnd={replay}/> : null}
 
-            {(first_annot().type === 0 ? true: (finishRec || finishPB)) && appState.menuEnabled && appState.started && !appState.ended && !appState.videoPlaying?
+            {allAnnotations[sortedAnnot[currentAnnot]].type === 0 && appState.menuEnabled && appState.started && !appState.ended && !appState.videoPlaying?
                 <Menu
-                            annotations={(finishRec || finishPB)? second_annot() : first_annot()}
+                            annotations={allAnnotations[sortedAnnot[currentAnnot]]}
                             enabled={appState.menuEnabled && appState.started && !appState.ended}
                             onOption={chosenMenuOption}/>
             : null}

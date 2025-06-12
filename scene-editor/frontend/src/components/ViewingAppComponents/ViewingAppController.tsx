@@ -80,7 +80,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     // Sets a scene given an id
     const setNewScene = (id: string) => {
-        console.log('setNewScene');
+        console.log('setNewScene', id);
         // timeline and scenario data are structured differently.
         if (timelineId) {
             const newScene = scenario.scenes.find((scene: any) => {return scene.id === id});
