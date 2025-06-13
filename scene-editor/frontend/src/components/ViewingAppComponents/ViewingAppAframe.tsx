@@ -102,7 +102,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     // menuOptionCallback receives a response from the controller
     // when an option is submitted to the controller.
     const menuOptionCallback = (response: string) => {
-        console.log(response);
         switch(response) {
             // Exiting application. Exit VR and set to ended
             case 'exit': {
@@ -142,7 +141,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     // Communicate to controller which actionid was taken.
     const chosenMenuOption = (id: string) => {
-        console.log("chosenmenu option", id)
         setAppState({
             ...appState,
             menuEnabled:false

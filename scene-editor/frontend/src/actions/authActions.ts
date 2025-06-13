@@ -29,7 +29,6 @@ export const logIn = (username:string, password:string) => (dispatch:any) => {
 }
 
 export const logInCustomer = (id:string, access_code:string) => (dispatch:any) => {
-  console.log("customer logging in");
   loginCustomerAPI(id, access_code).then((res) => {
       const token = res.data;
       dispatch(setToken({id: token.id, role: token.role}));

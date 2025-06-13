@@ -120,7 +120,6 @@ const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onEr
     api.get(`/api/scenes/${sceneID}/annotation?id=${annotationID}`)
       .then((res) => res.data)
       .then((data) => {
-        // console.log("fetched annot: ", data, data.tag);
         setAnnotation(data)
         if (data.type === 1 || data.type === 2) {
           setDefaultOptions(true)
@@ -270,7 +269,6 @@ const UpdateAnnotationDialog = ({sceneID, annotationID, open, closeHandler, onEr
   }
 
   const handleTagChange = (event: any) => {
-    console.log("in update annot, setting annotation to ", event.target.value, "from ", annotation.tag);
     setAnnotation({...annotation, tag: event.target.value});
   }
 

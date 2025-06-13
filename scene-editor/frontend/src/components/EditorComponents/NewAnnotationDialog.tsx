@@ -90,7 +90,6 @@ const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>
         type: type,
         tag: tag,
     }
-    console.log("payload in create annotation = ", payload)
 
     api.post(`/api/scenes/${sceneID}/annotation`, payload)
       .then(async (res) => {
@@ -137,7 +136,6 @@ const NewAnnotationDialog = forwardRef<HTMLDivElement, NewAnnotationDialogProps>
   }
 
   const handleTagChange = (event: any) => {
-    console.log("in new annot, setting annotation to ", event.target.value)
     setTag(event.target.value);
   }
 

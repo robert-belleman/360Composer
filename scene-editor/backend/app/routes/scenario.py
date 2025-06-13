@@ -298,14 +298,14 @@ class ScenarioCreateAudio(Resource):
     def post(self, id, tag):
         claims = get_jwt()
 
-        if request.method == "POST":
-            print(request.files)
+        # if request.method == "POST":
+        #     print(request.files)
         if 'file' not in request.files:
-            print('no files in request.files')
+            # print('no files in request.files')
             return 'FAILED'
         file = request.files['file']
         if file.name == '':
-            print("no file name")
+            # print("no file name")
             return 'FAILED'
 
         base_name = util.random_file_name()
@@ -327,7 +327,8 @@ class ScenarioCreateAudio(Resource):
             db.session.add(row)
         else:
             # delete previous recording
-            os.remove(already_exists[0].path)
+            if os.path.exists(already_exists[0].path):
+                os.remove(already_exists[0].path)
 
             # update to new path
             row = already_exists[0]
