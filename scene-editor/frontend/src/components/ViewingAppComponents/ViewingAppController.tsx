@@ -126,7 +126,12 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     const deleteRecordings = async () => {
         // when the end of the scenario is reached, delete the recordings made.
         // This is made for the experiments.
-        await api.post(`/api/scenario/${scenarioId}/audio/delete`)
+        if (timelineId) {
+            await api.post(`/api/timeline/${timelineId}/audio/delete`)
+        }
+        else{
+            await api.post(`/api/scenario/${scenarioId}/audio/delete`)
+        }
     }
 
 
@@ -142,8 +147,14 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     }
 
     const onStartPlayback = async (tag: string) => {
-        await api.get(`/api/scenario/${scenarioId}/audio/${tag}`)
+        if (timelineId) {
+            await api.get(`/api/timeline/${timelineId}/audio/${tag}`)
                         .then((res:any) => playRecording(res.data[0].path));
+        }
+        else {
+            await api.get(`/api/scenario/${scenarioId}/audio/${tag}`)
+            .then((res:any) => playRecording(res.data[0].path));
+        }
     }
 
     const onFinishPlayback = (callback: Function) => {
@@ -151,7 +162,12 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     }
 
     const storeAudioFile = (formdata: FormData, tag: string) => {
-        api.post(`/api/scenario/${scenarioId}/audio/${tag}`, formdata);
+        if (timelineId != "") {
+            api.post(`/api/timeline/${timelineId}/audio/${tag}`, formdata);
+        }
+        else {
+            api.post(`/api/scenario/${scenarioId}/audio/${tag}`, formdata);
+        }
     }
 
     const onFinishRecording = (callback: Function, tag: string) => {

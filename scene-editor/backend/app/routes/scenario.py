@@ -286,8 +286,7 @@ class ScenarioValidate(Resource):
 @ns.response(HTTPStatus.NOT_FOUND, "Scenario not found")
 @ns.param("id", "The scenario identifier")
 class ScenarioCreateAudio(Resource):
-    @user_jwt_required
-    @project_access_required
+    @user_or_customer_jwt_required
     @ns.marshal_with(audio_asset_schema)
     def get(self, id, tag):
         claims = get_jwt()
@@ -295,8 +294,7 @@ class ScenarioCreateAudio(Resource):
                                          customer_id=UUID(claims['id'])).all()
         return res, HTTPStatus.OK
 
-    @user_jwt_required
-    @project_access_required
+    @user_or_customer_jwt_required
     def post(self, id, tag):
         claims = get_jwt()
 
@@ -320,7 +318,6 @@ class ScenarioCreateAudio(Resource):
         already_exists = AudioAsset.query.filter_by(scenario_id=UUID(id), tag=tag,
                                          customer_id=UUID(claims['id'])).all()
         if (already_exists == []):
-            # why do i need to convert the path to a string??
             row = AudioAsset(
                 scenario_id=UUID(id),
                 customer_id=UUID(claims["id"]),
@@ -343,7 +340,7 @@ class ScenarioCreateAudio(Resource):
 @ns.response(HTTPStatus.NOT_FOUND, "Scenario not found")
 @ns.param("id", "The scenario identifier")
 class ScenarioDeleteAudio(Resource):
-    @user_jwt_required
+    @user_or_customer_jwt_required
     @ns.marshal_with(audio_asset_schema)
     def post(self, id):
         stats = get_jwt()

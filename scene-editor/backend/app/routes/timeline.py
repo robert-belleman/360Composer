@@ -1,6 +1,6 @@
 import os, json, random, itertools
 
-from flask import jsonify, make_response
+from flask import jsonify, request, make_response
 
 from flask_restx import Resource
 from http import HTTPStatus
@@ -24,6 +24,17 @@ from app.models.action import Action as ActionModel, ActionType as ActionType
 from app.models.option import Option as OptionModel
 from app.models.project import Project as ProjectModel
 from app.models.annotation import Annotation as AnnotationModel
+
+from app.config import AUDIOASSET_DIR
+from app.models.audio_asset import AudioAsset
+from app.schemas.audio_asset import audio_asset_schema
+
+from uuid import UUID
+
+import app.util.util as util
+
+import os
+from pathlib import Path
 
 def project_access_required(fn):
     @wraps(fn)
@@ -340,3 +351,74 @@ class TimelineExport(Resource):
         self.future_annotations = {}
 
         return jsonify(r, HTTPStatus.OK)
+
+
+@ns.route("/<string:id>/audio/<string:tag>")
+@ns.response(HTTPStatus.NOT_FOUND, "timeline not found")
+@ns.param("id", "The timeline identifier")
+class TimelineCreateAudio(Resource):
+    @user_or_customer_jwt_required
+    @ns.marshal_with(audio_asset_schema)
+    def get(self, id, tag):
+        claims = get_jwt()
+        res = AudioAsset.query.filter_by(scenario_id=UUID(id), tag=tag,
+                                         customer_id=UUID(claims['id'])).all()
+        return res, HTTPStatus.OK
+
+    @user_or_customer_jwt_required
+    def post(self, id, tag):
+        claims = get_jwt()
+
+        if request.method == "POST":
+            print(request.files)
+        if 'file' not in request.files:
+            print('no files in request.files')
+            return 'FAILED'
+        file = request.files['file']
+        if file.name == '':
+            print("no file name")
+            return 'FAILED'
+
+        base_name = util.random_file_name()
+
+        raw_audio_path = Path(AUDIOASSET_DIR, base_name + ".webm")
+
+        with open(raw_audio_path, "wb") as dest_file:
+            dest_file.write(file.stream.read())
+
+        already_exists = AudioAsset.query.filter_by(scenario_id=UUID(id), tag=tag,
+                                         customer_id=UUID(claims['id'])).all()
+        if (already_exists == []):
+            row = AudioAsset(
+                scenario_id=UUID(id),
+                customer_id=UUID(claims["id"]),
+                path=str(raw_audio_path),
+                tag=tag
+            )
+            db.session.add(row)
+        else:
+            # delete previous recording
+            os.remove(already_exists[0].path)
+
+            # update to new path
+            row = already_exists[0]
+            row.path = str(raw_audio_path)
+        db.session.commit()
+
+        return 'OK', HTTPStatus.CREATED
+
+@ns.route("/<string:id>/audio/delete")
+@ns.response(HTTPStatus.NOT_FOUND, "Timeline not found")
+@ns.param("id", "The timeline identifier")
+class TimelineDeleteAudio(Resource):
+    @user_or_customer_jwt_required
+    @ns.marshal_with(audio_asset_schema)
+    def post(self, id):
+        stats = get_jwt()
+        customer_id = stats['id']
+        res = AudioAsset.query.filter_by(scenario_id=UUID(id), customer_id=UUID(customer_id)).all()
+        for i in res:
+            if i.path:
+                os.remove(i.path)
+            db.session.delete(i)
+        db.session.commit()

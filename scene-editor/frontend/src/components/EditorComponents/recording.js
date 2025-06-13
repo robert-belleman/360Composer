@@ -4,7 +4,6 @@ let mediaRecorder;
 
 
 export async function get_mic_rights () {
-    console.log("starting record");
     const mime = 'audio/webm';
 
     if (!MediaRecorder.isTypeSupported(mime)){
@@ -68,7 +67,6 @@ const handleOnDataAvailable = ({data}) => {
 };
 
 const handleOnStop = () => {
-    console.log("handleonstop called");
     mediaRecorder.ondataavailable = undefined;
     mediaRecorder.onstop = undefined
     mediaRecorder = undefined;
