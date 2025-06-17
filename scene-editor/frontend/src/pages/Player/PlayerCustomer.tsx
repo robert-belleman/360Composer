@@ -33,8 +33,8 @@ const PlayerCustomer: React.FC = () => {
         .catch((e:any) => console.log('error while fetching data', e));
     
     const login = (id: any, code: string) => api.post(`/api/user/customer-login`, {id, access_code: code})
-        .catch(e => console.log('error login in', e))
-        .then(res => {setLoggedIn(true); fetchTimeline();});
+        .then(res => {setLoggedIn(true); fetchTimeline();})
+        .catch(e => console.log('error logging in', e));
 
     const handleCodeChange = (event: any) => {
         setCode(event.target.value);
