@@ -1,9 +1,11 @@
-const localVideo = document.getElementById('localVideo');
+const localAudio = document.getElementById('localVideo');
 let chunks = [];
 let mediaRecorder;
 
 
-export async function get_mic_rights () {
+export async function getMicRights () {
+    // Calls upon logging in. Prevents the user from being asked for access to
+    // their microphone mid-experience.
     const mime = 'audio/webm';
 
     if (!MediaRecorder.isTypeSupported(mime)){
@@ -18,12 +20,9 @@ export async function get_mic_rights () {
         videoBitsPerSecond: 2500000
     }
 
-    const mediaStream = await getLocalMediaStream();
+    const mediaStream = await getMediaStream();
 
     mediaRecorder = new MediaRecorder(mediaStream, options);
-
-    mediaRecorder.ondataavailable = handleOnDataAvailable;
-    mediaRecorder.onstop = handleOnStop;
 };
 
 export const startRecord = async () => {
@@ -43,37 +42,40 @@ export const startRecord = async () => {
         videoBitsPerSecond: 2500000
     };
 
-    const mediaStream = await getLocalMediaStream();
-    localVideo.srcObject = mediaStream;
+    localAudio.srcObject = await getMediaStream();
 
     mediaRecorder = new MediaRecorder(mediaStream, options);
 
-    mediaRecorder.ondataavailable = handleOnDataAvailable;
-    mediaRecorder.onstop = handleOnStop;
+    mediaRecorder.ondataavailable = onData;
+    mediaRecorder.onstop = onStop;
 
     mediaRecorder.start(1200);
 };
 
-const getLocalMediaStream = async () => {
-    const mediaStream = await navigator.mediaDevices.getUserMedia({video: false, audio: true});
-
-    return mediaStream
+const getMediaStream = async () => {
+    return await navigator.mediaDevices.getUserMedia({video: false, audio: true});
 };
 
-const handleOnDataAvailable = ({data}) => {
+const onData = ({data}) => {
+    // If there is new audio data, push it to the chunks array.
     if (data.size > 0) {
         chunks.push(data);
     }
 };
 
-const handleOnStop = () => {
+const onStop = () => {
+    // Unsets all the mediaRecorder variables.
     mediaRecorder.ondataavailable = undefined;
     mediaRecorder.onstop = undefined
     mediaRecorder = undefined;
 };
 
 export const stopRecord = async (apiCallback, tag) => {
-    if (!mediaRecorder) return;
+    // If there is no mediaRecorder, return immediately.
+    if (!mediaRecorder) {
+        return;
+    }
+
     mediaRecorder.stop();
 
     const blob = new Blob(chunks,

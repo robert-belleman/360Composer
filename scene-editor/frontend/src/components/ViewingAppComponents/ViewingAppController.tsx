@@ -1,6 +1,9 @@
 /*  ViewingAppController receives one of three ids and manages their scenes. It passes down
  *  the video and annotation data of the current scene to the viewing app implementation.
  *  The implementation components then communicates the actions of the user back to the controller.
+ *
+ *  Important: currently, once the end of a scenario or timeline has been reached,
+ *  The controller will call to the API to delete all of the corresponding recordings.
  */
 import React, { useEffect, useState } from "react";
 import ViewingAppAframe from "./ViewingAppAframe";
@@ -73,7 +76,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
 
     const handleAnnotationData = (data: any) => {
-        // If a scene does not have any annotation data. Set annotation to empty array/
+        // If a scene does not have any annotation data. Set annotation to empty array.
         data.length ? setAllAnnotations(data) : setAllAnnotations([]);
                 data.length ? setCurrentAnnotations(data[0]) : setCurrentAnnotations([]);
     };
@@ -125,7 +128,10 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
 
     const deleteRecordings = async () => {
         // when the end of the scenario is reached, delete the recordings made.
-        // This is made for the experiments.
+        // This is made for the thesis experiments.
+        // Set to disabled once experiments were completed.
+        return;
+
         if (timelineId) {
             await api.post(`/api/timeline/${timelineId}/audio/delete`)
         }
@@ -161,6 +167,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         callback();
     }
 
+    // Is called once the recording is stopped. Sends a POST request to the API
+    // to store the created audio file.
     const storeAudioFile = (formdata: FormData, tag: string) => {
         if (timelineId != "") {
             api.post(`/api/timeline/${timelineId}/audio/${tag}`, formdata);
@@ -171,7 +179,8 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     }
 
     const onFinishRecording = (callback: Function, tag: string) => {
-        var result = stopRecord(storeAudioFile, tag);
+        // stop the recording.
+        stopRecord(storeAudioFile, tag);
 
         callback('OK');
         return;
@@ -238,7 +247,6 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
     useEffect(() => {
         if (sceneId) {
             fetchSceneData(sceneId);
-            // get_mic_rights();
         }
     }, [sceneId]);
 

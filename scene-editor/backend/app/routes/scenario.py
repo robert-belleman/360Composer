@@ -292,7 +292,7 @@ class ScenarioCreateAudio(Resource):
         claims = get_jwt()
         res = AudioAsset.query.filter_by(scenario_id=UUID(id), tag=tag,
                                          customer_id=UUID(claims['id'])).all()
-        return res, HTTPStatus.OK
+        return res
 
     @user_or_customer_jwt_required
     def post(self, id, tag):

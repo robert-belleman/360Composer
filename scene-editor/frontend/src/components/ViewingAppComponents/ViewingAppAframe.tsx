@@ -54,7 +54,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     // keep track of which annotation has already been reached.
     const [currentAnnot, setCurrentAnnot] = useState(0);
-    // order the annotations by timestamp
+    // ordered annotations by timestamp
     const [sortedAnnot, setSortedAnnot] = useState([0])
 
     // reset these when new scene appears
@@ -148,13 +148,16 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         var actionId;
         var annotation_index = sortedAnnot[currentAnnot];
         actionId = allAnnotations[annotation_index].options.find((option: any) => option.id === id).action.id;
+
+        // Once the next scene is selected, make sure all the states are reset.
         setCurrentAnnot(0);
         setSortedAnnot([0]);
         reset_states();
         onFinish(actionId, menuOptionCallback);
     };
 
-    const sort_annot = () => {
+    // Sorts the annotations by timestamp, and sets the SortedAnnot state.
+    const sortAnnot = () => {
         if (!allAnnotations) {
             return
         }
@@ -189,11 +192,13 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         setSortedAnnot(temp_sort);
     }
 
-    // Checks if the video has reached the annotation and opens menu.
-    // (Currently only supports the first annotation.)
+    // Checks if the video has reached an annotation and opens corresponding
+    // menu.
+    // (Currently supports all annotations, as long as there is only one 'text'
+    // type annotation.)
     const onTimeUpdate = async (time: number) => {
         if (allAnnotations) {
-            // if ((finishRec || finishPB)? time >= second_annot().timestamp - 1: time >= first_annot().timestamp - 1) {
+            // If the app has reached the current annotation.
             if (appState.videoPlaying && time >= allAnnotations[sortedAnnot[currentAnnot]].timestamp) {
                 pauseVideo();
                 setAppState({
@@ -202,6 +207,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     menuEnabled:true,
                 });
 
+                // If recording annotation and not already started recording
                 if (allAnnotations[sortedAnnot[currentAnnot]].type === 4 && !startRec) {
                     setAppState({
                         ...appState,
@@ -212,6 +218,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
                     setStartRecMenu(true)
                 };
 
+                // If playback annotation and not already started playback
                 if (allAnnotations[sortedAnnot[currentAnnot]].type === 5 && !startPB) {
                     setAppState({
                         ...appState,
@@ -231,7 +238,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     };
 
     const startRecording = () => {
-        // send api call function to javascript. let that send the file.
         setStopRecMenu(true);
         setFinishRec(false);
 
@@ -258,8 +264,8 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         startPlayback(allAnnotations[currentAnnot].tag);
     }
 
-    // set the current annotation to be next. this allows for the dialogue
-    // options.
+    // set the current annotation to be next. This allows for the dialogue
+    // options to be displayed once the next annotation is reached.
     const recordingCallback = (res: string) => {
         setFinishRec(true);
         setCurrentAnnot(currentAnnot + 1);
@@ -299,9 +305,6 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     };
 
     const reset_states = () => {
-        // setCurrentAnnot(0);
-        // setSortedAnnot([0]);
-
         setStartRecMenu(false);
         setStopRecMenu(false);
         setFinishRec(false);
@@ -351,9 +354,13 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
         }
     }, [video]);
 
-    // sorts the annotations once new ones are loaded in.
+    // sorts the annotations once new ones are loaded in. This ensures the
+    // indexing of the annotations is based on their timestamp.
     useEffect(() => {
-        sort_annot();
+        // Only sort the annotations if there are any.
+        if (allAnnotations) {
+            sortAnnot();
+        }
     }, [allAnnotations])
 
     useEffect(() => {
