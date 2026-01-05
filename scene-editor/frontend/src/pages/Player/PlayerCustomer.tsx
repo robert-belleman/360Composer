@@ -7,7 +7,7 @@ import { Button, Container, Grid, TextField } from '@mui/material';
 import ViewingAppController from '../../components/ViewingAppComponents/ViewingAppController';
 import { api } from '../../util/api';
 
-import { get_mic_rights } from '../../components/EditorComponents/recording';
+import { getMicRights } from '../../components/EditorComponents/recording';
 
 const INITIAL_TIMELINE = {
     id: "",
@@ -34,7 +34,7 @@ const PlayerCustomer: React.FC = () => {
         .then(() => setLoadingTimeline(false))
         .catch((e:any) => console.log('error while fetching data', e));
 
-    const login = (id: any, code: string) => {get_mic_rights(); api.post(`/api/user/customer-login`, {id, access_code: code})
+    const login = (id: any, code: string) => {getMicRights(); api.post(`/api/user/customer-login`, {id, access_code: code})
         .catch(e => console.log('error login in', e))
         .then(res => {setLoggedIn(true); fetchTimeline();});}
 

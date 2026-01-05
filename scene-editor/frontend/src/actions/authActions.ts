@@ -4,7 +4,7 @@ import { logIn as loginAPI,
          logOut as logOutAPI,
          fetchToken } from '../util/api';
 
-import { get_mic_rights } from '../components/EditorComponents/recording';
+import { getMicRights } from '../components/EditorComponents/recording';
 
 export const setToken = (token: any) => ({
   type: SET_TOKEN,
@@ -20,7 +20,7 @@ export const logIn = (username:string, password:string) => (dispatch:any) => {
   loginAPI(username, password).then((res) => {
       const token = res.data;
       dispatch(setToken({id: token.id, role: token.role}));
-      get_mic_rights();
+      getMicRights();
     })
     .catch((e) => {
       console.log(e);
@@ -32,7 +32,7 @@ export const logInCustomer = (id:string, access_code:string) => (dispatch:any) =
   loginCustomerAPI(id, access_code).then((res) => {
       const token = res.data;
       dispatch(setToken({id: token.id, role: token.role}));
-      get_mic_rights();
+      getMicRights();
     })
     .catch((e) => {
       console.log(e);
