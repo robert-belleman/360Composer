@@ -44,7 +44,7 @@ export const startRecord = async () => {
 
     localAudio.srcObject = await getMediaStream();
 
-    mediaRecorder = new MediaRecorder(mediaStream, options);
+    mediaRecorder = new MediaRecorder(localAudio.srcObject, options);
 
     mediaRecorder.ondataavailable = onData;
     mediaRecorder.onstop = onStop;

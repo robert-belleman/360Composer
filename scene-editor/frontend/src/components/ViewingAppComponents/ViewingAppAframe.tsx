@@ -158,7 +158,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
     // Sorts the annotations by timestamp, and sets the SortedAnnot state.
     const sortAnnot = () => {
-        if (!allAnnotations) {
+        if (allAnnotations.length == 0) {
             return
         }
 
@@ -197,7 +197,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     // (Currently supports all annotations, as long as there is only one 'text'
     // type annotation.)
     const onTimeUpdate = async (time: number) => {
-        if (allAnnotations) {
+        if (allAnnotations.length > 0) {
             // If the app has reached the current annotation.
             if (appState.videoPlaying && time >= allAnnotations[sortedAnnot[currentAnnot]].timestamp) {
                 pauseVideo();
@@ -358,7 +358,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
     // indexing of the annotations is based on their timestamp.
     useEffect(() => {
         // Only sort the annotations if there are any.
-        if (allAnnotations) {
+        if (allAnnotations.length > 0) {
             sortAnnot();
         }
     }, [allAnnotations])
@@ -434,7 +434,7 @@ const ViewingAppAframe: React.FC<ViewingAppAframeProps> = ({video, offline, anno
 
             {appState.ended ? <EndMenu onEnd={replay}/> : null}
 
-            {allAnnotations[sortedAnnot[currentAnnot]].type === 0 && appState.menuEnabled && appState.started && !appState.ended && !appState.videoPlaying?
+            {allAnnotations.length > 0 && allAnnotations[sortedAnnot[currentAnnot]].type === 0 && appState.menuEnabled && appState.started && !appState.ended && !appState.videoPlaying?
                 <Menu
                             annotations={allAnnotations[sortedAnnot[currentAnnot]]}
                             enabled={appState.menuEnabled && appState.started && !appState.ended}
