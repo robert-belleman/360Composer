@@ -40,7 +40,7 @@ const EndPlaybackgMenu: React.FC<StopPBProps> = ({onClick}:StopPBProps) => {
 
     return (
         <Entity
-                position={{ x: position.x, y: position.y, z: position.z }}
+                position={{ x: position.x, y: (position.y - 1/4), z: position.z }}
                 rotation={{ x: 0, y: rotation.y, z: 0 }}
         >
             <Entity position={{x: 0, y: 1/4+(-1)/2/4, z: 0}}>

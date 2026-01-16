@@ -130,7 +130,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         // when the end of the scenario is reached, delete the recordings made.
         // This is made for the thesis experiments.
         // Set to disabled once experiments were completed.
-        return;
+        // return;
 
         if (timelineId) {
             await api.post(`/api/timeline/${timelineId}/audio/delete`)
@@ -201,7 +201,7 @@ const ViewingAppController: React.FC<ViewingAppControllerProps> = ({sceneId="", 
         if (!actionId && onFinish) {onFinish(); return; }
         // If only playing scene reload scene
         if (!onFinish && sceneId) {
-            deleteRecordings();
+            // deleteRecordings();
             callback('end');
             return;
         }

@@ -34,13 +34,13 @@ const EndRecordingMenu: React.FC<StopRecProps> = ({onClick}:StopRecProps) => {
         setRotation(camera.getAttribute('rotation'));
     }, []);
 
-    // calculates the position where the menu should be placed/
+    // calculates the position where the menu should be placed/ lower the stop button
     const m = new Matrix4().makeTranslation(0,0,0);
     let position = new Vector3(-2 * Math.sin(degToRad(rotation.y)), 1.6, -2 * Math.cos(degToRad(rotation.y))).applyMatrix4(m);
 
     return (
         <Entity
-                position={{ x: position.x, y: position.y, z: position.z }}
+                position={{ x: position.x, y: (position.y - 1/4), z: position.z }}
                 rotation={{ x: 0, y: rotation.y, z: 0 }}
         >
             <Entity position={{x: 0, y: 1/4+(-1)/2/4, z: 0}}>

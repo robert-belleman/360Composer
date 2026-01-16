@@ -66,6 +66,6 @@ services:
         target: /audio_assets
         read_only: false
     ports:
-      - 18080:8080
+      - 8025:8080
     restart: unless-stopped
 
